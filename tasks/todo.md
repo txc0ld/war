@@ -7,6 +7,7 @@
 ## Current Task
 - [completed] Map redesign: replace low-fidelity world map geometry and styling with a production-quality interactive global surface
 - [completed] Demo mode: bypass wallet/NFT requirements with local demo guns and a mocked battle flow
+- [in-progress] Vercel deployment: publish the demo web app from the monorepo with explicit build/output settings and a self-contained demo leaderboard
 
 ## Plan
 - [completed] CRIT-001: Signed queue auth and onchain ownership verification

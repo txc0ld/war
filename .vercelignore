@@ -1,0 +1,4 @@
+apps/api/**
+packages/shared/dist/**
+tasks/**
+warpath-*.png

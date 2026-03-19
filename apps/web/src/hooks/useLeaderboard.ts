@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getLeaderboard } from '@/lib/api';
+import { DEMO_LEADERBOARD, DEMO_MODE } from '@/lib/demo';
 import type { LeaderboardEntry } from '@warpath/shared';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -16,6 +17,8 @@ export function useLeaderboard(
   limit?: number,
   offset?: number,
 ): UseLeaderboardResult {
+  const normalizedLimit = limit ?? 50;
+  const normalizedOffset = offset ?? 0;
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -23,9 +26,22 @@ export function useLeaderboard(
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setError(null);
+      setTotal(DEMO_LEADERBOARD.length);
+      setEntries(
+        DEMO_LEADERBOARD.slice(
+          normalizedOffset,
+          normalizedOffset + normalizedLimit,
+        ),
+      );
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setError(null);
-      const result = await getLeaderboard(limit, offset);
+      const result = await getLeaderboard(normalizedLimit, normalizedOffset);
       setEntries(result.entries);
       setTotal(result.total);
     } catch (err) {
@@ -35,11 +51,15 @@ export function useLeaderboard(
     } finally {
       setIsLoading(false);
     }
-  }, [limit, offset]);
+  }, [normalizedLimit, normalizedOffset]);
 
   useEffect(() => {
     setIsLoading(true);
     void fetchData();
+
+    if (DEMO_MODE) {
+      return;
+    }
 
     intervalRef.current = setInterval(() => {
       void fetchData();

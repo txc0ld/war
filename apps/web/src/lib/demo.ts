@@ -1,4 +1,4 @@
-import type { Battle, GunMetadata } from '@warpath/shared';
+import type { Battle, GunMetadata, LeaderboardEntry } from '@warpath/shared';
 import { getStatsForToken, resolveBattle } from '@warpath/shared';
 
 export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -52,6 +52,49 @@ export const DEMO_GUNS: GunMetadata[] = [
   createDemoGun(9102, 'Signal Runner', '#CCFF00', '#7AFF7A'),
   createDemoGun(9103, 'Night Relay', '#FF6A3D', '#FFB56A'),
   createDemoGun(9104, 'Prism Array', '#FF4FD8', '#7D8BFF'),
+];
+
+export const DEMO_LEADERBOARD: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    address: '0x8ad0c0000000000000000000000000000000c001',
+    score: 2840,
+    wins: 42,
+    losses: 9,
+    gunCount: 3,
+  },
+  {
+    rank: 2,
+    address: '0x8ad0c0000000000000000000000000000000c004',
+    score: 2715,
+    wins: 38,
+    losses: 11,
+    gunCount: 2,
+  },
+  {
+    rank: 3,
+    address: DEMO_PLAYER_ADDRESS,
+    score: 2630,
+    wins: 35,
+    losses: 12,
+    gunCount: 4,
+  },
+  {
+    rank: 4,
+    address: '0x8ad0c0000000000000000000000000000000c002',
+    score: 2510,
+    wins: 31,
+    losses: 14,
+    gunCount: 2,
+  },
+  {
+    rank: 5,
+    address: '0x8ad0c0000000000000000000000000000000c003',
+    score: 2445,
+    wins: 28,
+    losses: 16,
+    gunCount: 1,
+  },
 ];
 
 const DEMO_OPPONENTS = [
