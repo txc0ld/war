@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Rubik+Glitch&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-body: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    --font-heading: 'Rubik Glitch', 'JetBrains Mono', monospace;
+    --rk-fonts-body: var(--font-body);
+  }
+
+  html {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary;
+    font-family: var(--font-body);
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  h1.font-mono,
+  h2.font-mono,
+  h3.font-mono,
+  h4.font-mono,
+  h5.font-mono,
+  h6.font-mono {
+    font-family: var(--font-heading) !important;
+    font-weight: 400;
+  }
+
+  :where(:not(h1, h2, h3, h4, h5, h6)).font-mono {
+    font-family: var(--font-body) !important;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2A2A2A #000000;
+  }
+}

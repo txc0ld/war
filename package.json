@@ -1,0 +1,27 @@
+{
+  "name": "warpath",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "db:migrate": "pnpm --filter @warpath/api run db:migrate",
+    "dev:web": "pnpm --filter @warpath/web dev",
+    "dev:api": "pnpm --filter @warpath/api dev",
+    "dev": "pnpm run --parallel dev:web dev:api",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm --filter @warpath/shared exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/api exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bufferutil",
+      "esbuild",
+      "keccak",
+      "utf-8-validate"
+    ]
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules
+dist
+apps/web/dist/
+apps/api/dist/
+packages/shared/dist/
+public/
+.env
+.env.local
+*.log
+.DS_Store
