@@ -7,7 +7,7 @@
 ## Current Task
 - [completed] Map redesign: replace low-fidelity world map geometry and styling with a production-quality interactive global surface
 - [completed] Demo mode: bypass wallet/NFT requirements with local demo guns and a mocked battle flow
-- [in-progress] Vercel deployment: publish the demo web app from the monorepo with explicit build/output settings and a self-contained demo leaderboard
+- [completed] Vercel deployment: publish the demo web app from the monorepo with explicit build/output settings and a self-contained demo leaderboard
 
 ## Plan
 - [completed] CRIT-001: Signed queue auth and onchain ownership verification
@@ -55,3 +55,4 @@
 - Hover callout containment: Increased the map callout box width and made long country names split across two lines inside the SVG label container so hover text no longer spills outside the box.
 - Hover callout vertical fit: Increased the callout box height and anchored the code/name/status baselines from the box itself so short names like Nigeria keep the status line fully inside the container as well.
 - Victor overlay parity: Updated the victor result overlay to use the same centered-gif presentation model as the defeated overlay instead of a full-screen background gif, keeping both result states visually consistent.
+- Vercel deployment: Added explicit root `vercel.json`/`.vercelignore` monorepo config, made the demo leaderboard self-contained in the frontend, switched API base fallback to same-origin, removed tracked `tsbuildinfo` artifacts, and published the live demo to `https://warpathdemo.vercel.app/`. Verified with `pnpm run typecheck`, a clean shared+web production build after deleting `packages/shared/dist`, Git push to `origin/main`, and a successful Vercel production deployment.
