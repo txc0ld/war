@@ -1,14 +1,20 @@
 import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
 import { useMemo, useState } from 'react';
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
-import { feature } from 'topojson-client';
+import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
+import landAtlas from 'world-atlas/land-110m.json';
 import { COUNTRIES, NETWORK_LINKS } from '@/data/countries';
 import { useStore } from '@/store';
 
-interface AtlasTopology {
+interface CountriesTopology {
   objects: {
     countries: object;
+  };
+}
+
+interface LandTopology {
+  objects: {
     land: object;
   };
 }
@@ -36,11 +42,15 @@ function splitCalloutName(name: string): string[] {
   return [words.slice(0, midpoint).join(' '), words.slice(midpoint).join(' ')];
 }
 
-const atlas = countriesAtlas as unknown as AtlasTopology;
-const landFeature = feature(atlas as never, atlas.objects.land as never) as Feature<Geometry>;
+const countriesTopology = countriesAtlas as unknown as CountriesTopology;
+const landTopology = landAtlas as unknown as LandTopology;
+const landFeature = feature(
+  landTopology as never,
+  landTopology.objects.land as never
+) as Feature<Geometry>;
 const collection = feature(
-  atlas as never,
-  atlas.objects.countries as never
+  countriesTopology as never,
+  countriesTopology.objects.countries as never
 ) as unknown as FeatureCollection<Geometry, GeoJsonProperties>;
 
 const projection = geoNaturalEarth1().fitExtent(
@@ -52,7 +62,16 @@ const projection = geoNaturalEarth1().fitExtent(
 );
 
 const pathGenerator = geoPath(projection);
+const landPath = pathGenerator(landFeature) ?? '';
 const graticulePath = pathGenerator(geoGraticule10()) ?? '';
+const bordersPath =
+  pathGenerator(
+    mesh(
+      countriesTopology as never,
+      countriesTopology.objects.countries as never,
+      (a, b) => a !== b
+    ) as never
+  ) ?? '';
 
 const PROJECTED_COUNTRIES: ProjectedCountry[] = COUNTRIES.flatMap((country) => {
   const match = collection.features.find(
@@ -165,7 +184,9 @@ export function WorldMap(): React.ReactNode {
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
         <rect width="1400" height="768" fill="#FFFFFF" />
+        <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />
+        <path d={bordersPath} className="world-map__borders" />
         {networkRoutes.map((connection) => (
           <path
             key={connection.key}
