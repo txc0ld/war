@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
-import { COUNTRIES } from '@/data/countries';
+import { COUNTRIES, NETWORK_LINKS } from '@/data/countries';
 import { useStore } from '@/store';
 
 interface AtlasTopology {
@@ -92,6 +92,14 @@ function getCalloutPosition(x: number, y: number) {
   };
 }
 
+function createArcPath(start: ProjectedCountry, end: ProjectedCountry) {
+  const arc = Math.max(26, Math.abs(end.x - start.x) * 0.08);
+  const midX = (start.x + end.x) / 2;
+  const midY = Math.min(start.y, end.y) - arc;
+
+  return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+}
+
 export function WorldMap(): React.ReactNode {
   const {
     selectedCountry,
@@ -126,18 +134,45 @@ export function WorldMap(): React.ReactNode {
       return null;
     }
 
-    const arc = Math.max(56, Math.abs(end.x - start.x) * 0.18);
-    const midX = (start.x + end.x) / 2;
-    const midY = Math.min(start.y, end.y) - arc;
-
-    return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
+    return createArcPath(start, end);
   }, [opponentCountry, selectedCountry]);
+
+  const networkRoutes = useMemo(
+    () =>
+      NETWORK_LINKS.flatMap(([startCode, endCode]) => {
+        const start = COUNTRY_MAP.get(startCode);
+        const end = COUNTRY_MAP.get(endCode);
+
+        if (!start || !end) {
+          return [];
+        }
+
+        return [
+          {
+            key: `${startCode}-${endCode}`,
+            d: createArcPath(start, end),
+            active:
+              route !== null &&
+              ((selectedCountry === startCode && opponentCountry?.code === endCode) ||
+                (selectedCountry === endCode && opponentCountry?.code === startCode)),
+          },
+        ];
+      }),
+    [opponentCountry?.code, route, selectedCountry]
+  );
 
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
         <rect width="1400" height="768" fill="#FFFFFF" />
         <path d={graticulePath} className="world-map__graticule" />
+        {networkRoutes.map((connection) => (
+          <path
+            key={connection.key}
+            d={connection.d}
+            className={`world-map__network-line ${connection.active ? 'world-map__network-line--active' : ''}`}
+          />
+        ))}
 
         {PROJECTED_COUNTRIES.map((country) => {
           const isSelected = selectedCountry === country.code;
@@ -162,12 +197,20 @@ export function WorldMap(): React.ReactNode {
                   }
                 }}
               />
-              <circle
-                cx={country.x}
-                cy={country.y}
-                r={isSelected ? 8 : 5}
-                className={`world-map__marker ${isSelected ? 'world-map__marker--selected' : ''}`}
-              />
+              <g className={`world-map__marker-cluster ${isSelected ? 'world-map__marker-cluster--selected' : ''}`}>
+                <circle
+                  cx={country.x}
+                  cy={country.y}
+                  r={isSelected ? 15 : 10}
+                  className={`world-map__marker-pulse ${isSelected ? 'world-map__marker-pulse--selected' : ''}`}
+                />
+                <circle
+                  cx={country.x}
+                  cy={country.y}
+                  r={isSelected ? 8 : 5}
+                  className={`world-map__marker ${isSelected ? 'world-map__marker--selected' : ''}`}
+                />
+              </g>
             </g>
           );
         })}
@@ -175,12 +218,20 @@ export function WorldMap(): React.ReactNode {
         {route && <path d={route} className="world-map__route" />}
 
         {opponentCountry && phase !== 'idle' && (
-          <circle
-            cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
-            cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
-            r={8}
-            className="world-map__marker world-map__marker--active"
-          />
+          <g className="world-map__marker-cluster world-map__marker-cluster--active">
+            <circle
+              cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
+              cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
+              r={16}
+              className="world-map__marker-pulse world-map__marker-pulse--active"
+            />
+            <circle
+              cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
+              cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
+              r={8}
+              className="world-map__marker world-map__marker--active"
+            />
+          </g>
         )}
 
         {activeData && (() => {

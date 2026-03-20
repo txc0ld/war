@@ -368,23 +368,55 @@ img {
 .world-map__marker {
   fill: var(--black);
   pointer-events: none;
-  animation: markerPulse 3.2s ease-in-out infinite;
   transform-origin: center;
+}
+
+.world-map__marker-cluster {
+  pointer-events: none;
+}
+
+.world-map__marker-pulse {
+  fill: none;
+  stroke: rgba(10, 10, 10, 0.34);
+  stroke-width: 1;
+  opacity: 0;
+  animation: markerHaloPulse 3.8s ease-out infinite;
+  transform-origin: center;
+}
+
+.world-map__marker-pulse--selected,
+.world-map__marker-pulse--active {
+  stroke: rgba(255, 0, 0, 0.52);
+  animation-duration: 2.2s;
 }
 
 .world-map__marker--selected,
 .world-map__marker--active {
   fill: var(--red);
-  animation-duration: 1.8s;
+  animation: markerPulse 2.2s ease-in-out infinite;
+}
+
+.world-map__network-line {
+  fill: none;
+  stroke: rgba(10, 10, 10, 0.18);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.world-map__network-line--active {
+  stroke: rgba(10, 10, 10, 0.58);
+  animation: networkLinePulse 2.4s ease-in-out infinite;
 }
 
 .world-map__route {
   fill: none;
-  stroke: rgba(10, 10, 10, 0.72);
-  stroke-width: 1;
-  stroke-dasharray: 6 8;
+  stroke: rgba(10, 10, 10, 0.78);
+  stroke-width: 1.4;
+  stroke-dasharray: 8 10;
   vector-effect: non-scaling-stroke;
-  animation: routeTravel 10s linear infinite;
+  opacity: 0.92;
+  animation: networkLinePulse 2.2s ease-in-out infinite;
 }
 
 .world-map__callout-box {
@@ -1087,16 +1119,31 @@ img {
   }
   50% {
     opacity: 1;
-    transform: scale(1.18);
+    transform: scale(1.12);
   }
 }
 
-@keyframes routeTravel {
-  from {
-    stroke-dashoffset: 0;
+@keyframes markerHaloPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
   }
-  to {
-    stroke-dashoffset: -140;
+  20% {
+    opacity: 0.42;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes networkLinePulse {
+  0%,
+  100% {
+    opacity: 0.34;
+  }
+  50% {
+    opacity: 0.92;
   }
 }
 
