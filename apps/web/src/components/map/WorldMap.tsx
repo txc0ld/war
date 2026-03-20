@@ -240,7 +240,7 @@ export function WorldMap(): React.ReactNode {
           const boxHeight = nameLines.length > 1 ? 102 : 88;
           const stateY = position.boxY + (nameLines.length > 1 ? 88 : 74);
           return (
-            <g aria-hidden="true">
+            <g aria-hidden="true" className="world-map__callout">
               <path
                 d={`M ${activeData.x} ${activeData.y} L ${position.lineX} ${position.lineY}`}
                 className="world-map__callout-line"
