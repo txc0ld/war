@@ -148,7 +148,17 @@ export function BattleEngine({
               transition={{ duration: 0.2 }}
             />
           </div>
-          <p className="warpath-battle-readout">Playback {progress.toFixed(0)}%</p>
+          <p className="warpath-battle-readout">{progress.toFixed(0)}% Complete</p>
+        </div>
+
+        <div className="warpath-battle-stage__status">
+          <p className="warpath-battle-stage__side warpath-battle-stage__side--left">
+            {leftLabel}
+          </p>
+          <p className={eventTone}>{eventLabel}</p>
+          <p className="warpath-battle-stage__side warpath-battle-stage__side--right">
+            {rightLabel}
+          </p>
         </div>
 
         <div className="warpath-battle-arena">
@@ -200,18 +210,7 @@ export function BattleEngine({
               animate={{ opacity: [0.3, 0.7, 0.3] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />
-            {currentEvent ? (
-              <motion.p
-                key={`${currentTick}-${currentEvent}`}
-                className={eventTone}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {eventLabel}
-              </motion.p>
-            ) : null}
-            <p className="warpath-battle-readout">Live combat playback</p>
+            <p className="warpath-battle-center__stamp">Engaged</p>
             <motion.div
               className="warpath-battle-divider"
               animate={{ opacity: [0.3, 0.7, 0.3] }}

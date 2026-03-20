@@ -91,76 +91,78 @@ export function GameOverlay(): React.ReactNode {
 
   return (
     <>
-      <div className="warpath-map-surface-overlay">
-        {selectedCountry || error ? (
-          <div className="warpath-battle-hud">
-            {selectedCountry ? (
-              <div className="warpath-status-card">
-                <div className="warpath-status-card__rule" />
-                <p className="warpath-status-card__eyebrow">Deploy Zone</p>
-                <p className="warpath-status-card__country">{countryName}</p>
-                <p
-                  className={`warpath-status-card__sector warpath-status-card__sector--${
-                    selectedCountryData?.side === 'right' ? 'right' : 'left'
-                  }`}
-                >
-                  {selectedCountryData?.side === 'right' ? 'Right Sector' : 'Left Sector'}
-                </p>
-                {selectedGun ? (
-                  <div className="warpath-status-card__split">
-                    <p className="warpath-status-card__label">Weapon</p>
-                    <p className="warpath-status-card__gun">{selectedGun.name}</p>
-                    <div className="warpath-status-card__stats">
-                      <div className="warpath-status-stat">
-                        <span className="warpath-status-stat__label">DMG</span>
-                        <span className="warpath-status-stat__value warpath-status-stat__value--damage">
-                          {selectedGun.stats.damage}
-                        </span>
-                      </div>
-                      <div className="warpath-status-stat">
-                        <span className="warpath-status-stat__label">DDG</span>
-                        <span className="warpath-status-stat__value warpath-status-stat__value--dodge">
-                          {selectedGun.stats.dodge}
-                        </span>
-                      </div>
-                      <div className="warpath-status-stat">
-                        <span className="warpath-status-stat__label">SPD</span>
-                        <span className="warpath-status-stat__value warpath-status-stat__value--speed">
-                          {selectedGun.stats.speed}
-                        </span>
+      {phase === 'idle' ? (
+        <div className="warpath-map-surface-overlay">
+          {selectedCountry || error ? (
+            <div className="warpath-battle-hud">
+              {selectedCountry ? (
+                <div className="warpath-status-card">
+                  <div className="warpath-status-card__rule" />
+                  <p className="warpath-status-card__eyebrow">Deploy Zone</p>
+                  <p className="warpath-status-card__country">{countryName}</p>
+                  <p
+                    className={`warpath-status-card__sector warpath-status-card__sector--${
+                      selectedCountryData?.side === 'right' ? 'right' : 'left'
+                    }`}
+                  >
+                    {selectedCountryData?.side === 'right' ? 'Right Sector' : 'Left Sector'}
+                  </p>
+                  {selectedGun ? (
+                    <div className="warpath-status-card__split">
+                      <p className="warpath-status-card__label">Weapon</p>
+                      <p className="warpath-status-card__gun">{selectedGun.name}</p>
+                      <div className="warpath-status-card__stats">
+                        <div className="warpath-status-stat">
+                          <span className="warpath-status-stat__label">DMG</span>
+                          <span className="warpath-status-stat__value warpath-status-stat__value--damage">
+                            {selectedGun.stats.damage}
+                          </span>
+                        </div>
+                        <div className="warpath-status-stat">
+                          <span className="warpath-status-stat__label">DDG</span>
+                          <span className="warpath-status-stat__value warpath-status-stat__value--dodge">
+                            {selectedGun.stats.dodge}
+                          </span>
+                        </div>
+                        <div className="warpath-status-stat">
+                          <span className="warpath-status-stat__label">SPD</span>
+                          <span className="warpath-status-stat__value warpath-status-stat__value--speed">
+                            {selectedGun.stats.speed}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+                  ) : null}
+                </div>
+              ) : null}
 
-            {selectedCountry && selectedGun && phase === 'idle' ? (
-              <button type="button" className="warpath-action" onClick={handleFight}>
-                Enter Battle
-              </button>
-            ) : null}
+              {selectedCountry && selectedGun ? (
+                <button type="button" className="warpath-action" onClick={handleFight}>
+                  Enter Battle
+                </button>
+              ) : null}
 
-            {error ? (
-              <div className="warpath-error-card">
-                <p>{error}</p>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        {!selectedCountry && phase === 'idle' ? (
-          <div className="warpath-idle-prompt">
-            <div className="warpath-map-brief">
-              <p className="warpath-map-brief__eyebrow">Global Deployment Grid</p>
-              <p className="warpath-map-brief__title">Choose a country, open the armory, and enter the bracket.</p>
+              {error ? (
+                <div className="warpath-error-card">
+                  <p>{error}</p>
+                </div>
+              ) : null}
             </div>
-            <div className="warpath-idle-prompt__pill">
-              <p className="warpath-idle-prompt__copy">Select a country to deploy</p>
+          ) : null}
+
+          {!selectedCountry ? (
+            <div className="warpath-idle-prompt">
+              <div className="warpath-map-brief">
+                <p className="warpath-map-brief__eyebrow">Global Deployment Grid</p>
+                <p className="warpath-map-brief__title">Choose a country, open the armory, and enter the bracket.</p>
+              </div>
+              <div className="warpath-idle-prompt__pill">
+                <p className="warpath-idle-prompt__copy">Select a country to deploy</p>
+              </div>
             </div>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <AnimatePresence mode="wait">
         {phase === 'matching' ? (

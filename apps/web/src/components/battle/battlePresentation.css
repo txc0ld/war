@@ -334,12 +334,14 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  gap: 1.5rem;
-  width: min(1180px, 100%);
-  height: 100%;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: min(1040px, 100%);
+  max-height: calc(100dvh - var(--header-height) - 2rem);
   margin: 0 auto;
   padding: 1.25rem;
+  overflow: auto;
+  align-content: start;
   animation: warpathPanelRise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -348,7 +350,32 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
-  grid-column: 1 / 2;
+}
+
+.warpath-battle-stage__status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.warpath-battle-stage__side {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.warpath-battle-stage__side--left {
+  text-align: left;
+  color: var(--blue);
+}
+
+.warpath-battle-stage__side--right {
+  text-align: right;
+  color: var(--red);
 }
 
 .warpath-battle-progress {
@@ -367,22 +394,28 @@
 
 .warpath-battle-arena {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 120px minmax(0, 1fr);
+  gap: 1rem;
   align-items: center;
   min-height: 0;
-  grid-column: 1 / 2;
 }
 
 .warpath-battle-sidebar {
-  grid-column: 2 / 3;
-  grid-row: 1 / span 2;
   min-height: 0;
+}
+
+.warpath-battle-sidebar .warpath-chat-panel--embedded {
+  min-height: 0;
+  height: clamp(8.5rem, 18vh, 10.5rem);
+}
+
+.warpath-battle-sidebar .warpath-chat-input {
+  display: none;
 }
 
 .warpath-battle-center {
   display: grid;
-  gap: 1rem;
+  gap: 0.8rem;
   justify-items: center;
   text-align: center;
 }
@@ -395,10 +428,11 @@
 
 .warpath-battle-event {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .warpath-battle-event--impact {
@@ -433,7 +467,7 @@
 
 .warpath-gun-card {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   transition: transform 220ms ease;
 }
 
@@ -443,8 +477,8 @@
 
 .warpath-gun-card__plate {
   display: grid;
-  gap: 0.9rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 0.9rem;
   border: 1px solid var(--border);
   background: rgba(10, 13, 10, 0.96);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
@@ -468,9 +502,9 @@
 .warpath-gun-card__name {
   margin: 0;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -490,7 +524,7 @@
 }
 
 .warpath-gun-frame__image {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
 }
 
 .warpath-gun-frame__image img {
@@ -681,6 +715,15 @@
   gap: 0.75rem;
 }
 
+.warpath-battle-center__stamp {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .warpath-result-stack--defeat {
   width: min(100%, 25rem);
 }
@@ -722,13 +765,8 @@
 }
 
 @media (max-width: 1120px) {
-  .warpath-battle-stage {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 29vw);
-    gap: 1rem;
-  }
-
   .warpath-battle-arena {
-    grid-template-columns: minmax(0, 1fr) 132px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 108px minmax(0, 1fr);
     gap: 1rem;
   }
 }
@@ -746,13 +784,6 @@
     grid-template-columns: 1fr;
   }
 
-  .warpath-battle-stage__topline,
-  .warpath-battle-arena,
-  .warpath-battle-sidebar {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
   .warpath-battle-center {
     order: -1;
   }
@@ -760,6 +791,16 @@
   .warpath-battle-divider {
     width: 100px;
     height: 1px;
+  }
+
+  .warpath-battle-stage__status {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .warpath-battle-stage__side--left,
+  .warpath-battle-stage__side--right {
+    text-align: center;
   }
 }
 
@@ -911,7 +952,11 @@
   }
 
   .warpath-battle-sidebar {
-    max-height: min(10.5rem, 23vh);
+    max-height: none;
+  }
+
+  .warpath-battle-sidebar .warpath-chat-panel--embedded {
+    height: clamp(7rem, 17vh, 8.75rem);
   }
 
   .warpath-gun-card,
@@ -934,6 +979,10 @@
   .warpath-battle-event {
     font-size: 0.84rem;
     letter-spacing: 0.14em;
+  }
+
+  .warpath-battle-stage__status {
+    gap: 0.55rem;
   }
 
   .warpath-battle-readout,

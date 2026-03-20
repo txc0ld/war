@@ -199,6 +199,7 @@ export function WorldMap(): React.ReactNode {
     startViewBox: DEFAULT_VIEWBOX,
   });
   const suppressClickRef = useRef(false);
+  const showMapControls = phase === 'idle' && !showGunSelector;
 
   const getRatiosFromClientPoint = useCallback((point: PointerPoint) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -515,17 +516,19 @@ export function WorldMap(): React.ReactNode {
 
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
-      <div className="world-map__controls" aria-label="Map zoom controls">
-        <button type="button" className="world-map__control" onClick={() => handleZoomButton('in')} aria-label="Zoom in">
-          +
-        </button>
-        <button type="button" className="world-map__control" onClick={() => handleZoomButton('out')} aria-label="Zoom out">
-          -
-        </button>
-        <button type="button" className="world-map__control world-map__control--reset" onClick={handleReset} aria-label="Reset map position">
-          Reset
-        </button>
-      </div>
+      {showMapControls ? (
+        <div className="world-map__controls" aria-label="Map zoom controls">
+          <button type="button" className="world-map__control" onClick={() => handleZoomButton('in')} aria-label="Zoom in">
+            +
+          </button>
+          <button type="button" className="world-map__control" onClick={() => handleZoomButton('out')} aria-label="Zoom out">
+            -
+          </button>
+          <button type="button" className="world-map__control world-map__control--reset" onClick={handleReset} aria-label="Reset map position">
+            Reset
+          </button>
+        </div>
+      ) : null}
       <svg
         ref={svgRef}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
