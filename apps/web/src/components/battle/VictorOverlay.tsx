@@ -32,9 +32,9 @@ export function VictorOverlay({
         transition={{ duration: 0.3 }}
         onClick={dismiss}
       >
-        <div className="warpath-result-panel">
+        <div className="warpath-result-panel warpath-result-panel--victory">
           <p className="warpath-result-kicker">Battle resolved</p>
-          <div className="warpath-result-stack">
+          <div className="warpath-result-stack warpath-result-stack--victory">
             <motion.h1
               className="warpath-result-title warpath-result-title--victory"
               initial={{ scale: 3, opacity: 0 }}
