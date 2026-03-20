@@ -601,6 +601,7 @@ img {
 }
 
 .vs-screen__headline--slam {
+  color: var(--red);
   animation: vsSlam 700ms ease forwards;
 }
 
