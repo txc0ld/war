@@ -1,16 +1,35 @@
+import './chatPanel.css';
+
 export interface ChatMessageProps {
   address: string;
   message: string;
-  color: string;
+  timestamp?: number;
 }
 
-export function ChatMessage({ address, message, color }: ChatMessageProps) {
+export function ChatMessage({
+  address,
+  message,
+  timestamp,
+}: ChatMessageProps) {
+  const timeLabel =
+    typeof timestamp === 'number'
+      ? new Date(timestamp * 1000).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : null;
+
   return (
-    <div className="flex gap-2 font-mono text-xs leading-relaxed">
-      <span className="shrink-0 font-semibold" style={{ color }}>
-        {address}
-      </span>
-      <span className="text-text-secondary break-words">{message}</span>
+    <div className="warpath-chat-message">
+      <div className="warpath-chat-message__topline">
+        <span className="warpath-chat-address">
+          {address}
+        </span>
+        {timeLabel ? (
+          <span className="warpath-chat-timestamp">{timeLabel}</span>
+        ) : null}
+      </div>
+      <p className="warpath-chat-copy">{message}</p>
     </div>
   );
 }

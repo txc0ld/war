@@ -8,6 +8,9 @@
 - [completed] Map redesign: replace low-fidelity world map geometry and styling with a production-quality interactive global surface
 - [completed] Demo mode: bypass wallet/NFT requirements with local demo guns and a mocked battle flow
 - [completed] Vercel deployment: publish the demo web app from the monorepo with explicit build/output settings and a self-contained demo leaderboard
+- [completed] War Path data refresh: add a frontend 101-gun registry, tier/type metadata, and a 20-country world-map dataset under `apps/web/src` without touching UI components
+- [completed] Four-color frontend rewrite: rebuild the web app around the white/black/red/blue design system, pure CSS presentation, and the requested connect → map → gun select → matching → VS → battle → victory/defeat state machine
+- [completed] Battle presentation rewrite: rebuild `apps/web/src/components/battle` and `apps/web/src/components/chat` with local CSS classes only, War Path gun-frame styling, battle HUD/playback, and victory/defeat overlays without touching routes, stores, map, data modules, or global CSS
 
 ## Plan
 - [completed] CRIT-001: Signed queue auth and onchain ownership verification
@@ -26,6 +29,20 @@
 - [completed] LOW-001: Remove duplicate/generated asset drift
 - [completed] LOW-002: Prune orphaned web modules
 - [completed] LOW-003: Align typography/theme system
+- [completed] DATA-001: Add normalized War Path gun registry and tier/type metadata modules in `apps/web/src/data`
+- [completed] DATA-002: Replace the world map country list with a 20-country dataset that preserves current map exports
+- [completed] DATA-003: Point the `lib/countries.ts` frontend shim at the new shared map dataset without changing UI components
+- [completed] DATA-004: Verify with typecheck/tests and document the resulting data schemas
+- [completed] Inspect current store/hooks/demo flow and keep only the runtime pieces needed for the rewrite
+- [completed] Replace Tailwind-driven global styling with a pure-CSS four-color design system and animation layer
+- [completed] Introduce explicit gun and country data modules for the War Path art direction and battle spec
+- [completed] Rebuild the connect screen, header, map, gun select modal, matching, VS, battle, victory, defeat, and leaderboard surfaces
+- [completed] Wire the rebuilt surfaces into the existing battle/demo flow with 3+ arsenal bonus treatment
+- [completed] Verify via typecheck, build, tests, browser smoke checks, then document review notes and lessons learned
+- [completed] BATTLE-001: Audit existing battle/chat props, state flow, and owned files
+- [completed] BATTLE-002: Add local battle/chat CSS files and replace Tailwind utility markup with semantic class names
+- [completed] BATTLE-003: Rebuild matching, VS/FIGHT, battle playback, gun cards, and result overlays to the four-color War Path spec
+- [completed] BATTLE-004: Verify with targeted typecheck/build coverage and record exact changed files
 
 ## Review
 - CRIT-001: Added signed queue auth message verification, onchain `ownerOf` checks, and frontend queue signing. Verified with `pnpm install`, package typechecks, and `pnpm -r build`. Commit blocked because the workspace snapshot is not a Git worktree.
@@ -56,3 +73,6 @@
 - Hover callout vertical fit: Increased the callout box height and anchored the code/name/status baselines from the box itself so short names like Nigeria keep the status line fully inside the container as well.
 - Victor overlay parity: Updated the victor result overlay to use the same centered-gif presentation model as the defeated overlay instead of a full-screen background gif, keeping both result states visually consistent.
 - Vercel deployment: Added explicit root `vercel.json`/`.vercelignore` monorepo config, made the demo leaderboard self-contained in the frontend, switched API base fallback to same-origin, removed tracked `tsbuildinfo` artifacts, and published the live demo to `https://warpathdemo.vercel.app/`. Verified with `pnpm run typecheck`, a clean shared+web production build after deleting `packages/shared/dist`, Git push to `origin/main`, and a successful Vercel production deployment.
+- Battle presentation rewrite: Rebuilt the owned battle/chat presentation layer around local CSS classes and a four-color War Path palette, restored missing battle primitives after concurrent file drift, and kept `StatBar` backward-compatible for `GunSelector` while leaving routes, stores, map, data modules, and global CSS untouched. Verified with `pnpm --filter @warpath/web build` and `pnpm --filter @warpath/web test` (the test command exits cleanly with no test files present in `apps/web`). Exact files changed: `apps/web/src/components/battle/BattleEngine.tsx`, `apps/web/src/components/battle/DeathOverlay.tsx`, `apps/web/src/components/battle/Dissolution.tsx`, `apps/web/src/components/battle/GameOverlay.tsx`, `apps/web/src/components/battle/GunCard.tsx`, `apps/web/src/components/battle/HealthBar.tsx`, `apps/web/src/components/battle/MatchingPulse.tsx`, `apps/web/src/components/battle/StatBar.tsx`, `apps/web/src/components/battle/StatBars.tsx`, `apps/web/src/components/battle/VSReveal.tsx`, `apps/web/src/components/battle/VictorOverlay.tsx`, `apps/web/src/components/battle/battlePresentation.css`, `apps/web/src/components/chat/ChatMessage.tsx`, `apps/web/src/components/chat/ChatPanel.tsx`, `apps/web/src/components/chat/chatPanel.css`, `tasks/todo.md`.
+- War Path data refresh: Expanded `apps/web/src/data/guns.ts` into a normalized 101-entry registry with tier metadata, per-type metadata, serial/slug derivations, and tier/type lookup maps; replaced `apps/web/src/data/countries.ts` with a 20-country world-map dataset carrying atlas ids plus UI marker/location metadata; and pointed `apps/web/src/lib/countries.ts` at the new shared country dataset. Verified with `pnpm run typecheck`, `pnpm --filter @warpath/web test`, a direct registry count check (`101` entries), and a direct country count check (`20` entries). `pnpm --filter @warpath/web build` is currently blocked by an unrelated missing file in the workspace: `apps/web/src/main.tsx` imports `./styles/globals.css`, but `apps/web/src/styles/` is empty in this snapshot.
+- Four-color frontend rewrite: Rebuilt the live web surface around a pure-CSS white/black/red/blue system with a minimal connect screen, white-background map shell, map-muted gun selector, pulsing `MATCHING` state, `VS` to red `FIGHT` transition, white battle arena with embedded chat sidebar, and `VICTOR` / `ELIMINATED` result screens. Verified with `pnpm run typecheck`, `pnpm -r build`, `pnpm -r test`, and a live Playwright smoke pass at `http://localhost:4175/` covering connect, country selection, gun modal open, demo matchmaking, and the victory result state. Follow-up fixes from that smoke pass: set world-map markers to `pointer-events: none` and changed country paths from stroke-only to transparent interactive fills so map clicks land on the intended country hit area.

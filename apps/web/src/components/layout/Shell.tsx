@@ -9,13 +9,13 @@ interface ShellProps {
 
 export function Shell({ children }: ShellProps): ReactNode {
   return (
-    <div className="relative min-h-screen bg-bg-primary">
-      <div className="fixed inset-0">
+    <div className="site-shell">
+      <div className="site-shell__map">
         <WorldMap />
       </div>
       <Header />
       <GunSelector />
-      <div className="pointer-events-none relative z-20">{children}</div>
+      <main className="site-shell__content">{children}</main>
     </div>
   );
 }

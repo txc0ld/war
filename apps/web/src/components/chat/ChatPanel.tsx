@@ -1,115 +1,104 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/cn';
 import { ChatMessage } from './ChatMessage';
+import './chatPanel.css';
 
 export interface ChatPanelProps {
-  isOpen: boolean;
-  onToggle: () => void;
+  isOpen?: boolean;
+  onToggle?: () => void;
+  embedded?: boolean;
+  messages?: Array<{
+    author?: string;
+    body?: string;
+    address?: string;
+    message?: string;
+    timestamp?: number;
+  }>;
 }
 
-interface MockMessage {
-  id: string;
-  address: string;
-  message: string;
-  timestamp: number;
-  color: string;
-}
-
-const ADDRESS_COLORS = ['#00FFFF', '#CCFF00', '#FF00FF', '#FFD700'] as const;
-
-const MOCK_MESSAGES: MockMessage[] = [
+const MOCK_MESSAGES = [
   {
     id: '1',
     address: '0x1a2B...9f3C',
     message: 'GG that was intense',
     timestamp: 1710700000,
-    color: ADDRESS_COLORS[0],
   },
   {
     id: '2',
     address: '0xdEaD...bEEf',
-    message: 'wagmi',
+    message: 'Sector blue is heating up',
     timestamp: 1710700030,
-    color: ADDRESS_COLORS[1],
   },
   {
     id: '3',
     address: '0x42fA...11aB',
     message: 'Bet on the underdog next round',
     timestamp: 1710700060,
-    color: ADDRESS_COLORS[2],
-  },
-  {
-    id: '4',
-    address: '0x00Cc...77dD',
-    message: 'That crit was insane',
-    timestamp: 1710700090,
-    color: ADDRESS_COLORS[3],
-  },
-  {
-    id: '5',
-    address: '0xaBcD...eF01',
-    message: 'first time watching, this is sick',
-    timestamp: 1710700120,
-    color: ADDRESS_COLORS[0],
   },
 ];
 
-export function ChatPanel({ isOpen, onToggle }: ChatPanelProps) {
+export function ChatPanel({
+  isOpen = true,
+  onToggle,
+  embedded = false,
+  messages,
+}: ChatPanelProps): React.ReactNode {
+  const entries: Array<{
+    id: string;
+    address: string;
+    message: string;
+    timestamp?: number;
+  }> =
+    messages?.map((entry, index) => ({
+      id: `${entry.address ?? entry.author ?? 'chat'}-${index}`,
+      address: entry.address ?? entry.author ?? 'Observer',
+      message: entry.message ?? entry.body ?? '',
+      timestamp: entry.timestamp,
+    })) ?? MOCK_MESSAGES;
+
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen ? (
         <motion.aside
-          className={cn(
-            'fixed right-0 top-0 z-40 flex h-full w-80 flex-col',
-            'border-l border-bg-border bg-bg-card/95 backdrop-blur',
-          )}
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
+          className={`warpath-chat-panel ${embedded ? 'warpath-chat-panel--embedded' : ''}`}
+          initial={embedded ? { opacity: 0, y: 12 } : { x: '100%' }}
+          animate={embedded ? { opacity: 1, y: 0 } : { x: 0 }}
+          exit={embedded ? { opacity: 0, y: 12 } : { x: '100%' }}
           transition={{ type: 'spring', damping: 26, stiffness: 220 }}
+          aria-label="Battle log"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-bg-border px-4 py-3">
-            <h2 className="font-mono text-sm font-bold uppercase tracking-widest text-text-primary">
-              Spectator Chat
-            </h2>
-            <button
-              type="button"
-              onClick={onToggle}
-              className="font-mono text-xs text-text-muted transition-colors hover:text-text-primary"
-            >
-              CLOSE
-            </button>
+          <div className="warpath-chat-header">
+            <div>
+              <h2 className="warpath-chat-title">Field Chat</h2>
+              <p className="warpath-chat-subtitle">Live battle chatter</p>
+            </div>
+            {onToggle ? (
+              <button type="button" onClick={onToggle} className="warpath-chat-close">
+                Close
+              </button>
+            ) : null}
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-            {MOCK_MESSAGES.map((msg) => (
+          <div className="warpath-chat-feed">
+            {entries.map((msg) => (
               <ChatMessage
                 key={msg.id}
                 address={msg.address}
                 message={msg.message}
-                color={msg.color}
+                timestamp={msg.timestamp}
               />
             ))}
           </div>
 
-          {/* Input */}
-          <div className="border-t border-bg-border px-4 py-3">
+          <div className="warpath-chat-input">
             <input
               type="text"
               disabled
               placeholder="Chat coming soon..."
-              className={cn(
-                'w-full rounded border border-bg-border bg-bg-card px-3 py-2',
-                'font-mono text-xs text-text-muted placeholder:text-text-muted/50',
-                'cursor-not-allowed',
-              )}
+              className="warpath-chat-input__field"
             />
           </div>
         </motion.aside>
-      )}
+      ) : null}
     </AnimatePresence>
   );
 }

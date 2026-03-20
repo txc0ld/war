@@ -1,0 +1,585 @@
+.warpath-battle-overlay,
+.warpath-battle-engine,
+.warpath-result-overlay,
+.warpath-versus-overlay,
+.warpath-match-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+}
+
+.warpath-battle-engine,
+.warpath-match-overlay,
+.warpath-result-overlay {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.warpath-battle-engine::before,
+.warpath-match-overlay::before,
+.warpath-result-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(10, 10, 10, 0.03) 0,
+    rgba(10, 10, 10, 0.03) 1px,
+    transparent 1px,
+    transparent 8px
+  );
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.warpath-battle-grid,
+.warpath-match-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(10, 10, 10, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(10, 10, 10, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.warpath-match-scanline {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(10, 10, 10, 0.04), transparent);
+  pointer-events: none;
+}
+
+.warpath-battle-hud {
+  pointer-events: auto;
+  position: fixed;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 12;
+  display: grid;
+  gap: 1rem;
+  width: min(22rem, calc(100vw - 3rem));
+}
+
+.warpath-status-card,
+.warpath-match-panel,
+.warpath-battle-stage,
+.warpath-result-panel,
+.warpath-fallback-panel,
+.warpath-error-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--black);
+  box-shadow: 0 16px 50px rgba(10, 10, 10, 0.08);
+}
+
+.warpath-status-card {
+  padding: 1rem 1.05rem;
+}
+
+.warpath-status-card__rule {
+  width: 4rem;
+  height: 1px;
+  margin-bottom: 0.75rem;
+  background: var(--black);
+}
+
+.warpath-status-card__eyebrow,
+.warpath-status-card__label,
+.warpath-battle-round,
+.warpath-battle-readout,
+.warpath-meter__label,
+.warpath-meter__value,
+.warpath-gun-card__token,
+.warpath-match-subtitle,
+.warpath-result-hint,
+.warpath-chat-timestamp,
+.warpath-result-kicker {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.warpath-status-card__country,
+.warpath-status-card__gun {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.warpath-status-card__split {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.warpath-status-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.warpath-status-stat {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.6rem;
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.warpath-status-stat__label {
+  color: var(--text-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.warpath-status-stat__value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.warpath-status-stat__value--damage {
+  color: var(--red);
+}
+
+.warpath-status-stat__value--dodge {
+  color: var(--blue);
+}
+
+.warpath-status-stat__value--speed {
+  color: var(--black);
+}
+
+.warpath-action,
+.warpath-match-cancel,
+.warpath-chat-close {
+  appearance: none;
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.warpath-action,
+.warpath-match-cancel {
+  padding: 0.95rem 1.1rem;
+}
+
+.warpath-chat-close {
+  padding: 0.65rem 0.8rem;
+}
+
+.warpath-action:hover,
+.warpath-match-cancel:hover,
+.warpath-chat-close:hover {
+  transform: translateY(-1px);
+}
+
+.warpath-error-card {
+  padding: 0.85rem 0.95rem;
+  color: var(--red);
+}
+
+.warpath-error-card p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.warpath-idle-prompt {
+  pointer-events: auto;
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  z-index: 10;
+  transform: translateX(-50%);
+}
+
+.warpath-idle-prompt__pill {
+  padding: 0.9rem 1.15rem;
+  border: 1px solid var(--black);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.warpath-idle-prompt__copy {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.warpath-match-overlay,
+.warpath-result-overlay {
+  z-index: 18;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.warpath-match-panel,
+.warpath-result-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1.25rem;
+  justify-items: center;
+  width: min(34rem, calc(100vw - 3rem));
+  padding: 2rem;
+  text-align: center;
+}
+
+.warpath-match-title {
+  margin: 0;
+  color: var(--black);
+  font-size: clamp(2.4rem, 10vw, 6rem);
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  animation: matchFlash 1s infinite;
+}
+
+.warpath-match-subtitle {
+  max-width: 30rem;
+  line-height: 1.7;
+}
+
+.warpath-battle-engine {
+  z-index: 16;
+  padding: 6rem 1.5rem 2rem;
+}
+
+.warpath-battle-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.5rem;
+  width: min(1180px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.warpath-battle-stage__topline {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  grid-column: 1 / 2;
+}
+
+.warpath-battle-progress {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  background: rgba(10, 10, 10, 0.08);
+  border: 1px solid rgba(10, 10, 10, 0.08);
+}
+
+.warpath-battle-progress__fill {
+  height: 100%;
+  background: var(--black);
+}
+
+.warpath-battle-arena {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  min-height: 0;
+  grid-column: 1 / 2;
+}
+
+.warpath-battle-sidebar {
+  grid-column: 2 / 3;
+  grid-row: 1 / span 2;
+  min-height: 0;
+}
+
+.warpath-battle-center {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  text-align: center;
+}
+
+.warpath-battle-divider {
+  width: 1px;
+  height: 100px;
+  background: rgba(10, 10, 10, 0.18);
+}
+
+.warpath-battle-event {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.warpath-battle-event--impact {
+  color: var(--red);
+}
+
+.warpath-battle-event--evasion {
+  color: var(--blue);
+}
+
+.warpath-battle-fighter {
+  position: relative;
+}
+
+.warpath-battle-miss {
+  position: absolute;
+  top: 4.5rem;
+  color: var(--red);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.warpath-battle-miss--left {
+  right: 1rem;
+}
+
+.warpath-battle-miss--right {
+  left: 1rem;
+}
+
+.warpath-gun-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.warpath-gun-card__plate {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--black);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.warpath-gun-card__meta {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.warpath-gun-card__name {
+  margin: 0;
+  color: var(--black);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.warpath-gun-frame {
+  position: relative;
+  border: 1px solid var(--black);
+  background: transparent;
+  overflow: hidden;
+}
+
+.warpath-gun-frame__image {
+  aspect-ratio: 4 / 3;
+}
+
+.warpath-gun-frame__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.warpath-gun-frame__placeholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  min-height: 12rem;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.warpath-health {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.warpath-health__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.warpath-health__side {
+  color: var(--black);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.warpath-meter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.warpath-meter__track {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  background: rgba(10, 10, 10, 0.08);
+}
+
+.warpath-meter__fill {
+  height: 100%;
+  background: var(--black);
+}
+
+.warpath-meter__fill--animated {
+  animation: statJitter 680ms infinite;
+}
+
+.warpath-meter__fill--damage {
+  background: var(--red);
+}
+
+.warpath-meter__fill--dodge {
+  background: var(--blue);
+}
+
+.warpath-meter__fill--speed,
+.warpath-meter__fill--health-high,
+.warpath-meter__fill--health-mid {
+  background: var(--black);
+}
+
+.warpath-meter__fill--health-low {
+  background: var(--red);
+}
+
+.warpath-meter__tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateX(-0.5px);
+}
+
+.warpath-result-title {
+  margin: 0;
+  color: var(--black);
+  font-size: clamp(2rem, 9vw, 6rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.warpath-result-art {
+  width: min(420px, 72vw);
+  border: 1px solid var(--black);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.warpath-result-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.warpath-result-gun {
+  margin: 0;
+  color: var(--black);
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.warpath-result-score {
+  color: var(--red);
+  font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.warpath-dissolution {
+  display: grid;
+  place-items: center;
+}
+
+.warpath-dissolution__canvas {
+  width: 200px;
+  height: 200px;
+}
+
+@media (max-width: 980px) {
+  .warpath-battle-engine {
+    padding-top: 5.25rem;
+  }
+
+  .warpath-battle-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .warpath-battle-arena {
+    grid-template-columns: 1fr;
+  }
+
+  .warpath-battle-stage__topline,
+  .warpath-battle-arena,
+  .warpath-battle-sidebar {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .warpath-battle-center {
+    order: -1;
+  }
+
+  .warpath-battle-divider {
+    width: 100px;
+    height: 1px;
+  }
+}
+
+@media (max-width: 720px) {
+  .warpath-battle-hud {
+    width: calc(100vw - 2rem);
+    left: 1rem;
+    bottom: 1rem;
+  }
+
+  .warpath-match-panel,
+  .warpath-result-panel,
+  .warpath-battle-stage {
+    padding: 1rem;
+  }
+
+  .warpath-meter {
+    grid-template-columns: 1fr;
+  }
+}

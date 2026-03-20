@@ -1,8 +1,11 @@
+import type { CSSProperties } from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Battle, BattleRound, GunStats } from '@warpath/shared';
+import { GUNS_BY_ID } from '@/data/guns';
 import { GunCard } from './GunCard';
-import { cn } from '@/lib/cn';
+import { ChatPanel } from '@/components/chat/ChatPanel';
+import './battlePresentation.css';
 
 interface BattleEngineProps {
   battle: Battle;
@@ -47,7 +50,6 @@ export function BattleEngine({
       setRightStats(round.rightStatsDisplay);
       setCurrentEvent(round.event);
 
-      // Trigger visual effects based on event
       if (
         round.event === 'hit_left' ||
         round.event === 'hit_right' ||
@@ -66,17 +68,11 @@ export function BattleEngine({
         setTimeout(() => setShowMissRight(false), 400);
       }
 
-      // Schedule next tick
       if (tick < rounds.length - 1) {
-        // Speed stat affects tick timing — faster gun = snappier visual rhythm
         const speedBonus = Math.max(battle.left.stats.speed, battle.right.stats.speed);
-        const adjustedDuration = Math.max(
-          120,
-          TICK_DURATION_MS - speedBonus
-        );
+        const adjustedDuration = Math.max(120, TICK_DURATION_MS - speedBonus);
         tickRef.current = setTimeout(() => playTick(tick + 1), adjustedDuration);
       } else {
-        // Final tick — wait a beat then complete
         tickRef.current = setTimeout(() => {
           if (!completedRef.current) {
             completedRef.current = true;
@@ -89,20 +85,35 @@ export function BattleEngine({
   );
 
   useEffect(() => {
-    // Start playback after a brief delay
     const startTimer = setTimeout(() => playTick(0), 500);
     return () => {
       clearTimeout(startTimer);
-      if (tickRef.current) clearTimeout(tickRef.current);
+      if (tickRef.current) {
+        clearTimeout(tickRef.current);
+      }
     };
   }, [playTick]);
 
   const progress =
     rounds.length > 0 ? ((currentTick + 1) / rounds.length) * 100 : 0;
+  const eventLabel =
+    currentEvent === 'both_hit'
+      ? 'Crossfire'
+      : currentEvent === 'hit_left'
+        ? 'Direct hit'
+        : currentEvent === 'hit_right'
+          ? 'Return fire'
+          : currentEvent === 'dodge_left' || currentEvent === 'dodge_right'
+            ? 'Evasion'
+            : 'Awaiting strike';
+  const eventTone =
+    currentEvent === 'dodge_left' || currentEvent === 'dodge_right'
+      ? 'warpath-battle-event warpath-battle-event--evasion'
+      : 'warpath-battle-event warpath-battle-event--impact';
 
   return (
     <motion.div
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="warpath-battle-engine"
       initial={{ opacity: 0 }}
       animate={{
         opacity: 1,
@@ -111,138 +122,140 @@ export function BattleEngine({
       }}
       transition={screenShake ? { duration: 0.15 } : { duration: 0.3 }}
     >
-      {/* Battle progress bar */}
-      <div className="absolute left-0 right-0 top-0 h-1 bg-bg-elevated">
-        <motion.div
-          className="h-full bg-accent-cyan"
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.2 }}
-        />
-      </div>
-
-      {/* Round counter */}
-      <div className="absolute left-1/2 top-4 -translate-x-1/2">
-        <span className="font-mono text-xs uppercase tracking-widest text-text-dim">
-          Round {currentTick + 1}/{rounds.length}
-        </span>
-      </div>
-
-      {/* Left fighter */}
-      <motion.div
-        className="absolute left-[5%] md:left-[12%]"
-        animate={
-          currentEvent === 'hit_left' || currentEvent === 'both_hit'
-            ? {
-                x: [0, -8, 4, -2, 0],
-                filter: [
-                  'brightness(1)',
-                  'brightness(2.5)',
-                  'brightness(1.5)',
-                  'brightness(1)',
-                ],
-              }
-            : {}
-        }
-        transition={{ duration: 0.2 }}
-      >
-        <GunCard
-          imageUrl={battle.left.imageUrl}
-          name={`#${battle.left.tokenId}`}
-          tokenId={battle.left.tokenId}
-          hp={leftHp}
-          stats={leftStats}
-          side="left"
-        />
-        <AnimatePresence>
-          {showMissLeft && (
-            <motion.div
-              className="absolute -right-4 top-1/2 -translate-y-1/2"
-              initial={{ opacity: 0, scale: 0.5, x: 0 }}
-              animate={{ opacity: 1, scale: 1, x: 10 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <span className="font-mono text-lg font-bold text-accent-gold">
-                MISS
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Center divider */}
-      <div className="flex flex-col items-center gap-2">
-        <motion.div
-          className="h-32 w-px bg-gradient-to-b from-transparent via-accent-cyan/30 to-transparent md:h-48"
-          animate={{ opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        />
-        {currentEvent && (
-          <motion.span
-            key={`${currentTick}-${currentEvent}`}
-            className={cn(
-              'font-mono text-[10px] uppercase tracking-widest',
-              currentEvent.includes('hit')
-                ? 'text-accent-red'
-                : 'text-accent-gold'
-            )}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
+      <div className="warpath-battle-grid" />
+      <div className="warpath-battle-stage">
+        <div className="warpath-battle-stage__topline">
+          <p className="warpath-battle-round">
+            Round {Math.max(currentTick + 1, 0)}/{rounds.length}
+          </p>
+          <div
+            className="warpath-battle-progress"
+            style={{ '--progress': `${progress}%` } as CSSProperties}
           >
-            {currentEvent === 'both_hit'
-              ? 'CLASH'
-              : currentEvent === 'hit_left'
-                ? 'HIT'
-                : currentEvent === 'hit_right'
-                  ? 'HIT'
-                  : 'DODGE'}
-          </motion.span>
-        )}
-      </div>
-
-      {/* Right fighter */}
-      <motion.div
-        className="absolute right-[5%] md:right-[12%]"
-        animate={
-          currentEvent === 'hit_right' || currentEvent === 'both_hit'
-            ? {
-                x: [0, 8, -4, 2, 0],
-                filter: [
-                  'brightness(1)',
-                  'brightness(2.5)',
-                  'brightness(1.5)',
-                  'brightness(1)',
-                ],
-              }
-            : {}
-        }
-        transition={{ duration: 0.2 }}
-      >
-        <GunCard
-          imageUrl={battle.right.imageUrl}
-          name={`#${battle.right.tokenId}`}
-          tokenId={battle.right.tokenId}
-          hp={rightHp}
-          stats={rightStats}
-          side="right"
-        />
-        <AnimatePresence>
-          {showMissRight && (
             <motion.div
-              className="absolute -left-4 top-1/2 -translate-y-1/2"
-              initial={{ opacity: 0, scale: 0.5, x: 0 }}
-              animate={{ opacity: 1, scale: 1, x: -10 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <span className="font-mono text-lg font-bold text-accent-gold">
-                MISS
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+              className="warpath-battle-progress__fill"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.2 }}
+            />
+          </div>
+          <p className="warpath-battle-readout">Playback {progress.toFixed(0)}%</p>
+        </div>
+
+        <div className="warpath-battle-arena">
+          <motion.div
+            className="warpath-battle-fighter warpath-battle-fighter--left"
+            animate={
+              currentEvent === 'hit_left' || currentEvent === 'both_hit'
+                ? {
+                    x: [0, -8, 4, -2, 0],
+                    filter: [
+                      'brightness(1)',
+                      'brightness(2.5)',
+                      'brightness(1.5)',
+                      'brightness(1)',
+                    ],
+                  }
+                : {}
+            }
+            transition={{ duration: 0.2 }}
+          >
+            <GunCard
+              imageUrl={battle.left.imageUrl}
+              name={GUNS_BY_ID.get(battle.left.tokenId)?.name ?? `Gun #${battle.left.tokenId}`}
+              tokenId={battle.left.tokenId}
+              hp={leftHp}
+              stats={leftStats}
+              side="left"
+              label="Player"
+              animated
+            />
+            <AnimatePresence>
+              {showMissLeft ? (
+                <motion.div
+                  className="warpath-battle-miss warpath-battle-miss--left"
+                  initial={{ opacity: 0, scale: 0.5, x: 0 }}
+                  animate={{ opacity: 1, scale: 1, x: 10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  MISS
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </motion.div>
+
+          <div className="warpath-battle-center">
+            <motion.div
+              className="warpath-battle-divider"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+            {currentEvent ? (
+              <motion.p
+                key={`${currentTick}-${currentEvent}`}
+                className={eventTone}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {eventLabel}
+              </motion.p>
+            ) : null}
+            <p className="warpath-battle-readout">Live combat playback</p>
+            <motion.div
+              className="warpath-battle-divider"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 0.35 }}
+            />
+          </div>
+
+          <motion.div
+            className="warpath-battle-fighter warpath-battle-fighter--right"
+            animate={
+              currentEvent === 'hit_right' || currentEvent === 'both_hit'
+                ? {
+                    x: [0, 8, -4, 2, 0],
+                    filter: [
+                      'brightness(1)',
+                      'brightness(2.5)',
+                      'brightness(1.5)',
+                      'brightness(1)',
+                    ],
+                  }
+                : {}
+            }
+            transition={{ duration: 0.2 }}
+          >
+            <GunCard
+              imageUrl={battle.right.imageUrl}
+              name={GUNS_BY_ID.get(battle.right.tokenId)?.name ?? `Gun #${battle.right.tokenId}`}
+              tokenId={battle.right.tokenId}
+              hp={rightHp}
+              stats={rightStats}
+              side="right"
+              label="Opponent"
+              animated
+            />
+            <AnimatePresence>
+              {showMissRight ? (
+                <motion.div
+                  className="warpath-battle-miss warpath-battle-miss--right"
+                  initial={{ opacity: 0, scale: 0.5, x: 0 }}
+                  animate={{ opacity: 1, scale: 1, x: -10 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  MISS
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+
+        <div className="warpath-battle-sidebar">
+          <ChatPanel embedded />
+        </div>
+      </div>
     </motion.div>
   );
 }

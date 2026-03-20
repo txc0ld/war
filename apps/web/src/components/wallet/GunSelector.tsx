@@ -1,109 +1,99 @@
-import { useCallback } from 'react';
-import { motion } from 'framer-motion';
-import type { GunMetadata } from '@warpath/shared';
-import { Modal } from '@/components/ui/Modal';
-import { StatBars } from '@/components/battle/StatBars';
-import { useStore } from '@/store';
+import { useMemo } from 'react';
+import { COUNTRIES } from '@/data/countries';
+import { GUNS_BY_ID, getTierLabel } from '@/data/guns';
 import { useGuns } from '@/hooks/useGuns';
-import { cn } from '@/lib/cn';
+import { useStore } from '@/store';
+import { StatBar } from '@/components/battle/StatBar';
 
 export function GunSelector(): React.ReactNode {
-  const { showGunSelector, closeGunSelector, selectGun, selectedCountry } =
-    useStore();
-  const { guns, isLoading } = useGuns();
+  const {
+    selectedCountry,
+    selectedGun,
+    showGunSelector,
+    selectGun,
+    closeGunSelector,
+  } = useStore();
+  const { guns, isLoading, error } = useGuns();
 
-  const handleSelect = useCallback(
-    (gun: GunMetadata) => {
-      if (!gun.canBattle) return;
-      selectGun(gun);
-    },
-    [selectGun]
+  const countryName = useMemo(
+    () => COUNTRIES.find((country) => country.code === selectedCountry)?.name ?? selectedCountry,
+    [selectedCountry]
   );
+  const arsenalBonus = guns.length >= 3;
+
+  if (!showGunSelector || !selectedCountry) {
+    return null;
+  }
 
   return (
-    <Modal
-      open={showGunSelector}
-      onClose={closeGunSelector}
-      title={selectedCountry ? `Deploy to ${selectedCountry}` : 'Select Weapon'}
-    >
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin border-2 border-accent-cyan border-t-transparent" />
-        </div>
-      ) : guns.length === 0 ? (
-        <p className="py-8 text-center font-mono text-sm text-text-muted">
-          No weapons in arsenal
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {guns.map((gun, i) => (
-            <motion.button
-              key={gun.tokenId}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              onClick={() => handleSelect(gun)}
-              disabled={!gun.canBattle}
-              className={cn(
-                'group relative flex flex-col border p-4 text-left transition-all',
-                gun.canBattle
-                  ? 'border-bg-border bg-bg-elevated hover:border-accent-cyan hover:shadow-[0_0_20px_rgba(0,240,255,0.15)]'
-                  : 'cursor-not-allowed border-bg-border/50 bg-bg-primary opacity-50'
-              )}
-            >
-              {!gun.canBattle && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60">
-                  <span className="font-mono text-xs uppercase tracking-wider text-accent-red">
-                    Cannot be used in battle
-                  </span>
-                </div>
-              )}
-              <div className="mb-3 flex items-start gap-3">
-                {gun.image ? (
-                  <img
-                    src={gun.image}
-                    alt={gun.name}
-                    className="h-16 w-16 object-contain"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center bg-bg-primary font-mono text-xs text-text-dim">
-                    ?
+    <div className="gun-selector-backdrop" role="dialog" aria-modal="true" aria-labelledby="gun-selector-title">
+      <section className="gun-selector">
+        <header className="gun-selector__header">
+          <div className="gun-selector__header-copy">
+            <p className="panel-label">Deployment Zone</p>
+            <h2 className="gun-selector__title" id="gun-selector-title">
+              {countryName}
+            </h2>
+            {arsenalBonus && <p className="arsenal-bonus">ARSENAL BONUS +10%</p>}
+          </div>
+          <button
+            type="button"
+            className="warpath-button warpath-button--outline"
+            onClick={closeGunSelector}
+          >
+            Close
+          </button>
+        </header>
+
+        {isLoading && (
+          <div className="warpath-panel">
+            <p className="panel-title">SCANNING ARSENAL</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="warpath-panel">
+            <p className="panel-title">WEAPON SYNC FAILED</p>
+            <p className="panel-copy">{error}</p>
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <div className="gun-selector__grid">
+            {guns.map((gun) => {
+              const registryGun = GUNS_BY_ID.get(gun.tokenId);
+              const tierLabel = registryGun ? getTierLabel(registryGun.tier) : 'UNSORTED';
+              const typeLabel = registryGun?.type ?? gun.traits[0] ?? 'NODE';
+              const isSelected = selectedGun?.tokenId === gun.tokenId;
+
+              return (
+                <button
+                  key={gun.tokenId}
+                  type="button"
+                  className={`gun-card ${arsenalBonus && isSelected ? 'gun-card--selected' : ''}`}
+                  onClick={() => selectGun(gun)}
+                >
+                  <div className="gun-frame">
+                    <img src={gun.image} alt={gun.name} />
                   </div>
-                )}
-                <div className="flex-1">
-                  <h3 className="font-mono text-sm font-semibold uppercase tracking-wider text-text-primary">
-                    {gun.name}
-                  </h3>
-                  <p className="font-mono text-[10px] text-text-dim">
-                    #{gun.tokenId}
-                  </p>
-                  {gun.traits.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1">
-                      {gun.traits.map((trait) => (
-                        <span
-                          key={trait}
-                          className={cn(
-                            'font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 border',
-                            trait === 'Jammy Pasty'
-                              ? 'border-accent-red/30 text-accent-red'
-                              : trait === 'Unkillable'
-                                ? 'border-accent-gold/30 text-accent-gold'
-                                : 'border-bg-border text-text-dim'
-                          )}
-                        >
-                          {trait}
-                        </span>
-                      ))}
+                  <div>
+                    <p className="gun-card__name">{gun.name}</p>
+                    <div className="gun-card__meta">
+                      <span>{tierLabel}</span>
+                      <span className="gun-card__type">{typeLabel}</span>
                     </div>
-                  )}
-                </div>
-              </div>
-              <StatBars stats={gun.stats} />
-            </motion.button>
-          ))}
-        </div>
-      )}
-    </Modal>
+                  </div>
+                  <div className="gun-card__stats">
+                    <StatBar label="Damage" value={gun.stats.damage} tone="red" />
+                    <StatBar label="Dodge" value={gun.stats.dodge} tone="blue" />
+                    <StatBar label="Speed" value={gun.stats.speed} tone="black" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { cn } from '@/lib/cn';
+import './battlePresentation.css';
 
 interface DissolutionProps {
   imageUrl: string;
@@ -117,13 +117,13 @@ export function Dissolution({ imageUrl, onComplete, className }: DissolutionProp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={cn('absolute inset-0 z-10', className)}
+        className={['warpath-dissolution', className].filter(Boolean).join(' ')}
       >
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="h-full w-full"
+          className="warpath-dissolution__canvas"
         />
       </motion.div>
     </AnimatePresence>

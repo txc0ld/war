@@ -1,83 +1,48 @@
-import { useCallback, useState, lazy, Suspense } from 'react';
+import { useCallback, lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useAccount } from 'wagmi';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
+import { useSessionAddress } from '@/hooks/useSessionAddress';
+import { GUNS_BY_ID } from '@/data/guns';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/cn';
-import { DEMO_MODE, DEMO_PLAYER_ADDRESS } from '@/lib/demo';
+import './battlePresentation.css';
 
 const LazyVictorOverlay = lazy(() =>
-  import('./VictorOverlay').then((m) => ({ default: m.VictorOverlay }))
+  import('./VictorOverlay').then((module) => ({ default: module.VictorOverlay }))
 );
 const LazyDeathOverlay = lazy(() =>
-  import('./DeathOverlay').then((m) => ({ default: m.DeathOverlay }))
+  import('./DeathOverlay').then((module) => ({ default: module.DeathOverlay }))
 );
 
-function ResultFallback({ type, onDismiss }: { type: 'win' | 'loss'; onDismiss: () => void }): React.ReactNode {
-  const isWin = type === 'win';
-  return (
-    <div
-      className="pointer-events-auto fixed inset-0 z-40 flex cursor-pointer items-center justify-center bg-black/80"
-      onClick={onDismiss}
-    >
-      <div className="text-center">
-        <h1
-          className={cn(
-            'font-mono text-5xl font-bold uppercase tracking-widest md:text-7xl',
-            isWin ? 'text-accent-neon' : 'text-accent-red'
-          )}
-        >
-          {isWin ? 'VICTOR' : 'ELIMINATED'}
-        </h1>
-        <p
-          className={cn(
-            'mt-4 font-mono text-3xl font-bold',
-            isWin ? 'text-accent-neon' : 'text-accent-red'
-          )}
-        >
-          {isWin ? '+100' : '-100'}
-        </p>
-        <p className="mt-6 font-mono text-xs uppercase tracking-wider text-text-dim">
-          Click anywhere to continue
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export function GameOverlay(): React.ReactNode {
-  const { address } = useAccount();
+  const sessionAddress = useSessionAddress();
   const {
     phase,
-    setPhase,
     currentBattle,
     selectedCountry,
     selectedGun,
-    reset: resetBattle,
     clearCountry,
     clearGun,
+    reset,
+    setPhase,
   } = useStore();
-
-  const { startMatchmaking, cancelMatchmaking, error: matchError } =
-    useMatchmaking();
-
-  const [battleWinner, setBattleWinner] = useState<'left' | 'right' | null>(
-    null
-  );
+  const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
 
   const handleFight = useCallback(async () => {
     await startMatchmaking();
   }, [startMatchmaking]);
 
+  const handleResultDismiss = useCallback(() => {
+    reset();
+    clearCountry();
+    clearGun();
+  }, [clearCountry, clearGun, reset]);
+
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
-      setBattleWinner(winner);
-
-      const normalizedAddress = (DEMO_MODE ? DEMO_PLAYER_ADDRESS : address)?.toLowerCase();
+      const normalizedAddress = sessionAddress?.toLowerCase();
       const playerSide =
         normalizedAddress === currentBattle?.left.address.toLowerCase()
           ? 'left'
@@ -87,148 +52,123 @@ export function GameOverlay(): React.ReactNode {
 
       setPhase(winner === playerSide ? 'result_win' : 'result_loss');
     },
-    [address, currentBattle, setPhase]
+    [currentBattle?.left.address, currentBattle?.right.address, sessionAddress, setPhase]
   );
-
-  const handleVSComplete = useCallback(() => {
-    setPhase('fighting');
-  }, [setPhase]);
-
-  const handleResultDismiss = useCallback(() => {
-    setBattleWinner(null);
-    resetBattle();
-    clearCountry();
-    clearGun();
-  }, [resetBattle, clearCountry, clearGun]);
 
   return (
     <>
-      {/* Bottom HUD */}
-      <div className="pointer-events-auto fixed bottom-4 left-4 z-30 flex max-w-[320px] flex-col gap-3">
-        {selectedCountry && (
-          <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,19,27,0.92)_0%,rgba(4,10,16,0.78)_100%)] px-4 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
-            <div className="mb-3 h-px w-16 bg-gradient-to-r from-accent-neon/60 to-transparent" />
-            <p className="font-mono text-xs uppercase tracking-wider text-text-muted">
-              Deploy Zone
-            </p>
-            <p className="font-mono text-sm font-semibold uppercase tracking-wider text-accent-neon">
-              {selectedCountry}
-            </p>
-            {selectedGun && (
-              <div className="mt-2 border-t border-white/10 pt-2">
-                <p className="font-mono text-xs uppercase tracking-wider text-text-muted">
-                  Weapon
-                </p>
-                <p className="font-mono text-sm font-semibold uppercase tracking-wider text-accent-cyan">
-                  {selectedGun.name}
-                </p>
-                <div className="mt-1 flex gap-4 font-mono text-[10px] tabular-nums">
-                  <span className="text-accent-red">
-                    DMG {selectedGun.stats.damage}
-                  </span>
-                  <span className="text-accent-gold">
-                    DDG {selectedGun.stats.dodge}
-                  </span>
-                  <span className="text-accent-magenta">
-                    SPD {selectedGun.stats.speed}
-                  </span>
+      <div className="warpath-battle-hud">
+        {selectedCountry ? (
+          <div className="warpath-status-card">
+            <div className="warpath-status-card__rule" />
+            <p className="warpath-status-card__eyebrow">Deploy Zone</p>
+            <p className="warpath-status-card__country">{selectedCountry}</p>
+            {selectedGun ? (
+              <div className="warpath-status-card__split">
+                <p className="warpath-status-card__label">Weapon</p>
+                <p className="warpath-status-card__gun">{selectedGun.name}</p>
+                <div className="warpath-status-card__stats">
+                  <div className="warpath-status-stat">
+                    <span className="warpath-status-stat__label">DMG</span>
+                    <span className="warpath-status-stat__value warpath-status-stat__value--damage">
+                      {selectedGun.stats.damage}
+                    </span>
+                  </div>
+                  <div className="warpath-status-stat">
+                    <span className="warpath-status-stat__label">DDG</span>
+                    <span className="warpath-status-stat__value warpath-status-stat__value--dodge">
+                      {selectedGun.stats.dodge}
+                    </span>
+                  </div>
+                  <div className="warpath-status-stat">
+                    <span className="warpath-status-stat__label">SPD</span>
+                    <span className="warpath-status-stat__value warpath-status-stat__value--speed">
+                      {selectedGun.stats.speed}
+                    </span>
+                  </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
-        )}
+        ) : null}
 
-        {selectedCountry && selectedGun && phase === 'idle' && (
-          <Button variant="secondary" size="md" onClick={handleFight}>
+        {selectedCountry && selectedGun && phase === 'idle' ? (
+          <button type="button" className="warpath-action" onClick={handleFight}>
             Enter Battle
-          </Button>
-        )}
+          </button>
+        ) : null}
 
-        {matchError && (
-          <div className="rounded-[20px] border border-accent-red/30 bg-[linear-gradient(180deg,rgba(28,7,7,0.92)_0%,rgba(18,6,6,0.78)_100%)] px-3 py-2 shadow-[0_14px_40px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-            <p className="font-mono text-xs text-accent-red">{matchError}</p>
+        {error ? (
+          <div className="warpath-error-card">
+            <p>{error}</p>
           </div>
-        )}
-
+        ) : null}
       </div>
 
-      {!selectedCountry && phase === 'idle' && (
-        <div className="pointer-events-none fixed bottom-5 left-1/2 z-30 -translate-x-1/2 px-4">
-          <div
-            className={cn(
-              'rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(7,19,27,0.9)_0%,rgba(4,10,16,0.72)_100%)] px-5 py-3 shadow-[0_14px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl',
-              'animate-pulse-slow'
-            )}
-          >
-            <p className="font-mono text-xs uppercase tracking-[0.22em] text-text-dim">
-              Select a country to deploy
-            </p>
+      {!selectedCountry && phase === 'idle' ? (
+        <div className="warpath-idle-prompt">
+          <div className="warpath-idle-prompt__pill">
+            <p className="warpath-idle-prompt__copy">Select a country to deploy</p>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Phase overlays */}
       <AnimatePresence mode="wait">
-        {phase === 'matching' && (
+        {phase === 'matching' ? (
           <MatchingPulse key="matching" onCancel={cancelMatchmaking} />
-        )}
+        ) : null}
 
-        {phase === 'vs_reveal' && currentBattle && (
+        {phase === 'vs_reveal' && currentBattle ? (
           <VSReveal
             key="vs"
             left={{
               imageUrl: currentBattle.left.imageUrl,
-              name: `Gun #${currentBattle.left.tokenId}`,
+              name:
+                selectedGun?.name ??
+                GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
+                `Gun #${currentBattle.left.tokenId}`,
               tokenId: currentBattle.left.tokenId,
               stats: currentBattle.left.stats,
             }}
             right={{
               imageUrl: currentBattle.right.imageUrl,
-              name: `Gun #${currentBattle.right.tokenId}`,
+              name:
+                GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
+                `Gun #${currentBattle.right.tokenId}`,
               tokenId: currentBattle.right.tokenId,
               stats: currentBattle.right.stats,
             }}
-            onComplete={handleVSComplete}
+            onComplete={() => setPhase('fighting')}
           />
-        )}
+        ) : null}
 
-        {phase === 'fighting' && currentBattle && (
+        {phase === 'fighting' && currentBattle ? (
           <BattleEngine
             key="battle"
             battle={currentBattle}
             onComplete={handleBattleComplete}
           />
-        )}
+        ) : null}
 
-        {phase === 'result_win' && (
-          <Suspense
-            key="victor"
-            fallback={
-              <ResultFallback type="win" onDismiss={handleResultDismiss} />
-            }
-          >
+        {phase === 'result_win' ? (
+          <Suspense key="victor" fallback={null}>
             <LazyVictorOverlay
               gunName={selectedGun?.name ?? 'Unknown'}
               score={100}
               onDismiss={handleResultDismiss}
             />
           </Suspense>
-        )}
+        ) : null}
 
-        {phase === 'result_loss' && (
-          <Suspense
-            key="death"
-            fallback={
-              <ResultFallback type="loss" onDismiss={handleResultDismiss} />
-            }
-          >
+        {phase === 'result_loss' ? (
+          <Suspense key="death" fallback={null}>
             <LazyDeathOverlay
               gunName={selectedGun?.name ?? 'Unknown'}
               score={-100}
               onDismiss={handleResultDismiss}
             />
           </Suspense>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );
