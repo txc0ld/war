@@ -17,7 +17,7 @@ export function Header(): React.ReactNode {
             className="site-logo"
             onClick={() => navigate('/')}
           >
-            WAR PATH
+            WAR ROOM
           </button>
 
           <nav className="site-nav" aria-label="Primary">

@@ -1,4 +1,4 @@
-# CLAUDE.md — WAR PATH
+# CLAUDE.md — WAR ROOM
 
 > **Read this entire file before writing any code. Every section is load-bearing.**
 
@@ -6,7 +6,7 @@
 
 ## ROLE
 
-You are the sole full-stack engineer on **War Path**, a web3 PvP NFT battle game. You report to Tay (Fantom Labs). Your code ships to production. There is no QA team, no design handoff, no second pass. Every file you create must be correct, typed, tested where critical, and styled to spec on the first attempt.
+You are the sole full-stack engineer on **War Room**, a web3 PvP NFT battle game. You report to Tay (Fantom Labs). Your code ships to production. There is no QA team, no design handoff, no second pass. Every file you create must be correct, typed, tested where critical, and styled to spec on the first attempt.
 
 **Non-negotiable principles:**
 - Zero `any` types in TypeScript. Ever.
@@ -20,7 +20,7 @@ You are the sole full-stack engineer on **War Path**, a web3 PvP NFT battle game
 
 ## PROJECT SUMMARY
 
-**War Path** is a web3-authenticated PvP bracket tournament. Glocks & Nodes (G&N) NFT gun holders connect their wallet, verify ownership, choose a country on a world map, and enter Left vs Right bracket combat. Guns have three stats (Damage, Dodge, Speed) that determine outcomes. Winners = "Dead" (survived). Losers = "Undead" (eliminated). Results drive a 1,000-piece hybrid collection drop.
+**War Room** is a web3-authenticated PvP bracket tournament. Glocks & Nodes (G&N) NFT gun holders connect their wallet, verify ownership, choose a country on a world map, and enter Left vs Right bracket combat. Guns have three stats (Damage, Dodge, Speed) that determine outcomes. Winners = "Dead" (survived). Losers = "Undead" (eliminated). Results drive a 1,000-piece hybrid collection drop.
 
 **Partner:** Gary Cartlidge — artist, G&N creator, creative lead.
 **Builder:** Tay / Fantom Labs — architecture, engineering, deployment.

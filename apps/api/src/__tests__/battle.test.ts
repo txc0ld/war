@@ -41,7 +41,7 @@ vi.mock('../services/guns', () => ({
   getGunMetadataByTokenId: async (tokenId: number) => ({
     tokenId,
     name: `Gun #${tokenId}`,
-    image: `https://cdn.warpath.gg/guns/${tokenId}.png`,
+    image: `https://cdn.warroom.gg/guns/${tokenId}.png`,
     stats: { damage: 10, dodge: 10, speed: 10 },
     traits: [],
     canBattle: true,
@@ -71,8 +71,8 @@ describe('battle service', () => {
     const battle = await getBattle('battle-1');
 
     expect(battle).not.toBeNull();
-    expect(battle?.left.imageUrl).toBe('https://cdn.warpath.gg/guns/11.png');
-    expect(battle?.right.imageUrl).toBe('https://cdn.warpath.gg/guns/12.png');
+    expect(battle?.left.imageUrl).toBe('https://cdn.warroom.gg/guns/11.png');
+    expect(battle?.right.imageUrl).toBe('https://cdn.warroom.gg/guns/12.png');
     expect(battle?.result.winner).toBe('left');
   });
 

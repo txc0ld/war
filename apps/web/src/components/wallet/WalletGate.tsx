@@ -28,7 +28,7 @@ export function WalletGate({ children }: WalletGateProps): ReactNode {
         />
         <div className="relative z-10 flex flex-col items-center gap-8">
           <h1 className="font-mono text-4xl font-bold uppercase tracking-[0.3em] text-accent-neon md:text-6xl">
-            WAR PATH
+            WAR ROOM
           </h1>
           <p className="font-mono text-sm uppercase tracking-wider text-text-muted">
             Connect your wallet to enter

@@ -1,7 +1,7 @@
 import type { QueueAuthPayload } from './types.js';
 
-export const QUEUE_AUTH_STATEMENT = 'WAR PATH Queue Authorization' as const;
-export const QUEUE_AUTH_URI = 'https://warpath.gg' as const;
+export const QUEUE_AUTH_STATEMENT = 'WAR ROOM Queue Authorization' as const;
+export const QUEUE_AUTH_URI = 'https://warroom.gg' as const;
 export const QUEUE_AUTH_VERSION = '1' as const;
 export const QUEUE_AUTH_MAX_AGE_MS = 5 * 60 * 1000;
 

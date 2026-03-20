@@ -177,10 +177,14 @@ img {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(10, 10, 10, 0.05), transparent 34%),
-    radial-gradient(circle at 50% 82%, rgba(10, 10, 10, 0.03), transparent 38%);
-  opacity: 0.8;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 10, 0.022),
+    transparent 18%,
+    transparent 78%,
+    rgba(10, 10, 10, 0.016)
+  );
+  opacity: 1;
 }
 
 .site-shell::after {
@@ -324,10 +328,11 @@ img {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 42%, rgba(10, 10, 10, 0.055), transparent 34%),
-    radial-gradient(circle at 50% 78%, rgba(10, 10, 10, 0.03), transparent 38%),
-    linear-gradient(180deg, rgba(10, 10, 10, 0.018), transparent 24%, transparent 72%, rgba(10, 10, 10, 0.022));
-  opacity: 0.9;
+    radial-gradient(circle at 50% 44%, rgba(10, 10, 10, 0.05), transparent 36%),
+    radial-gradient(circle at 50% 74%, rgba(10, 10, 10, 0.028), transparent 34%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.028), transparent 18%, transparent 72%, rgba(10, 10, 10, 0.03)),
+    linear-gradient(135deg, rgba(10, 10, 10, 0.012), transparent 32%, transparent 68%, rgba(10, 10, 10, 0.014));
+  opacity: 1;
 }
 
 .world-map--muted {
