@@ -5,6 +5,7 @@ import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { GUNS_BY_ID } from '@/data/guns';
 import { getCountryByCode } from '@/data/countries';
+import { applyBattleCooldowns } from '@/lib/cooldowns';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -28,6 +29,7 @@ export function GameOverlay(): React.ReactNode {
     clearGun,
     reset,
     setPhase,
+    refreshWeaponCooldowns,
   } = useStore();
   const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
   const selectedCountryData = useMemo(() => getCountryByCode(selectedCountry), [selectedCountry]);
@@ -63,9 +65,13 @@ export function GameOverlay(): React.ReactNode {
 
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
+      if (currentBattle) {
+        applyBattleCooldowns(currentBattle);
+        refreshWeaponCooldowns();
+      }
       setPhase(winner === playerSide ? 'result_win' : 'result_loss');
     },
-    [playerSide, setPhase]
+    [currentBattle, playerSide, refreshWeaponCooldowns, setPhase]
   );
 
   return (

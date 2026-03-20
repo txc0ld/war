@@ -5,8 +5,8 @@ import { createBattleSlice, type BattleSlice } from './battleSlice';
 
 type StoreState = GameSlice & UserSlice & BattleSlice;
 
-export const useStore = create<StoreState>()((set) => ({
+export const useStore = create<StoreState>()((set, get) => ({
   ...createGameSlice(set),
-  ...createUserSlice(set),
+  ...createUserSlice(set as never, get as never),
   ...createBattleSlice(set),
 }));

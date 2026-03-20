@@ -4,6 +4,7 @@ import { GUNS_BY_ID, getTierLabel } from '@/data/guns';
 import { useGuns } from '@/hooks/useGuns';
 import { useStore } from '@/store';
 import { StatBar } from '@/components/battle/StatBar';
+import { formatCooldownLabel, getCooldownRemainingMs } from '@/lib/cooldowns';
 
 export function GunSelector(): React.ReactNode {
   const {
@@ -12,6 +13,7 @@ export function GunSelector(): React.ReactNode {
     showGunSelector,
     selectGun,
     closeGunSelector,
+    weaponCooldowns,
   } = useStore();
   const { guns, isLoading, error } = useGuns();
 
@@ -65,13 +67,25 @@ export function GunSelector(): React.ReactNode {
               const tierLabel = registryGun ? getTierLabel(registryGun.tier) : 'UNSORTED';
               const typeLabel = registryGun?.type ?? gun.traits[0] ?? 'NODE';
               const isSelected = selectedGun?.tokenId === gun.tokenId;
+              const cooldownRemaining = getCooldownRemainingMs(
+                weaponCooldowns,
+                gun.tokenId
+              );
+              const isCoolingDown = cooldownRemaining > 0 || !gun.canBattle;
 
               return (
                 <button
                   key={gun.tokenId}
                   type="button"
-                  className={`gun-card ${arsenalBonus && isSelected ? 'gun-card--selected' : ''}`}
-                  onClick={() => selectGun(gun)}
+                  className={`gun-card ${arsenalBonus && isSelected ? 'gun-card--selected' : ''} ${
+                    isCoolingDown ? 'gun-card--locked' : ''
+                  }`}
+                  onClick={() => {
+                    if (!isCoolingDown) {
+                      selectGun(gun);
+                    }
+                  }}
+                  disabled={isCoolingDown}
                 >
                   <div className="gun-frame">
                     <img src={gun.image} alt={gun.name} />
@@ -83,6 +97,11 @@ export function GunSelector(): React.ReactNode {
                       <span className="gun-card__type">{typeLabel}</span>
                     </div>
                   </div>
+                  {isCoolingDown ? (
+                    <p className="gun-card__cooldown">
+                      COOLING DOWN {formatCooldownLabel(cooldownRemaining)}
+                    </p>
+                  ) : null}
                   <div className="gun-card__stats">
                     <StatBar label="Damage" value={gun.stats.damage} tone="red" />
                     <StatBar label="Dodge" value={gun.stats.dodge} tone="blue" />

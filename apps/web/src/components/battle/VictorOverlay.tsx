@@ -27,7 +27,10 @@ export function VictorOverlay({
         transition={{ duration: 0.3 }}
         onClick={dismiss}
       >
-        <div className="warpath-result-panel warpath-result-panel--victory">
+        <div
+          className="warpath-result-panel warpath-result-panel--victory"
+          onClick={(event) => event.stopPropagation()}
+        >
           <p className="warpath-result-kicker">Battle resolved</p>
           <div className="warpath-result-stack warpath-result-stack--victory">
             <motion.h1

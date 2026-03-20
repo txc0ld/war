@@ -17,3 +17,5 @@
 - 2026-03-20: If map geography drives battle semantics, encode the side split in the source country dataset and reuse it in demo/battle composition; deriving it separately in the map and fight layers leads to label/color drift as soon as the player can spawn on either side.
 - 2026-03-20: For this frontend, page-level background washes read like broken side gradients once the map is framed; keep atmosphere inside `.world-map::before` and let the outer shell stay almost flat white.
 - 2026-03-20: If the map itself is meant to feel archival and precise, keep the cartography monochrome; red/blue accents land better in side ownership, health, badges, and battle chrome than on country strokes and route lines.
+- 2026-03-20: For broad theme reversals in `apps/web/src/styles/globals.css`, patch the runtime in smaller selector blocks after reading the current file; that stylesheet drifts too quickly for one monolithic diff to stay reliable.
+- 2026-03-20: Result overlays in this app need click handling isolated from the map beneath them; stop propagation on the result panel itself or the dismissal click can bleed through into a fresh country selection.

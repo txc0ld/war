@@ -1,6 +1,8 @@
 import type { Battle, GunMetadata, LeaderboardEntry } from '@warpath/shared';
 import { GUNS_BY_ID } from '@/data/guns';
 import { getCountrySide } from '@/data/countries';
+import { isWeaponOnCooldown } from './cooldowns';
+import { createSecureBattleSeed } from './rng';
 import { generateStats, resolveWeightedBattle } from './stats';
 
 export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -100,14 +102,20 @@ export function createDemoBattle(
   selectedGun: GunMetadata,
   selectedCountry: string
 ): Battle {
-  const index =
+  const seededIndex =
     selectedCountry
       .split('')
       .reduce((sum, character) => sum + character.charCodeAt(0), 0) %
     DEMO_OPPONENTS.length;
-  const opponent = DEMO_OPPONENTS[index]!;
+  const availableOpponents = DEMO_OPPONENTS.filter(
+    (entry) => !isWeaponOnCooldown(entry.address, entry.gun.tokenId)
+  );
+  const pool = availableOpponents.length > 0 ? availableOpponents : DEMO_OPPONENTS;
+  const opponent = pool[seededIndex % pool.length]!;
   const playerSide = getCountrySide(selectedCountry) ?? 'left';
-  const seed = `demo-${selectedCountry}-${selectedGun.tokenId}-${opponent.gun.tokenId}`;
+  const seed = createSecureBattleSeed(
+    `demo-${selectedCountry}-${selectedGun.tokenId}-${opponent.gun.tokenId}`
+  );
 
   const result =
     playerSide === 'left'

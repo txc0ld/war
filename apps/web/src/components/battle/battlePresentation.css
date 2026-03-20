@@ -13,7 +13,7 @@
 .warpath-battle-engine,
 .warpath-match-overlay,
 .warpath-result-overlay {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(3, 4, 3, 0.92);
 }
 
 .warpath-battle-engine::before,
@@ -24,12 +24,12 @@
   inset: 0;
   background-image: repeating-linear-gradient(
     to bottom,
-    rgba(10, 10, 10, 0.03) 0,
-    rgba(10, 10, 10, 0.03) 1px,
+    rgba(245, 247, 239, 0.025) 0,
+    rgba(245, 247, 239, 0.025) 1px,
     transparent 1px,
     transparent 8px
   );
-  opacity: 0.35;
+  opacity: 0.2;
   pointer-events: none;
 }
 
@@ -38,17 +38,17 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(10, 10, 10, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(10, 10, 10, 0.06) 1px, transparent 1px);
+    linear-gradient(rgba(204, 255, 0, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(204, 255, 0, 0.09) 1px, transparent 1px);
   background-size: 48px 48px;
-  opacity: 0.22;
+  opacity: 0.18;
   pointer-events: none;
 }
 
 .warpath-match-scanline {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent, rgba(10, 10, 10, 0.04), transparent);
+  background: linear-gradient(180deg, transparent, rgba(204, 255, 0, 0.06), transparent);
   pointer-events: none;
 }
 
@@ -77,9 +77,9 @@
 .warpath-result-panel,
 .warpath-fallback-panel,
 .warpath-error-card {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid var(--black);
-  box-shadow: 0 16px 50px rgba(10, 10, 10, 0.08);
+  background: rgba(8, 11, 8, 0.94);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(14px);
 }
 
@@ -91,7 +91,7 @@
   width: 4rem;
   height: 1px;
   margin-bottom: 0.75rem;
-  background: var(--black);
+  background: var(--accent);
 }
 
 .warpath-status-card__eyebrow,
@@ -161,7 +161,7 @@
   gap: 0.18rem;
   padding: 0.6rem;
   border: 1px solid var(--border-light);
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(13, 17, 13, 0.9);
 }
 
 .warpath-status-stat__label {
@@ -186,16 +186,16 @@
 }
 
 .warpath-status-stat__value--speed {
-  color: var(--black);
+  color: var(--accent);
 }
 
 .warpath-action,
 .warpath-match-cancel,
 .warpath-chat-close {
   appearance: none;
-  border: 1px solid var(--black);
-  background: var(--black);
-  color: #ffffff;
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(180deg, rgba(16, 22, 15, 0.96), rgba(7, 10, 7, 0.98));
+  color: var(--accent);
   cursor: pointer;
   font: inherit;
   font-size: 0.74rem;
@@ -242,9 +242,9 @@
 
 .warpath-map-brief {
   padding: 1rem 1.1rem;
-  border: 1px solid var(--black);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 60px rgba(10, 10, 10, 0.08);
+  border: 1px solid var(--border);
+  background: rgba(8, 11, 8, 0.92);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(12px);
 }
 
@@ -269,8 +269,8 @@
 
 .warpath-idle-prompt__pill {
   padding: 0.9rem 1.15rem;
-  border: 1px solid var(--black);
-  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--border);
+  background: rgba(8, 11, 8, 0.94);
 }
 
 .warpath-idle-prompt__copy {
@@ -307,7 +307,7 @@
 
 .warpath-match-title {
   margin: 0;
-  color: var(--black);
+  color: var(--accent);
   width: 100%;
   max-width: 100%;
   font-size: clamp(1.5rem, 6.6vw, 4rem);
@@ -355,14 +355,14 @@
   position: relative;
   height: 10px;
   overflow: hidden;
-  background: rgba(10, 10, 10, 0.08);
-  border: 1px solid rgba(10, 10, 10, 0.08);
+  background: rgba(245, 247, 239, 0.08);
+  border: 1px solid rgba(245, 247, 239, 0.08);
 }
 
 .warpath-battle-progress__fill {
   height: 100%;
-  background: var(--black);
-  box-shadow: 0 0 18px rgba(10, 10, 10, 0.12);
+  background: var(--accent);
+  box-shadow: 0 0 18px rgba(204, 255, 0, 0.22);
 }
 
 .warpath-battle-arena {
@@ -390,7 +390,7 @@
 .warpath-battle-divider {
   width: 1px;
   height: 100px;
-  background: rgba(10, 10, 10, 0.18);
+  background: rgba(245, 247, 239, 0.16);
 }
 
 .warpath-battle-event {
@@ -445,9 +445,9 @@
   display: grid;
   gap: 0.9rem;
   padding: 1rem;
-  border: 1px solid var(--black);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 14px 34px rgba(10, 10, 10, 0.06);
+  border: 1px solid var(--border);
+  background: rgba(10, 13, 10, 0.96);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
 }
 
 .warpath-gun-card--left .warpath-gun-card__plate {
@@ -467,7 +467,7 @@
 
 .warpath-gun-card__name {
   margin: 0;
-  color: var(--black);
+  color: var(--text);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -476,7 +476,7 @@
 
 .warpath-gun-frame {
   position: relative;
-  border: 1px solid var(--black);
+  border: 1px solid var(--border-light);
   background: transparent;
   overflow: hidden;
 }
@@ -522,7 +522,7 @@
 }
 
 .warpath-health__side {
-  color: var(--black);
+  color: var(--text);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.22em;
@@ -556,12 +556,12 @@
   position: relative;
   height: 10px;
   overflow: hidden;
-  background: rgba(10, 10, 10, 0.08);
+  background: rgba(245, 247, 239, 0.08);
 }
 
 .warpath-meter__fill {
   height: 100%;
-  background: var(--black);
+  background: var(--accent);
 }
 
 .warpath-meter__fill--animated {
@@ -577,7 +577,7 @@
 }
 
 .warpath-meter__fill--speed {
-  background: var(--black);
+  background: var(--accent);
 }
 
 .warpath-meter__fill--health-left {
@@ -597,13 +597,13 @@
   top: 0;
   width: 1px;
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(245, 247, 239, 0.24);
   transform: translateX(-0.5px);
 }
 
 .warpath-result-title {
   margin: 0;
-  color: var(--black);
+  color: var(--text);
   width: 100%;
   max-width: 100%;
   font-size: clamp(1.8rem, 6.8vw, 4.4rem);
@@ -628,27 +628,27 @@
   width: min(22rem, 100%);
   aspect-ratio: 4 / 3;
   max-height: min(38vh, 18rem);
-  border: 1px solid var(--black);
+  border: 1px solid var(--border);
   padding: clamp(0.4rem, 1vw, 0.6rem);
   background:
-    linear-gradient(180deg, rgba(10, 10, 10, 0.04), rgba(10, 10, 10, 0.015)),
-    #ffffff;
+    linear-gradient(180deg, rgba(204, 255, 0, 0.08), rgba(4, 6, 4, 0.4)),
+    rgba(10, 13, 10, 0.96);
   overflow: hidden;
-  box-shadow: 0 22px 42px rgba(10, 10, 10, 0.1);
+  box-shadow: 0 22px 42px rgba(0, 0, 0, 0.36);
 }
 
 .warpath-result-art img {
   display: block;
   width: 100%;
   height: 100%;
-  border: 1px solid rgba(10, 10, 10, 0.12);
+  border: 1px solid rgba(245, 247, 239, 0.1);
   object-fit: cover;
 }
 
 .warpath-result-gun {
   margin: -0.2rem 0 0;
   max-width: 24rem;
-  color: var(--black);
+  color: var(--text);
   font-size: clamp(0.76rem, 1.8vw, 0.92rem);
   font-weight: 700;
   line-height: 1.45;

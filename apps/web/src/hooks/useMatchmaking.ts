@@ -66,6 +66,11 @@ export function useMatchmaking(): UseMatchmakingReturn {
       return;
     }
 
+    if (!selectedGun.canBattle) {
+      setError('Selected weapon is cooling down');
+      return;
+    }
+
     if (!address && !DEMO_MODE) {
       setError('Connect a wallet first');
       return;

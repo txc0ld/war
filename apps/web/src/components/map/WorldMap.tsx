@@ -191,7 +191,7 @@ export function WorldMap(): React.ReactNode {
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
-        <rect width="1400" height="768" fill="#FFFFFF" />
+        <rect width="1400" height="768" fill="#050705" />
         <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />
         <path d={bordersPath} className="world-map__borders" />
