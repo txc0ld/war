@@ -10,6 +10,8 @@
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--black);
   box-shadow: 0 18px 60px rgba(10, 10, 10, 0.08);
+  backdrop-filter: blur(14px);
+  animation: chatPanelRise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .warpath-chat-panel--embedded {
@@ -61,6 +63,13 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   padding: 0.6rem 0.8rem;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.warpath-chat-close:hover {
+  transform: translateY(-2px);
+  background: var(--black);
+  color: #ffffff;
 }
 
 .warpath-chat-feed {
@@ -75,6 +84,7 @@
   gap: 0.35rem;
   padding-top: 0.8rem;
   border-top: 1px solid var(--border-light);
+  animation: chatLineIn 500ms ease both;
 }
 
 .warpath-chat-message:first-child {
@@ -120,6 +130,28 @@
 
 .warpath-chat-input__field::placeholder {
   color: var(--text-muted);
+}
+
+@keyframes chatPanelRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chatLineIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 820px) {

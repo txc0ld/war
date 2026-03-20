@@ -31,6 +31,9 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--bg);
+  background-image:
+    radial-gradient(circle at top center, rgba(10, 10, 10, 0.035), transparent 42%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.018), transparent 24%);
   color: var(--text);
   font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
   -webkit-font-smoothing: antialiased;
@@ -78,6 +81,7 @@ img {
   justify-items: center;
   text-align: center;
   padding: 2rem;
+  animation: screenRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .connect-screen__kicker {
@@ -93,6 +97,7 @@ img {
   letter-spacing: 0.28em;
   font-weight: 800;
   line-height: 0.94;
+  animation: titleResolve 1200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .connect-screen__subtitle {
@@ -114,10 +119,12 @@ img {
   transition: transform 160ms ease, background 160ms ease, color 160ms ease,
     box-shadow 160ms ease;
   box-shadow: 0 8px 30px rgba(10, 10, 10, 0.08);
+  will-change: transform, box-shadow;
 }
 
 .warpath-button:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(10, 10, 10, 0.12);
 }
 
 .warpath-button:disabled {
@@ -140,6 +147,18 @@ img {
   position: relative;
   min-height: 100vh;
   background: var(--bg);
+  animation: screenFade 900ms ease both;
+}
+
+.site-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(10, 10, 10, 0.05), transparent 34%),
+    radial-gradient(circle at 50% 82%, rgba(10, 10, 10, 0.03), transparent 38%);
+  opacity: 0.8;
 }
 
 .site-shell::after {
@@ -160,6 +179,7 @@ img {
 .site-shell__map {
   position: fixed;
   inset: 0;
+  animation: mapFloat 14s ease-in-out infinite alternate;
 }
 
 .site-shell__content {
@@ -177,6 +197,8 @@ img {
   z-index: 5;
   background: rgba(255, 255, 255, 0.94);
   border-bottom: 1px solid var(--black);
+  backdrop-filter: blur(14px);
+  animation: headerSlide 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .site-header__inner {
@@ -234,6 +256,16 @@ img {
   color: var(--black);
 }
 
+.site-nav__button,
+.site-logo {
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.site-nav__button:hover,
+.site-logo:hover {
+  transform: translateY(-1px);
+}
+
 .site-header__wallet {
   display: flex;
   align-items: center;
@@ -254,6 +286,7 @@ img {
 .world-map__svg {
   width: 100%;
   height: 100%;
+  animation: mapReveal 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .world-map__graticule {
@@ -288,11 +321,14 @@ img {
 .world-map__marker {
   fill: var(--black);
   pointer-events: none;
+  animation: markerPulse 3.2s ease-in-out infinite;
+  transform-origin: center;
 }
 
 .world-map__marker--selected,
 .world-map__marker--active {
   fill: var(--red);
+  animation-duration: 1.8s;
 }
 
 .world-map__route {
@@ -301,12 +337,14 @@ img {
   stroke-width: 1;
   stroke-dasharray: 6 8;
   vector-effect: non-scaling-stroke;
+  animation: routeTravel 10s linear infinite;
 }
 
 .world-map__callout-box {
   fill: rgba(255, 255, 255, 0.98);
   stroke: var(--black);
   stroke-width: 1;
+  filter: drop-shadow(0 14px 28px rgba(10, 10, 10, 0.08));
 }
 
 .world-map__callout-line {
@@ -350,6 +388,7 @@ img {
   display: grid;
   gap: 1rem;
   width: min(340px, calc(100vw - 3rem));
+  animation: panelRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .warpath-panel {
@@ -357,6 +396,7 @@ img {
   border: 1px solid var(--black);
   padding: 1.2rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
 }
 
 .warpath-panel--tight {
@@ -490,6 +530,12 @@ img {
   padding: 1rem;
   background: var(--surface);
   border: 1px solid var(--black);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.gun-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 40px rgba(10, 10, 10, 0.1);
 }
 
 .gun-card--selected {
@@ -557,6 +603,8 @@ img {
   border: 1px solid var(--black);
   padding: 1.4rem;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  animation: panelRise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .gun-selector__header {
@@ -799,6 +847,7 @@ img {
   background: var(--surface);
   border: 1px solid var(--black);
   box-shadow: var(--shadow);
+  animation: panelRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .leaderboard__header,
@@ -850,6 +899,102 @@ img {
   }
   50% {
     opacity: 0.15;
+  }
+}
+
+@keyframes screenFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes screenRise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes titleResolve {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    letter-spacing: 0.42em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.28em;
+  }
+}
+
+@keyframes headerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mapReveal {
+  from {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes mapFloat {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes panelRise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes markerPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+}
+
+@keyframes routeTravel {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -140;
   }
 }
 

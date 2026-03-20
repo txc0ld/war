@@ -61,6 +61,7 @@
   display: grid;
   gap: 1rem;
   width: min(22rem, calc(100vw - 3rem));
+  animation: warpathPanelRise 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .warpath-status-card,
@@ -72,6 +73,7 @@
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--black);
   box-shadow: 0 16px 50px rgba(10, 10, 10, 0.08);
+  backdrop-filter: blur(14px);
 }
 
 .warpath-status-card {
@@ -187,7 +189,7 @@
 .warpath-action:hover,
 .warpath-match-cancel:hover,
 .warpath-chat-close:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .warpath-error-card {
@@ -254,6 +256,7 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   animation: matchFlash 1s infinite;
+  will-change: opacity, transform;
 }
 
 .warpath-match-subtitle {
@@ -276,6 +279,7 @@
   height: 100%;
   margin: 0 auto;
   padding: 1.25rem;
+  animation: warpathPanelRise 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .warpath-battle-stage__topline {
@@ -297,6 +301,7 @@
 .warpath-battle-progress__fill {
   height: 100%;
   background: var(--black);
+  box-shadow: 0 0 18px rgba(10, 10, 10, 0.12);
 }
 
 .warpath-battle-arena {
@@ -368,6 +373,11 @@
 .warpath-gun-card {
   display: grid;
   gap: 1rem;
+  transition: transform 220ms ease;
+}
+
+.warpath-gun-card:hover {
+  transform: translateY(-2px);
 }
 
 .warpath-gun-card__plate {
@@ -376,6 +386,7 @@
   padding: 1rem;
   border: 1px solid var(--black);
   background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 34px rgba(10, 10, 10, 0.06);
 }
 
 .warpath-gun-card__meta {
@@ -503,6 +514,7 @@
   border: 1px solid var(--black);
   background: #ffffff;
   overflow: hidden;
+  box-shadow: 0 22px 42px rgba(10, 10, 10, 0.1);
 }
 
 .warpath-result-art img {
@@ -534,6 +546,17 @@
 .warpath-dissolution__canvas {
   width: 200px;
   height: 200px;
+}
+
+@keyframes warpathPanelRise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 980px) {
