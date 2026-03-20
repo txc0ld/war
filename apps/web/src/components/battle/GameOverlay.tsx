@@ -1,9 +1,10 @@
-import { useCallback, lazy, Suspense } from 'react';
+import { useCallback, lazy, Suspense, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { GUNS_BY_ID } from '@/data/guns';
+import { COUNTRIES } from '@/data/countries';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -29,6 +30,10 @@ export function GameOverlay(): React.ReactNode {
     setPhase,
   } = useStore();
   const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
+  const countryName = useMemo(
+    () => COUNTRIES.find((country) => country.code === selectedCountry)?.name ?? selectedCountry,
+    [selectedCountry]
+  );
 
   const handleFight = useCallback(async () => {
     await startMatchmaking();
@@ -62,7 +67,7 @@ export function GameOverlay(): React.ReactNode {
           <div className="warpath-status-card">
             <div className="warpath-status-card__rule" />
             <p className="warpath-status-card__eyebrow">Deploy Zone</p>
-            <p className="warpath-status-card__country">{selectedCountry}</p>
+            <p className="warpath-status-card__country">{countryName}</p>
             {selectedGun ? (
               <div className="warpath-status-card__split">
                 <p className="warpath-status-card__label">Weapon</p>
@@ -107,6 +112,10 @@ export function GameOverlay(): React.ReactNode {
 
       {!selectedCountry && phase === 'idle' ? (
         <div className="warpath-idle-prompt">
+          <div className="warpath-map-brief">
+            <p className="warpath-map-brief__eyebrow">Global Deployment Grid</p>
+            <p className="warpath-map-brief__title">Choose a country, open the armory, and enter the bracket.</p>
+          </div>
           <div className="warpath-idle-prompt__pill">
             <p className="warpath-idle-prompt__copy">Select a country to deploy</p>
           </div>

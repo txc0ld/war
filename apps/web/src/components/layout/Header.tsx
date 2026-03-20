@@ -5,6 +5,7 @@ import { DEMO_MODE } from '@/lib/demo';
 export function Header(): React.ReactNode {
   const navigate = useNavigate();
   const location = useLocation();
+  const isHome = location.pathname === '/';
   const isLeaderboard = location.pathname === '/leaderboard';
 
   return (
@@ -22,17 +23,17 @@ export function Header(): React.ReactNode {
           <nav className="site-nav" aria-label="Primary">
             <button
               type="button"
-              className="site-nav__button"
+              className={`site-nav__button ${isHome ? 'site-nav__button--active' : ''}`}
               onClick={() => navigate('/')}
             >
               Home
             </button>
             <button
               type="button"
-              className="site-nav__button"
-              onClick={() => navigate(isLeaderboard ? '/' : '/leaderboard')}
+              className={`site-nav__button ${isLeaderboard ? 'site-nav__button--active' : ''}`}
+              onClick={() => navigate('/leaderboard')}
             >
-              {isLeaderboard ? 'Map' : 'Leaderboard'}
+              Leaderboard
             </button>
             {DEMO_MODE && <span className="site-nav__mode">Demo Mode</span>}
           </nav>

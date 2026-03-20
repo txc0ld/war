@@ -84,6 +84,13 @@ img {
   animation: screenRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.connect-screen__inner::before {
+  content: '';
+  width: min(12rem, 38vw);
+  height: 1px;
+  background: rgba(10, 10, 10, 0.16);
+}
+
 .connect-screen__kicker {
   margin: 0;
   font-size: 0.72rem;
@@ -264,6 +271,19 @@ img {
 .site-nav__button:hover,
 .site-logo:hover {
   transform: translateY(-1px);
+}
+
+.site-nav__button--active {
+  color: var(--black);
+}
+
+.site-nav__button--active::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 0.28rem;
+  background: var(--black);
 }
 
 .site-header__wallet {
@@ -853,7 +873,14 @@ img {
 .leaderboard-page__content {
   padding: 6rem 1.5rem 2rem;
   display: grid;
-  place-items: center;
+  gap: 1.25rem;
+  justify-items: center;
+}
+
+.leaderboard-page__masthead {
+  width: min(960px, 100%);
+  display: grid;
+  gap: 0.45rem;
 }
 
 .leaderboard {
@@ -862,6 +889,30 @@ img {
   border: 1px solid var(--black);
   box-shadow: var(--shadow);
   animation: panelRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.leaderboard__intro {
+  display: grid;
+  gap: 0.28rem;
+  padding: 1.1rem 1.2rem 0.9rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.leaderboard__eyebrow,
+.leaderboard__copy {
+  margin: 0;
+}
+
+.leaderboard__eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.leaderboard__copy {
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 
 .leaderboard__header,
@@ -884,10 +935,15 @@ img {
 .leaderboard__row {
   border-top: 1px solid var(--border-light);
   font-size: 0.78rem;
+  transition: background 180ms ease;
+}
+
+.leaderboard__row:hover {
+  background: rgba(10, 10, 10, 0.025);
 }
 
 .leaderboard__row--active {
-  background: rgba(255, 0, 0, 0.03);
+  background: rgba(255, 0, 0, 0.04);
 }
 
 .leaderboard__empty {
@@ -901,9 +957,28 @@ img {
 }
 
 .leaderboard__player {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.leaderboard__badge {
+  padding: 0.18rem 0.42rem;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.leaderboard__score,
+.leaderboard__record,
+.leaderboard__guns {
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes matchFlash {

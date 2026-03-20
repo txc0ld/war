@@ -8,6 +8,10 @@ export function Leaderboard(): React.ReactNode {
 
   return (
     <section className="leaderboard" aria-label="Leaderboard">
+      <div className="leaderboard__intro">
+        <p className="leaderboard__eyebrow">Season Standings</p>
+        <p className="leaderboard__copy">Win the bracket, climb the ladder, hold the line.</p>
+      </div>
       <header className="leaderboard__header">
         <span>Rank</span>
         <span>Player</span>

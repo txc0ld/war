@@ -16,12 +16,15 @@ export function LeaderboardRow({
   return (
     <div className={`leaderboard__row ${isActive ? 'leaderboard__row--active' : ''}`}>
       <span className="leaderboard__rank">#{entry.rank}</span>
-      <span className="leaderboard__player">{shortenAddress(entry.address)}</span>
-      <span>{entry.score}</span>
-      <span>
+      <span className="leaderboard__player">
+        {shortenAddress(entry.address)}
+        {isActive ? <span className="leaderboard__badge">YOU</span> : null}
+      </span>
+      <span className="leaderboard__score">{entry.score}</span>
+      <span className="leaderboard__record">
         {entry.wins}/{entry.losses}
       </span>
-      <span>{entry.gunCount}</span>
+      <span className="leaderboard__guns">{entry.gunCount}</span>
     </div>
   );
 }
