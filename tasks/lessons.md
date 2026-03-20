@@ -10,3 +10,4 @@
 - 2026-03-20: For interactive SVG maps, stroke-only paths and overlay markers can silently make countries unclickable; give regions a transparent fill hit area and disable pointer events on decorative markers before calling the interaction done.
 - 2026-03-20: After deleting and recreating asset-side CSS files during a large frontend rewrite, always rerun workspace build immediately and confirm the file still exists on disk before moving on; import paths can silently drift during concurrent edits.
 - 2026-03-20: Before patching frontend CSS during a fast-moving UI pass, read the current selector block from disk first; battle/layout selectors drift often enough that patching from memory wastes cycles and risks missing the live override.
+- 2026-03-20: For interactive maps, even subtle container drift animations can make SVG country taps unstable on mobile-sized viewports; keep the frame static and move the emphasis into pulses inside the map instead.
