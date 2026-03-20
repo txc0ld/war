@@ -171,3 +171,26 @@
     height: auto;
   }
 }
+
+@media (max-width: 560px) {
+  .warpath-chat-panel {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    height: min(18rem, 38vh);
+  }
+
+  .warpath-chat-panel--embedded {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .warpath-chat-header,
+  .warpath-chat-input {
+    padding: 0.8rem;
+  }
+
+  .warpath-chat-feed {
+    padding: 0.8rem;
+  }
+}
