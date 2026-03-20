@@ -369,11 +369,11 @@ img {
 }
 
 .world-map__country--left {
-  stroke: rgba(0, 68, 255, 0.58);
+  stroke: rgba(10, 10, 10, 0.4);
 }
 
 .world-map__country--right {
-  stroke: rgba(255, 0, 0, 0.42);
+  stroke: rgba(10, 10, 10, 0.4);
 }
 
 .world-map__country:hover,
@@ -385,22 +385,22 @@ img {
 
 .world-map__country--left:hover,
 .world-map__country--left:focus-visible {
-  stroke: var(--blue);
+  stroke: var(--black);
 }
 
 .world-map__country--right:hover,
 .world-map__country--right:focus-visible {
-  stroke: var(--red);
+  stroke: var(--black);
 }
 
 .world-map__country--selected-left {
-  stroke: var(--blue);
-  fill: rgba(0, 68, 255, 0.06);
+  stroke: var(--black);
+  fill: rgba(10, 10, 10, 0.05);
 }
 
 .world-map__country--selected-right {
-  stroke: var(--red);
-  fill: rgba(255, 0, 0, 0.05);
+  stroke: var(--black);
+  fill: rgba(10, 10, 10, 0.05);
 }
 
 .world-map__marker {
@@ -415,7 +415,7 @@ img {
 
 .world-map__marker-pulse {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.7);
+  stroke: rgba(10, 10, 10, 0.24);
   stroke-width: 1;
   opacity: 0;
   animation: markerHaloPulse 3.8s ease-out infinite;
@@ -424,27 +424,27 @@ img {
 
 .world-map__marker-pulse--selected,
 .world-map__marker-pulse--active {
-  stroke: rgba(204, 255, 0, 0.9);
+  stroke: rgba(10, 10, 10, 0.42);
   animation-duration: 2.2s;
 }
 
 .world-map__marker--left {
-  fill: var(--blue);
+  fill: var(--black);
 }
 
 .world-map__marker--right {
-  fill: var(--red);
+  fill: var(--black);
 }
 
 .world-map__marker--selected-left,
 .world-map__marker--active-left {
-  fill: var(--blue);
+  fill: var(--black);
   animation: markerPulse 2.2s ease-in-out infinite;
 }
 
 .world-map__marker--selected-right,
 .world-map__marker--active-right {
-  fill: var(--red);
+  fill: var(--black);
   animation: markerPulse 2.2s ease-in-out infinite;
 }
 
@@ -472,7 +472,7 @@ img {
 
 .world-map__route {
   fill: none;
-  stroke: url(#world-map-route-gradient);
+  stroke: rgba(10, 10, 10, 0.78);
   stroke-width: 1.4;
   stroke-dasharray: 8 10;
   vector-effect: non-scaling-stroke;
@@ -494,12 +494,12 @@ img {
 
 .world-map__callout--left .world-map__callout-box,
 .world-map__callout--left .world-map__callout-line {
-  stroke: var(--blue);
+  stroke: var(--black);
 }
 
 .world-map__callout--right .world-map__callout-box,
 .world-map__callout--right .world-map__callout-line {
-  stroke: var(--red);
+  stroke: var(--black);
 }
 
 .world-map__callout-code,
@@ -515,11 +515,11 @@ img {
 }
 
 .world-map__callout--left .world-map__callout-code {
-  fill: var(--blue);
+  fill: var(--black);
 }
 
 .world-map__callout--right .world-map__callout-code {
-  fill: var(--red);
+  fill: var(--black);
 }
 
 .world-map__callout-name {

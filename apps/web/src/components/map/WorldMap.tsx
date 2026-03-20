@@ -191,13 +191,6 @@ export function WorldMap(): React.ReactNode {
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
-        <defs>
-          <linearGradient id="world-map-route-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
-            <stop offset="0%" stopColor="#0044FF" />
-            <stop offset="50%" stopColor="#0A0A0A" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="#FF0000" />
-          </linearGradient>
-        </defs>
         <rect width="1400" height="768" fill="#FFFFFF" />
         <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />

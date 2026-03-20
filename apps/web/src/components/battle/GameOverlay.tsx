@@ -78,7 +78,11 @@ export function GameOverlay(): React.ReactNode {
                 <div className="warpath-status-card__rule" />
                 <p className="warpath-status-card__eyebrow">Deploy Zone</p>
                 <p className="warpath-status-card__country">{countryName}</p>
-                <p className="warpath-status-card__label">
+                <p
+                  className={`warpath-status-card__sector warpath-status-card__sector--${
+                    selectedCountryData?.side === 'right' ? 'right' : 'left'
+                  }`}
+                >
                   {selectedCountryData?.side === 'right' ? 'Right Sector' : 'Left Sector'}
                 </p>
                 {selectedGun ? (

@@ -122,6 +122,27 @@
   text-transform: uppercase;
 }
 
+.warpath-status-card__sector {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0.55rem 0 0;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid currentColor;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.warpath-status-card__sector--left {
+  color: var(--blue);
+}
+
+.warpath-status-card__sector--right {
+  color: var(--red);
+}
+
 .warpath-status-card__split {
   margin-top: 0.85rem;
   padding-top: 0.85rem;

@@ -16,3 +16,4 @@
 - 2026-03-20: For brand renames in this repo, update human-facing copy, metadata, auth statements, and test fixtures together, but avoid renaming internal package scopes or deployment slugs unless there is explicit migration time for the whole workspace.
 - 2026-03-20: If map geography drives battle semantics, encode the side split in the source country dataset and reuse it in demo/battle composition; deriving it separately in the map and fight layers leads to label/color drift as soon as the player can spawn on either side.
 - 2026-03-20: For this frontend, page-level background washes read like broken side gradients once the map is framed; keep atmosphere inside `.world-map::before` and let the outer shell stay almost flat white.
+- 2026-03-20: If the map itself is meant to feel archival and precise, keep the cartography monochrome; red/blue accents land better in side ownership, health, badges, and battle chrome than on country strokes and route lines.
