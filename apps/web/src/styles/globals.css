@@ -279,11 +279,25 @@ img {
   transition: opacity 180ms ease;
 }
 
+.world-map::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(10, 10, 10, 0.055), transparent 34%),
+    radial-gradient(circle at 50% 78%, rgba(10, 10, 10, 0.03), transparent 38%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.018), transparent 24%, transparent 72%, rgba(10, 10, 10, 0.022));
+  opacity: 0.9;
+}
+
 .world-map--muted {
   opacity: 0.08;
 }
 
 .world-map__svg {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   animation: mapReveal 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
