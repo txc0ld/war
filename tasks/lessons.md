@@ -25,3 +25,4 @@
 - 2026-03-20: On interactive SVG maps, pointer capture can make drag feel robust but silently break child path taps; prefer bounded local pointer tracking unless you truly need capture outside the surface.
 - 2026-03-20: If cooldown rules depend on wallet arsenal size, do not read the timer duration from dormant store state; sync the loaded guns into the store or compute from the active arsenal source, otherwise demo/local cooldowns silently fall back to the wrong duration.
 - 2026-03-20: On layered game screens, keep map-only affordances and idle HUD surfaces scoped to the idle phase; leaving them mounted beneath battle/result overlays creates visual clutter and can even intercept clicks in the result state.
+- 2026-03-20: If a framed map starts reading like it has vertical rails, check for a horizontal `90deg` wash inside the container overlay before adjusting borders or shadows; center-weighted atmosphere holds depth without dirtying the edges.
