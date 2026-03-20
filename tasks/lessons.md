@@ -20,3 +20,4 @@
 - 2026-03-20: For broad theme reversals in `apps/web/src/styles/globals.css`, patch the runtime in smaller selector blocks after reading the current file; that stylesheet drifts too quickly for one monolithic diff to stay reliable.
 - 2026-03-20: Result overlays in this app need click handling isolated from the map beneath them; stop propagation on the result panel itself or the dismissal click can bleed through into a fresh country selection.
 - 2026-03-20: On small screens, a display heading can still overflow even after `white-space: nowrap`; verify branded title lockups with a real mobile screenshot and tune both font size and letter spacing together.
+- 2026-03-20: For oversized display fonts on centered landing screens, width constraints on the parent can force unwanted multi-line composition on desktop too; validate the parent max width before treating the heading as the only problem.
