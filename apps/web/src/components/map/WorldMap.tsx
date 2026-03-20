@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
@@ -28,6 +28,38 @@ interface ProjectedCountry {
   x: number;
   y: number;
 }
+
+interface ViewBoxState {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface PointerPoint {
+  x: number;
+  y: number;
+}
+
+interface GestureState {
+  mode: 'pan' | 'pinch' | null;
+  startViewBox: ViewBoxState;
+  startPoint?: PointerPoint;
+  startMidpoint?: PointerPoint;
+  startDistance?: number;
+}
+
+const VIEWBOX_WIDTH = 1400;
+const VIEWBOX_HEIGHT = 768;
+const DEFAULT_VIEWBOX: ViewBoxState = {
+  x: 0,
+  y: 0,
+  width: VIEWBOX_WIDTH,
+  height: VIEWBOX_HEIGHT,
+};
+const MAX_ZOOM = 2.8;
+const MIN_ZOOM = 1;
+const GESTURE_MOVE_THRESHOLD = 8;
 
 function splitCalloutName(name: string): string[] {
   if (name.length <= 14) {
@@ -120,6 +152,35 @@ function createArcPath(start: ProjectedCountry, end: ProjectedCountry) {
   return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampViewBox(next: ViewBoxState): ViewBoxState {
+  const width = clamp(next.width, VIEWBOX_WIDTH / MAX_ZOOM, VIEWBOX_WIDTH / MIN_ZOOM);
+  const height = (width / VIEWBOX_WIDTH) * VIEWBOX_HEIGHT;
+  const maxX = VIEWBOX_WIDTH - width;
+  const maxY = VIEWBOX_HEIGHT - height;
+
+  return {
+    x: clamp(next.x, 0, Math.max(0, maxX)),
+    y: clamp(next.y, 0, Math.max(0, maxY)),
+    width,
+    height,
+  };
+}
+
+function getDistance(a: PointerPoint, b: PointerPoint) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function getMidpoint(a: PointerPoint, b: PointerPoint): PointerPoint {
+  return {
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  };
+}
+
 export function WorldMap(): React.ReactNode {
   const {
     selectedCountry,
@@ -129,6 +190,101 @@ export function WorldMap(): React.ReactNode {
     currentBattle,
   } = useStore();
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  const [viewBox, setViewBox] = useState<ViewBoxState>(DEFAULT_VIEWBOX);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const viewBoxRef = useRef<ViewBoxState>(DEFAULT_VIEWBOX);
+  const pointersRef = useRef(new Map<number, PointerPoint>());
+  const gestureRef = useRef<GestureState>({
+    mode: null,
+    startViewBox: DEFAULT_VIEWBOX,
+  });
+  const suppressClickRef = useRef(false);
+
+  const getRatiosFromClientPoint = useCallback((point: PointerPoint) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+
+    if (!rect || rect.width === 0 || rect.height === 0) {
+      return { x: 0.5, y: 0.5 };
+    }
+
+    return {
+      x: clamp((point.x - rect.left) / rect.width, 0, 1),
+      y: clamp((point.y - rect.top) / rect.height, 0, 1),
+    };
+  }, []);
+
+  const clientPointToViewBoxPoint = useCallback(
+    (point: PointerPoint, sourceViewBox: ViewBoxState) => {
+      const ratios = getRatiosFromClientPoint(point);
+
+      return {
+        x: sourceViewBox.x + ratios.x * sourceViewBox.width,
+        y: sourceViewBox.y + ratios.y * sourceViewBox.height,
+      };
+    },
+    [getRatiosFromClientPoint]
+  );
+
+  const applyViewBox = useCallback((updater: (current: ViewBoxState) => ViewBoxState) => {
+    setViewBox((current) => {
+      const next = clampViewBox(updater(current));
+      viewBoxRef.current = next;
+      return next;
+    });
+  }, []);
+
+  const zoomToScale = useCallback(
+    (nextScale: number, focusPoint?: PointerPoint) => {
+      applyViewBox((current) => {
+        const clampedScale = clamp(nextScale, MIN_ZOOM, MAX_ZOOM);
+        const nextWidth = VIEWBOX_WIDTH / clampedScale;
+        const nextHeight = VIEWBOX_HEIGHT / clampedScale;
+
+        if (!focusPoint) {
+          const centerX = current.x + current.width / 2;
+          const centerY = current.y + current.height / 2;
+
+          return {
+            x: centerX - nextWidth / 2,
+            y: centerY - nextHeight / 2,
+            width: nextWidth,
+            height: nextHeight,
+          };
+        }
+
+        const ratios = getRatiosFromClientPoint(focusPoint);
+        const focus = clientPointToViewBoxPoint(focusPoint, current);
+
+        return {
+          x: focus.x - ratios.x * nextWidth,
+          y: focus.y - ratios.y * nextHeight,
+          width: nextWidth,
+          height: nextHeight,
+        };
+      });
+    },
+    [applyViewBox, clientPointToViewBoxPoint, getRatiosFromClientPoint]
+  );
+
+  const handleZoomButton = useCallback(
+    (direction: 'in' | 'out') => {
+      const currentScale = VIEWBOX_WIDTH / viewBoxRef.current.width;
+      const factor = direction === 'in' ? 1.18 : 1 / 1.18;
+      zoomToScale(currentScale * factor);
+    },
+    [zoomToScale]
+  );
+
+  const handleReset = useCallback(() => {
+    suppressClickRef.current = false;
+    pointersRef.current.clear();
+    gestureRef.current = {
+      mode: null,
+      startViewBox: DEFAULT_VIEWBOX,
+    };
+    setViewBox(DEFAULT_VIEWBOX);
+    viewBoxRef.current = DEFAULT_VIEWBOX;
+  }, []);
 
   const activeCountry = hoveredCountry ?? selectedCountry;
   const activeData = activeCountry ? COUNTRY_MAP.get(activeCountry) ?? null : null;
@@ -188,9 +344,200 @@ export function WorldMap(): React.ReactNode {
     [opponentCountry?.code, route, selectedCountry]
   );
 
+  const handlePointerDown = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    const point = { x: event.clientX, y: event.clientY };
+    pointersRef.current.set(event.pointerId, point);
+
+    const points = Array.from(pointersRef.current.values());
+
+    if (points.length >= 2) {
+      const [first, second] = points;
+      if (!first || !second) {
+        return;
+      }
+      gestureRef.current = {
+        mode: 'pinch',
+        startViewBox: viewBoxRef.current,
+        startMidpoint: getMidpoint(first, second),
+        startDistance: getDistance(first, second),
+      };
+      suppressClickRef.current = true;
+      return;
+    }
+
+    gestureRef.current = {
+      mode: 'pan',
+      startViewBox: viewBoxRef.current,
+      startPoint: point,
+    };
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      if (!pointersRef.current.has(event.pointerId)) {
+        return;
+      }
+
+      const point = { x: event.clientX, y: event.clientY };
+      pointersRef.current.set(event.pointerId, point);
+      const points = Array.from(pointersRef.current.values());
+      const gesture = gestureRef.current;
+
+      if (points.length >= 2 && gesture.startDistance && gesture.startMidpoint) {
+        const [first, second] = points;
+        if (!first || !second) {
+          return;
+        }
+        const currentDistance = getDistance(first, second);
+        if (!Number.isFinite(currentDistance) || currentDistance <= 0) {
+          return;
+        }
+
+        const scaleRatio = currentDistance / gesture.startDistance;
+        const startScale = VIEWBOX_WIDTH / gesture.startViewBox.width;
+        const nextScale = clamp(startScale * scaleRatio, MIN_ZOOM, MAX_ZOOM);
+        const nextWidth = VIEWBOX_WIDTH / nextScale;
+        const nextHeight = VIEWBOX_HEIGHT / nextScale;
+        const midpoint = getMidpoint(first, second);
+        const focus = clientPointToViewBoxPoint(gesture.startMidpoint, gesture.startViewBox);
+        const ratios = getRatiosFromClientPoint(midpoint);
+
+        if (Math.abs(currentDistance - gesture.startDistance) > GESTURE_MOVE_THRESHOLD) {
+          suppressClickRef.current = true;
+        }
+
+        applyViewBox(() => ({
+          x: focus.x - ratios.x * nextWidth,
+          y: focus.y - ratios.y * nextHeight,
+          width: nextWidth,
+          height: nextHeight,
+        }));
+        return;
+      }
+
+      if (points.length === 1 && gesture.mode === 'pan' && gesture.startPoint) {
+        const scale = VIEWBOX_WIDTH / gesture.startViewBox.width;
+        if (scale <= 1) {
+          return;
+        }
+
+        const rect = svgRef.current?.getBoundingClientRect();
+        if (!rect || rect.width === 0 || rect.height === 0) {
+          return;
+        }
+
+        const deltaX = ((point.x - gesture.startPoint.x) / rect.width) * gesture.startViewBox.width;
+        const deltaY = ((point.y - gesture.startPoint.y) / rect.height) * gesture.startViewBox.height;
+
+        if (Math.abs(point.x - gesture.startPoint.x) > GESTURE_MOVE_THRESHOLD || Math.abs(point.y - gesture.startPoint.y) > GESTURE_MOVE_THRESHOLD) {
+          suppressClickRef.current = true;
+        }
+
+        applyViewBox(() => ({
+          ...gesture.startViewBox,
+          x: gesture.startViewBox.x - deltaX,
+          y: gesture.startViewBox.y - deltaY,
+        }));
+      }
+    },
+    [applyViewBox, clientPointToViewBoxPoint, getRatiosFromClientPoint]
+  );
+
+  const handlePointerEnd = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+    pointersRef.current.delete(event.pointerId);
+
+    const points = Array.from(pointersRef.current.values());
+    if (points.length >= 2) {
+      const [first, second] = points;
+      if (!first || !second) {
+        return;
+      }
+      gestureRef.current = {
+        mode: 'pinch',
+        startViewBox: viewBoxRef.current,
+        startMidpoint: getMidpoint(first, second),
+        startDistance: getDistance(first, second),
+      };
+      return;
+    }
+
+    if (points.length === 1) {
+      const [remaining] = points;
+      if (!remaining) {
+        return;
+      }
+      gestureRef.current = {
+        mode: 'pan',
+        startViewBox: viewBoxRef.current,
+        startPoint: remaining,
+      };
+      return;
+    }
+
+    gestureRef.current = {
+      mode: null,
+      startViewBox: viewBoxRef.current,
+    };
+
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 80);
+  }, []);
+
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<SVGSVGElement>) => {
+      event.preventDefault();
+
+      const currentScale = VIEWBOX_WIDTH / viewBoxRef.current.width;
+      const nextScale =
+        event.deltaY < 0 ? currentScale * 1.12 : currentScale / 1.12;
+
+      zoomToScale(nextScale, { x: event.clientX, y: event.clientY });
+    },
+    [zoomToScale]
+  );
+
+  const handleCountrySelect = useCallback(
+    (countryCode: string) => {
+      if (suppressClickRef.current) {
+        suppressClickRef.current = false;
+        return;
+      }
+
+      selectCountry(countryCode);
+    },
+    [selectCountry]
+  );
+
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
-      <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
+      <div className="world-map__controls" aria-label="Map zoom controls">
+        <button type="button" className="world-map__control" onClick={() => handleZoomButton('in')} aria-label="Zoom in">
+          +
+        </button>
+        <button type="button" className="world-map__control" onClick={() => handleZoomButton('out')} aria-label="Zoom out">
+          -
+        </button>
+        <button type="button" className="world-map__control world-map__control--reset" onClick={handleReset} aria-label="Reset map position">
+          Reset
+        </button>
+      </div>
+      <svg
+        ref={svgRef}
+        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+        className="world-map__svg"
+        aria-label="World map deployment grid"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onPointerLeave={handlePointerEnd}
+        onWheel={handleWheel}
+      >
         <rect width="1400" height="768" fill="#050705" />
         <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />
@@ -239,11 +586,11 @@ export function WorldMap(): React.ReactNode {
                 onMouseLeave={() => setHoveredCountry(null)}
                 onFocus={() => setHoveredCountry(country.code)}
                 onBlur={() => setHoveredCountry(null)}
-                onClick={() => selectCountry(country.code)}
+                onClick={() => handleCountrySelect(country.code)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    selectCountry(country.code);
+                    handleCountrySelect(country.code);
                   }
                 }}
               />
