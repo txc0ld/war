@@ -5,6 +5,7 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [in_progress] Gradient refinement pass: remove the ugly left/right fade behavior around the world map and keep all depth centered inside the map frame
 - [completed] Battle side alignment pass: lengthen combat playback, keep victory/defeat as click-to-proceed states, split deployment countries into left/right hemispheres, and color battle sides blue/red consistently
 - [completed] WAR ROOM rename: update brand references across the live app, metadata, signed auth copy, and local documentation while keeping internal package/deploy identifiers stable
 - [completed] Map gradient cleanup: remove the shell-level side fades and replace them with tighter map-local gradients that add depth without washing out the frame
