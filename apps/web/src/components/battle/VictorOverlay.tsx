@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './battlePresentation.css';
 
@@ -16,11 +16,6 @@ export function VictorOverlay({
   const dismiss = useCallback(() => {
     onDismiss();
   }, [onDismiss]);
-
-  useEffect(() => {
-    const timer = setTimeout(dismiss, 4000);
-    return () => clearTimeout(timer);
-  }, [dismiss]);
 
   return (
     <AnimatePresence>
@@ -74,7 +69,7 @@ export function VictorOverlay({
               FIGHT AGAIN
             </button>
           </div>
-          <p className="warpath-result-hint">Tap anywhere to redeploy</p>
+          <p className="warpath-result-hint">Click or tap anywhere to continue</p>
         </div>
       </motion.div>
     </AnimatePresence>

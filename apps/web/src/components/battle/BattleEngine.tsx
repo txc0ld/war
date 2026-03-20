@@ -9,13 +9,18 @@ import './battlePresentation.css';
 
 interface BattleEngineProps {
   battle: Battle;
+  playerSide?: 'left' | 'right';
   onComplete: (winner: 'left' | 'right') => void;
 }
 
-const TICK_DURATION_MS = 250;
+const TICK_DURATION_MS = 520;
+const TICK_SPEED_FACTOR_MS = 1.6;
+const MIN_TICK_DURATION_MS = 360;
+const RESULT_HOLD_MS = 1400;
 
 export function BattleEngine({
   battle,
+  playerSide = 'left',
   onComplete,
 }: BattleEngineProps): React.ReactNode {
   const [currentTick, setCurrentTick] = useState(-1);
@@ -70,7 +75,10 @@ export function BattleEngine({
 
       if (tick < rounds.length - 1) {
         const speedBonus = Math.max(battle.left.stats.speed, battle.right.stats.speed);
-        const adjustedDuration = Math.max(120, TICK_DURATION_MS - speedBonus);
+        const adjustedDuration = Math.max(
+          MIN_TICK_DURATION_MS,
+          TICK_DURATION_MS - speedBonus * TICK_SPEED_FACTOR_MS
+        );
         tickRef.current = setTimeout(() => playTick(tick + 1), adjustedDuration);
       } else {
         tickRef.current = setTimeout(() => {
@@ -78,7 +86,7 @@ export function BattleEngine({
             completedRef.current = true;
             onComplete(battle.result.winner);
           }
-        }, 1000);
+        }, RESULT_HOLD_MS);
       }
     },
     [rounds, battle.result.winner, battle.left.stats.speed, battle.right.stats.speed, onComplete]
@@ -110,6 +118,8 @@ export function BattleEngine({
     currentEvent === 'dodge_left' || currentEvent === 'dodge_right'
       ? 'warpath-battle-event warpath-battle-event--evasion'
       : 'warpath-battle-event warpath-battle-event--impact';
+  const leftLabel = playerSide === 'left' ? 'Player' : 'Opponent';
+  const rightLabel = playerSide === 'right' ? 'Player' : 'Opponent';
 
   return (
     <motion.div
@@ -166,7 +176,7 @@ export function BattleEngine({
               hp={leftHp}
               stats={leftStats}
               side="left"
-              label="Player"
+              label={leftLabel}
               animated
             />
             <AnimatePresence>
@@ -233,7 +243,7 @@ export function BattleEngine({
               hp={rightHp}
               stats={rightStats}
               side="right"
-              label="Opponent"
+              label={rightLabel}
               animated
             />
             <AnimatePresence>

@@ -4,7 +4,7 @@ import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { GUNS_BY_ID } from '@/data/guns';
-import { COUNTRIES } from '@/data/countries';
+import { getCountryByCode } from '@/data/countries';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -30,10 +30,26 @@ export function GameOverlay(): React.ReactNode {
     setPhase,
   } = useStore();
   const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
+  const selectedCountryData = useMemo(() => getCountryByCode(selectedCountry), [selectedCountry]);
   const countryName = useMemo(
-    () => COUNTRIES.find((country) => country.code === selectedCountry)?.name ?? selectedCountry,
-    [selectedCountry]
+    () => selectedCountryData?.name ?? selectedCountry,
+    [selectedCountry, selectedCountryData]
   );
+  const playerSide = useMemo(() => {
+    const normalizedAddress = sessionAddress?.toLowerCase();
+
+    if (normalizedAddress && currentBattle) {
+      if (normalizedAddress === currentBattle.left.address.toLowerCase()) {
+        return 'left';
+      }
+
+      if (normalizedAddress === currentBattle.right.address.toLowerCase()) {
+        return 'right';
+      }
+    }
+
+    return selectedCountryData?.side ?? 'left';
+  }, [currentBattle, selectedCountryData?.side, sessionAddress]);
 
   const handleFight = useCallback(async () => {
     await startMatchmaking();
@@ -47,17 +63,9 @@ export function GameOverlay(): React.ReactNode {
 
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
-      const normalizedAddress = sessionAddress?.toLowerCase();
-      const playerSide =
-        normalizedAddress === currentBattle?.left.address.toLowerCase()
-          ? 'left'
-          : normalizedAddress === currentBattle?.right.address.toLowerCase()
-            ? 'right'
-            : 'left';
-
       setPhase(winner === playerSide ? 'result_win' : 'result_loss');
     },
-    [currentBattle?.left.address, currentBattle?.right.address, sessionAddress, setPhase]
+    [playerSide, setPhase]
   );
 
   return (
@@ -70,6 +78,9 @@ export function GameOverlay(): React.ReactNode {
                 <div className="warpath-status-card__rule" />
                 <p className="warpath-status-card__eyebrow">Deploy Zone</p>
                 <p className="warpath-status-card__country">{countryName}</p>
+                <p className="warpath-status-card__label">
+                  {selectedCountryData?.side === 'right' ? 'Right Sector' : 'Left Sector'}
+                </p>
                 {selectedGun ? (
                   <div className="warpath-status-card__split">
                     <p className="warpath-status-card__label">Weapon</p>
@@ -137,19 +148,30 @@ export function GameOverlay(): React.ReactNode {
             left={{
               imageUrl: currentBattle.left.imageUrl,
               name:
-                selectedGun?.name ??
-                GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
-                `Gun #${currentBattle.left.tokenId}`,
+                playerSide === 'left'
+                  ? selectedGun?.name ??
+                    GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
+                    `Gun #${currentBattle.left.tokenId}`
+                  : GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
+                    `Gun #${currentBattle.left.tokenId}`,
               tokenId: currentBattle.left.tokenId,
               stats: currentBattle.left.stats,
+              side: 'left',
+              label: playerSide === 'left' ? 'You' : 'Opponent',
             }}
             right={{
               imageUrl: currentBattle.right.imageUrl,
               name:
-                GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
-                `Gun #${currentBattle.right.tokenId}`,
+                playerSide === 'right'
+                  ? selectedGun?.name ??
+                    GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
+                    `Gun #${currentBattle.right.tokenId}`
+                  : GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
+                    `Gun #${currentBattle.right.tokenId}`,
               tokenId: currentBattle.right.tokenId,
               stats: currentBattle.right.stats,
+              side: 'right',
+              label: playerSide === 'right' ? 'You' : 'Opponent',
             }}
             onComplete={() => setPhase('fighting')}
           />
@@ -159,6 +181,7 @@ export function GameOverlay(): React.ReactNode {
           <BattleEngine
             key="battle"
             battle={currentBattle}
+            playerSide={playerSide}
             onComplete={handleBattleComplete}
           />
         ) : null}

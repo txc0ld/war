@@ -20,10 +20,13 @@ export type CountryCode =
   | 'ZA'
   | 'AE';
 
+export type CountrySide = 'left' | 'right';
+
 export interface CountryLocation {
   code: CountryCode;
   name: string;
   atlasId: string;
+  side: CountrySide;
   region:
     | 'North America'
     | 'South America'
@@ -48,6 +51,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'US',
     name: 'United States',
     atlasId: '840',
+    side: 'left',
     region: 'North America',
     latitude: 38.0,
     longitude: -97.0,
@@ -62,6 +66,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'CA',
     name: 'Canada',
     atlasId: '124',
+    side: 'left',
     region: 'North America',
     latitude: 56.1304,
     longitude: -106.3468,
@@ -76,6 +81,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'MX',
     name: 'Mexico',
     atlasId: '484',
+    side: 'left',
     region: 'North America',
     latitude: 23.6345,
     longitude: -102.5528,
@@ -90,6 +96,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'BR',
     name: 'Brazil',
     atlasId: '076',
+    side: 'left',
     region: 'South America',
     latitude: -14.235,
     longitude: -51.9253,
@@ -104,6 +111,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'AR',
     name: 'Argentina',
     atlasId: '032',
+    side: 'left',
     region: 'South America',
     latitude: -38.4161,
     longitude: -63.6167,
@@ -118,6 +126,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'GB',
     name: 'United Kingdom',
     atlasId: '826',
+    side: 'left',
     region: 'Europe',
     latitude: 55.3781,
     longitude: -3.436,
@@ -132,6 +141,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'FR',
     name: 'France',
     atlasId: '250',
+    side: 'left',
     region: 'Europe',
     latitude: 46.2276,
     longitude: 2.2137,
@@ -146,6 +156,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'DE',
     name: 'Germany',
     atlasId: '276',
+    side: 'right',
     region: 'Europe',
     latitude: 51.1657,
     longitude: 10.4515,
@@ -160,6 +171,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'SE',
     name: 'Sweden',
     atlasId: '752',
+    side: 'right',
     region: 'Europe',
     latitude: 60.1282,
     longitude: 18.6435,
@@ -174,6 +186,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'RU',
     name: 'Russia',
     atlasId: '643',
+    side: 'right',
     region: 'Europe',
     latitude: 61.524,
     longitude: 105.3188,
@@ -188,6 +201,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'EG',
     name: 'Egypt',
     atlasId: '818',
+    side: 'right',
     region: 'Africa',
     latitude: 26.8206,
     longitude: 30.8025,
@@ -202,6 +216,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'NG',
     name: 'Nigeria',
     atlasId: '566',
+    side: 'left',
     region: 'Africa',
     latitude: 9.082,
     longitude: 8.6753,
@@ -216,6 +231,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'KE',
     name: 'Kenya',
     atlasId: '404',
+    side: 'right',
     region: 'Africa',
     latitude: -0.0236,
     longitude: 37.9062,
@@ -230,6 +246,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'ZA',
     name: 'South Africa',
     atlasId: '710',
+    side: 'right',
     region: 'Africa',
     latitude: -30.5595,
     longitude: 22.9375,
@@ -244,6 +261,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'AE',
     name: 'United Arab Emirates',
     atlasId: '784',
+    side: 'right',
     region: 'Middle East',
     latitude: 23.4241,
     longitude: 53.8478,
@@ -258,6 +276,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'IN',
     name: 'India',
     atlasId: '356',
+    side: 'right',
     region: 'Asia Pacific',
     latitude: 20.5937,
     longitude: 78.9629,
@@ -272,6 +291,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'CN',
     name: 'China',
     atlasId: '156',
+    side: 'right',
     region: 'Asia Pacific',
     latitude: 35.8617,
     longitude: 104.1954,
@@ -286,6 +306,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'KR',
     name: 'South Korea',
     atlasId: '410',
+    side: 'right',
     region: 'Asia Pacific',
     latitude: 35.9078,
     longitude: 127.7669,
@@ -300,6 +321,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'JP',
     name: 'Japan',
     atlasId: '392',
+    side: 'right',
     region: 'Asia Pacific',
     latitude: 36.2048,
     longitude: 138.2529,
@@ -314,6 +336,7 @@ export const COUNTRIES: CountryLocation[] = [
     code: 'AU',
     name: 'Australia',
     atlasId: '036',
+    side: 'right',
     region: 'Asia Pacific',
     latitude: -25.2744,
     longitude: 133.7751,
@@ -329,6 +352,18 @@ export const COUNTRIES: CountryLocation[] = [
 export const COUNTRY_BY_CODE = new Map(
   COUNTRIES.map((country) => [country.code, country])
 );
+
+export function getCountryByCode(code: string | null | undefined): CountryLocation | null {
+  if (!code) {
+    return null;
+  }
+
+  return COUNTRY_BY_CODE.get(code as CountryCode) ?? null;
+}
+
+export function getCountrySide(code: string | null | undefined): CountrySide | null {
+  return getCountryByCode(code)?.side ?? null;
+}
 
 export const NETWORK_LINKS: CountryNetworkLink[] = [
   ['US', 'GB'],

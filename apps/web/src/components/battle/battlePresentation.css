@@ -429,6 +429,16 @@
   box-shadow: 0 14px 34px rgba(10, 10, 10, 0.06);
 }
 
+.warpath-gun-card--left .warpath-gun-card__plate {
+  border-color: rgba(0, 68, 255, 0.75);
+  box-shadow: 0 14px 34px rgba(0, 68, 255, 0.08);
+}
+
+.warpath-gun-card--right .warpath-gun-card__plate {
+  border-color: rgba(255, 0, 0, 0.75);
+  box-shadow: 0 14px 34px rgba(255, 0, 0, 0.08);
+}
+
 .warpath-gun-card__meta {
   display: grid;
   gap: 0.25rem;
@@ -448,6 +458,14 @@
   border: 1px solid var(--black);
   background: transparent;
   overflow: hidden;
+}
+
+.warpath-gun-card--left .warpath-gun-frame {
+  border-color: rgba(0, 68, 255, 0.85);
+}
+
+.warpath-gun-card--right .warpath-gun-frame {
+  border-color: rgba(255, 0, 0, 0.85);
 }
 
 .warpath-gun-frame__image {
@@ -490,6 +508,22 @@
   text-transform: uppercase;
 }
 
+.warpath-health__side--left {
+  color: var(--blue);
+}
+
+.warpath-health__side--right {
+  color: var(--red);
+}
+
+.warpath-gun-card--left .warpath-gun-card__token {
+  color: rgba(0, 68, 255, 0.7);
+}
+
+.warpath-gun-card--right .warpath-gun-card__token {
+  color: rgba(255, 0, 0, 0.7);
+}
+
 .warpath-meter {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -521,10 +555,16 @@
   background: var(--blue);
 }
 
-.warpath-meter__fill--speed,
-.warpath-meter__fill--health-high,
-.warpath-meter__fill--health-mid {
+.warpath-meter__fill--speed {
   background: var(--black);
+}
+
+.warpath-meter__fill--health-left {
+  background: var(--blue);
+}
+
+.warpath-meter__fill--health-right {
+  background: var(--red);
 }
 
 .warpath-meter__fill--health-low {

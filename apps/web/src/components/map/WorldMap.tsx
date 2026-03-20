@@ -4,7 +4,7 @@ import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
 import landAtlas from 'world-atlas/land-110m.json';
-import { COUNTRIES, NETWORK_LINKS } from '@/data/countries';
+import { COUNTRIES, NETWORK_LINKS, type CountrySide } from '@/data/countries';
 import { useStore } from '@/store';
 
 interface CountriesTopology {
@@ -23,6 +23,7 @@ interface ProjectedCountry {
   code: string;
   name: string;
   atlasId: string;
+  side: CountrySide;
   d: string;
   x: number;
   y: number;
@@ -137,9 +138,16 @@ export function WorldMap(): React.ReactNode {
     }
 
     const offsetSeed = currentBattle?.right.tokenId ?? 7;
-    const currentIndex = COUNTRIES.findIndex((country) => country.code === selectedCountry);
-    const target = COUNTRIES[(Math.max(currentIndex, 0) + offsetSeed) % COUNTRIES.length];
-    return target?.code === selectedCountry ? COUNTRIES[(offsetSeed + 3) % COUNTRIES.length] : target;
+    const selectedSide = COUNTRIES.find((country) => country.code === selectedCountry)?.side;
+    const targetPool = COUNTRIES.filter(
+      (country) => country.code !== selectedCountry && country.side !== selectedSide
+    );
+
+    if (targetPool.length === 0) {
+      return null;
+    }
+
+    return targetPool[offsetSeed % targetPool.length] ?? null;
   }, [currentBattle?.right.tokenId, phase, selectedCountry]);
 
   const route = useMemo(() => {
@@ -183,6 +191,13 @@ export function WorldMap(): React.ReactNode {
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       <svg viewBox="0 0 1400 768" className="world-map__svg" aria-label="World map deployment grid">
+        <defs>
+          <linearGradient id="world-map-route-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%" stopColor="#0044FF" />
+            <stop offset="50%" stopColor="#0A0A0A" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#FF0000" />
+          </linearGradient>
+        </defs>
         <rect width="1400" height="768" fill="#FFFFFF" />
         <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />
@@ -197,12 +212,33 @@ export function WorldMap(): React.ReactNode {
 
         {PROJECTED_COUNTRIES.map((country) => {
           const isSelected = selectedCountry === country.code;
+          const countryClasses = [
+            'world-map__country',
+            `world-map__country--${country.side}`,
+            isSelected ? `world-map__country--selected-${country.side}` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const pulseClasses = [
+            'world-map__marker-pulse',
+            `world-map__marker-pulse--${country.side}`,
+            isSelected ? `world-map__marker-pulse--selected-${country.side}` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const markerClasses = [
+            'world-map__marker',
+            `world-map__marker--${country.side}`,
+            isSelected ? `world-map__marker--selected-${country.side}` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
 
           return (
             <g key={country.code}>
               <path
                 d={country.d}
-                className={`world-map__country ${isSelected ? 'world-map__country--selected' : ''}`}
+                className={countryClasses}
                 role="button"
                 tabIndex={0}
                 aria-label={country.name}
@@ -223,13 +259,13 @@ export function WorldMap(): React.ReactNode {
                   cx={country.x}
                   cy={country.y}
                   r={isSelected ? 15 : 10}
-                  className={`world-map__marker-pulse ${isSelected ? 'world-map__marker-pulse--selected' : ''}`}
+                  className={pulseClasses}
                 />
                 <circle
                   cx={country.x}
                   cy={country.y}
                   r={isSelected ? 8 : 5}
-                  className={`world-map__marker ${isSelected ? 'world-map__marker--selected' : ''}`}
+                  className={markerClasses}
                 />
               </g>
             </g>
@@ -244,13 +280,13 @@ export function WorldMap(): React.ReactNode {
               cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
               cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
               r={16}
-              className="world-map__marker-pulse world-map__marker-pulse--active"
+              className={`world-map__marker-pulse world-map__marker-pulse--active-${opponentCountry.side}`}
             />
             <circle
               cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
               cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
               r={8}
-              className="world-map__marker world-map__marker--active"
+              className={`world-map__marker world-map__marker--active-${opponentCountry.side}`}
             />
           </g>
         )}
@@ -260,8 +296,9 @@ export function WorldMap(): React.ReactNode {
           const nameLines = splitCalloutName(activeData.name);
           const boxHeight = nameLines.length > 1 ? 102 : 88;
           const stateY = position.boxY + (nameLines.length > 1 ? 88 : 74);
+          const calloutSideClass = `world-map__callout--${activeData.side}`;
           return (
-            <g aria-hidden="true" className="world-map__callout">
+            <g aria-hidden="true" className={`world-map__callout ${calloutSideClass}`}>
               <path
                 d={`M ${activeData.x} ${activeData.y} L ${position.lineX} ${position.lineY}`}
                 className="world-map__callout-line"

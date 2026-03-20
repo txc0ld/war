@@ -20,11 +20,11 @@ export function HealthBar({
   const value = typeof current === 'number' ? current : hp ?? max;
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   const fillClass =
-    pct > 50
-      ? 'warpath-meter__fill--health-high'
-      : pct > 25
-        ? 'warpath-meter__fill--health-mid'
-        : 'warpath-meter__fill--health-low';
+    pct <= 25
+      ? 'warpath-meter__fill--health-low'
+      : side === 'left'
+        ? 'warpath-meter__fill--health-left'
+        : 'warpath-meter__fill--health-right';
 
   return (
     <div className="warpath-health">

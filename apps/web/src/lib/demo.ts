@@ -1,5 +1,6 @@
 import type { Battle, GunMetadata, LeaderboardEntry } from '@warpath/shared';
 import { GUNS_BY_ID } from '@/data/guns';
+import { getCountrySide } from '@/data/countries';
 import { generateStats, resolveWeightedBattle } from './stats';
 
 export const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
@@ -105,29 +106,56 @@ export function createDemoBattle(
       .reduce((sum, character) => sum + character.charCodeAt(0), 0) %
     DEMO_OPPONENTS.length;
   const opponent = DEMO_OPPONENTS[index]!;
+  const playerSide = getCountrySide(selectedCountry) ?? 'left';
   const seed = `demo-${selectedCountry}-${selectedGun.tokenId}-${opponent.gun.tokenId}`;
-  const result = resolveWeightedBattle(
-    selectedGun.stats,
-    opponent.gun.stats,
-    DEMO_GUNS.length,
-    opponent.gunCount,
-    seed
-  );
+
+  const result =
+    playerSide === 'left'
+      ? resolveWeightedBattle(
+          selectedGun.stats,
+          opponent.gun.stats,
+          DEMO_GUNS.length,
+          opponent.gunCount,
+          seed
+        )
+      : resolveWeightedBattle(
+          opponent.gun.stats,
+          selectedGun.stats,
+          opponent.gunCount,
+          DEMO_GUNS.length,
+          seed
+        );
 
   return {
     id: `demo-${selectedCountry.toLowerCase()}-${selectedGun.tokenId}-${opponent.gun.tokenId}`,
-    left: {
-      address: DEMO_PLAYER_ADDRESS,
-      tokenId: selectedGun.tokenId,
-      stats: selectedGun.stats,
-      imageUrl: selectedGun.image,
-    },
-    right: {
-      address: opponent.address,
-      tokenId: opponent.gun.tokenId,
-      stats: opponent.gun.stats,
-      imageUrl: opponent.gun.image,
-    },
+    left:
+      playerSide === 'left'
+        ? {
+            address: DEMO_PLAYER_ADDRESS,
+            tokenId: selectedGun.tokenId,
+            stats: selectedGun.stats,
+            imageUrl: selectedGun.image,
+          }
+        : {
+            address: opponent.address,
+            tokenId: opponent.gun.tokenId,
+            stats: opponent.gun.stats,
+            imageUrl: opponent.gun.image,
+          },
+    right:
+      playerSide === 'right'
+        ? {
+            address: DEMO_PLAYER_ADDRESS,
+            tokenId: selectedGun.tokenId,
+            stats: selectedGun.stats,
+            imageUrl: selectedGun.image,
+          }
+        : {
+            address: opponent.address,
+            tokenId: opponent.gun.tokenId,
+            stats: opponent.gun.stats,
+            imageUrl: opponent.gun.image,
+          },
     result,
     resolvedAt: new Date().toISOString(),
   };

@@ -7,6 +7,8 @@ interface FighterCard {
   name: string;
   tokenId: number;
   stats: GunStats;
+  side: 'left' | 'right';
+  label: string;
 }
 
 interface VSRevealProps {
@@ -37,18 +39,20 @@ export function VSReveal({
       <div className="vs-screen__inner">
         <div className="vs-screen__fighters">
           <GunCard
-            label="You"
+            label={left.label}
             name={left.name}
             tokenId={left.tokenId}
             imageUrl={left.imageUrl}
             stats={left.stats}
+            side={left.side}
           />
           <GunCard
-            label="Opponent"
+            label={right.label}
             name={right.name}
             tokenId={right.tokenId}
             imageUrl={right.imageUrl}
             stats={right.stats}
+            side={right.side}
           />
         </div>
       </div>
