@@ -21,3 +21,4 @@
 - 2026-03-20: Result overlays in this app need click handling isolated from the map beneath them; stop propagation on the result panel itself or the dismissal click can bleed through into a fresh country selection.
 - 2026-03-20: On small screens, a display heading can still overflow even after `white-space: nowrap`; verify branded title lockups with a real mobile screenshot and tune both font size and letter spacing together.
 - 2026-03-20: For oversized display fonts on centered landing screens, width constraints on the parent can force unwanted multi-line composition on desktop too; validate the parent max width before treating the heading as the only problem.
+- 2026-03-20: If mobile browser rails or safe-area bands look off-theme, check the document root and viewport metadata first; `body` styling alone is not enough for Safari/standalone chrome surfaces.

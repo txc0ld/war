@@ -35,11 +35,15 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  background: #020302;
+  background-color: #020302;
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: #020302;
   background:
     radial-gradient(circle at top, rgba(204, 255, 0, 0.05), transparent 28%),
     linear-gradient(180deg, #040504 0%, #020302 100%);
@@ -68,6 +72,7 @@ img {
 
 #root {
   min-height: 100vh;
+  background: #020302;
 }
 
 .screen-loader,
