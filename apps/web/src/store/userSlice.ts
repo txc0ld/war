@@ -1,21 +1,20 @@
 import type { GunMetadata } from '@warpath/shared';
 import {
-  applyWeaponCooldown,
-  readWeaponCooldowns,
-  writeWeaponCooldowns,
-  type WeaponCooldowns,
+  applyWalletCooldown,
+  readWalletCooldownExpiry,
+  writeWalletCooldownExpiry,
 } from '@/lib/cooldowns';
 
 export interface UserSlice {
   address: string | null;
   guns: GunMetadata[];
   score: number;
-  weaponCooldowns: WeaponCooldowns;
+  walletCooldownExpiresAt: number | null;
   setAddress: (address: string | null) => void;
   setGuns: (guns: GunMetadata[]) => void;
   setScore: (score: number) => void;
-  refreshWeaponCooldowns: () => void;
-  setWeaponCooldown: (tokenId: number, expiresAt?: number) => void;
+  refreshWalletCooldown: () => void;
+  setWalletCooldown: (expiresAt?: number | null) => void;
 }
 
 export function createUserSlice(
@@ -28,33 +27,30 @@ export function createUserSlice(
     address: null,
     guns: [],
     score: 0,
-    weaponCooldowns: {},
+    walletCooldownExpiresAt: null,
     setAddress: (address: string | null) =>
       set({
         address,
-        weaponCooldowns: readWeaponCooldowns(address),
+        walletCooldownExpiresAt: readWalletCooldownExpiry(address),
       }),
     setGuns: (guns: GunMetadata[]) => set({ guns }),
     setScore: (score: number) => set({ score }),
-    refreshWeaponCooldowns: () => {
+    refreshWalletCooldown: () => {
       const { address } = get();
-      set({ weaponCooldowns: readWeaponCooldowns(address) });
+      set({ walletCooldownExpiresAt: readWalletCooldownExpiry(address) });
     },
-    setWeaponCooldown: (tokenId: number, expiresAt?: number) => {
-      const { address, weaponCooldowns } = get();
-      const nextCooldowns =
+    setWalletCooldown: (expiresAt?: number | null) => {
+      const { address, guns } = get();
+      const nextCooldown =
         expiresAt !== undefined
-          ? {
-              ...weaponCooldowns,
-              [tokenId]: expiresAt,
-            }
-          : applyWeaponCooldown(address, tokenId);
+          ? expiresAt
+          : applyWalletCooldown(address, guns.length);
 
       if (expiresAt !== undefined) {
-        writeWeaponCooldowns(address, nextCooldowns);
+        writeWalletCooldownExpiry(address, nextCooldown);
       }
 
-      set({ weaponCooldowns: nextCooldowns });
+      set({ walletCooldownExpiresAt: nextCooldown });
     },
   };
 }

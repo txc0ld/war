@@ -1,9 +1,6 @@
-import type { Battle } from '@warpath/shared';
-
-const COOLDOWN_DURATION_MS = 30 * 60 * 1000;
-const STORAGE_PREFIX = 'war-room.weapon-cooldowns';
-
-export type WeaponCooldowns = Record<number, number>;
+const SHORT_COOLDOWN_DURATION_MS = 15 * 60 * 1000;
+const STANDARD_COOLDOWN_DURATION_MS = 30 * 60 * 1000;
+const STORAGE_PREFIX = 'war-room.wallet-cooldowns';
 
 function getStorageKey(address: string): string {
   return `${STORAGE_PREFIX}.${address.toLowerCase()}`;
@@ -13,89 +10,96 @@ function canUseStorage(): boolean {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 }
 
-function normalizeCooldowns(
-  cooldowns: WeaponCooldowns,
-  now = Date.now()
-): WeaponCooldowns {
-  return Object.fromEntries(
-    Object.entries(cooldowns).filter(([, expiresAt]) => expiresAt > now)
-  );
+function normalizeExpiry(expiresAt: number | null, now = Date.now()): number | null {
+  if (!expiresAt || expiresAt <= now) {
+    return null;
+  }
+
+  return expiresAt;
 }
 
-export function readWeaponCooldowns(
+export function getCooldownDurationMs(gunCount: number): number {
+  return gunCount >= 3
+    ? SHORT_COOLDOWN_DURATION_MS
+    : STANDARD_COOLDOWN_DURATION_MS;
+}
+
+export function readWalletCooldownExpiry(
   address: string | null,
   now = Date.now()
-): WeaponCooldowns {
+): number | null {
   if (!address || !canUseStorage()) {
-    return {};
+    return null;
   }
 
   const raw = window.localStorage.getItem(getStorageKey(address));
   if (!raw) {
-    return {};
+    return null;
   }
 
   try {
-    const parsed = JSON.parse(raw) as WeaponCooldowns;
-    const normalized = normalizeCooldowns(parsed, now);
+    const parsed = JSON.parse(raw) as { expiresAt?: number };
+    const normalized = normalizeExpiry(parsed.expiresAt ?? null, now);
 
-    if (Object.keys(normalized).length !== Object.keys(parsed).length) {
-      writeWeaponCooldowns(address, normalized);
+    if (!normalized) {
+      window.localStorage.removeItem(getStorageKey(address));
     }
 
     return normalized;
   } catch {
-    return {};
+    window.localStorage.removeItem(getStorageKey(address));
+    return null;
   }
 }
 
-export function writeWeaponCooldowns(
+export function writeWalletCooldownExpiry(
   address: string | null,
-  cooldowns: WeaponCooldowns
+  expiresAt: number | null
 ): void {
   if (!address || !canUseStorage()) {
     return;
   }
 
-  const normalized = normalizeCooldowns(cooldowns);
+  const normalized = normalizeExpiry(expiresAt);
 
-  if (Object.keys(normalized).length === 0) {
+  if (!normalized) {
     window.localStorage.removeItem(getStorageKey(address));
     return;
   }
 
-  window.localStorage.setItem(getStorageKey(address), JSON.stringify(normalized));
+  window.localStorage.setItem(
+    getStorageKey(address),
+    JSON.stringify({ expiresAt: normalized })
+  );
 }
 
-export function applyWeaponCooldown(
+export function applyWalletCooldown(
   address: string | null,
-  tokenId: number,
+  gunCount: number,
   now = Date.now()
-): WeaponCooldowns {
-  const current = readWeaponCooldowns(address, now);
-  const next = {
-    ...current,
-    [tokenId]: now + COOLDOWN_DURATION_MS,
-  };
+): number | null {
+  if (!address) {
+    return null;
+  }
 
-  writeWeaponCooldowns(address, next);
-  return next;
+  const expiresAt = now + getCooldownDurationMs(gunCount);
+  writeWalletCooldownExpiry(address, expiresAt);
+  return expiresAt;
 }
 
 export function applyBattleCooldowns(
-  battle: Battle,
+  participants: Array<{ address: string | null; gunCount: number }>,
   now = Date.now()
 ): void {
-  applyWeaponCooldown(battle.left.address, battle.left.tokenId, now);
-  applyWeaponCooldown(battle.right.address, battle.right.tokenId, now);
+  participants.forEach(({ address, gunCount }) => {
+    applyWalletCooldown(address, gunCount, now);
+  });
 }
 
 export function getCooldownRemainingMs(
-  cooldowns: WeaponCooldowns,
-  tokenId: number,
+  expiresAt: number | null,
   now = Date.now()
 ): number {
-  const expiresAt = cooldowns[tokenId];
   if (!expiresAt) {
     return 0;
   }
@@ -103,12 +107,11 @@ export function getCooldownRemainingMs(
   return Math.max(0, expiresAt - now);
 }
 
-export function isWeaponOnCooldown(
+export function isWalletOnCooldown(
   address: string | null,
-  tokenId: number,
   now = Date.now()
 ): boolean {
-  return getCooldownRemainingMs(readWeaponCooldowns(address, now), tokenId, now) > 0;
+  return getCooldownRemainingMs(readWalletCooldownExpiry(address, now), now) > 0;
 }
 
 export function formatCooldownLabel(remainingMs: number): string {
@@ -121,8 +124,4 @@ export function formatCooldownLabel(remainingMs: number): string {
   }
 
   return `${totalMinutes}M`;
-}
-
-export function getCooldownDurationMs(): number {
-  return COOLDOWN_DURATION_MS;
 }

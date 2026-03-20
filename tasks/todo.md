@@ -5,6 +5,7 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [completed] Wallet cooldown refactor: replace per-weapon battle cooldowns with a wallet-level cooldown where 3+ gun holders wait 15 minutes and smaller holders wait 30 minutes
 - [completed] Mobile map interaction pass: add bounded pan/zoom so the world map can be inspected cleanly on touch devices without breaking country selection
 - [completed] Root chrome alignment: remove light browser rails by forcing the document, viewport chrome, and safe-area handling to match the app's dark theme
 - [completed] Connect title lockup correction: force `WAR ROOM` to remain a single line on the main connect screen across desktop and mobile viewports
@@ -112,3 +113,4 @@
 - Connect title lockup correction: widened the connect composition and tightened the `WAR ROOM` heading sizing/letter spacing so the title stays on one line on both mobile and desktop without clipping. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, and Playwright screenshots at `390x844` and `1440x1100`.
 - Root chrome alignment: added `viewport-fit=cover`, dark Apple mobile web-app chrome metadata, and explicit dark backgrounds on `html`, `body`, and `#root` so browser rails and safe-area surfaces stay aligned with the dark game-tech theme. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
 - Mobile map interaction pass: converted the world map to a bounded interactive viewBox with zoom controls, wheel zoom, drag/pan, and gesture-safe click suppression so mobile users can inspect the map without losing deployment taps. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, `pnpm -r test`, and Playwright checks for zoom, drag, reset, and country selection on a `390x844` viewport.
+- Wallet cooldown refactor: replaced weapon-scoped cooldown storage with wallet-scoped cooldown expiry records, set 15-minute timers for 3+ gun holders and 30-minute timers for smaller arsenals, synced loaded guns into store state so demo/live wallet counts stay accurate, and updated the armory/matchmaking copy to lock the whole wallet instead of a single token. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, `pnpm -r test`, and a Playwright demo flow confirming a 4-gun wallet shows `WALLET COOLDOWN 15M` across the full selector after battle completion.

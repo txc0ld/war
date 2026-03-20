@@ -23,3 +23,4 @@
 - 2026-03-20: For oversized display fonts on centered landing screens, width constraints on the parent can force unwanted multi-line composition on desktop too; validate the parent max width before treating the heading as the only problem.
 - 2026-03-20: If mobile browser rails or safe-area bands look off-theme, check the document root and viewport metadata first; `body` styling alone is not enough for Safari/standalone chrome surfaces.
 - 2026-03-20: On interactive SVG maps, pointer capture can make drag feel robust but silently break child path taps; prefer bounded local pointer tracking unless you truly need capture outside the surface.
+- 2026-03-20: If cooldown rules depend on wallet arsenal size, do not read the timer duration from dormant store state; sync the loaded guns into the store or compute from the active arsenal source, otherwise demo/local cooldowns silently fall back to the wrong duration.

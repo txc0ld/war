@@ -13,7 +13,7 @@ export function GunSelector(): React.ReactNode {
     showGunSelector,
     selectGun,
     closeGunSelector,
-    weaponCooldowns,
+    walletCooldownExpiresAt,
   } = useStore();
   const { guns, isLoading, error } = useGuns();
 
@@ -22,6 +22,8 @@ export function GunSelector(): React.ReactNode {
     [selectedCountry]
   );
   const arsenalBonus = guns.length >= 3;
+  const walletCooldownRemaining = getCooldownRemainingMs(walletCooldownExpiresAt);
+  const isWalletCoolingDown = walletCooldownRemaining > 0;
 
   if (!showGunSelector || !selectedCountry) {
     return null;
@@ -37,6 +39,11 @@ export function GunSelector(): React.ReactNode {
               {countryName}
             </h2>
             {arsenalBonus && <p className="arsenal-bonus">ARSENAL BONUS +10%</p>}
+            {isWalletCoolingDown ? (
+              <p className="arsenal-bonus">
+                WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
@@ -67,25 +74,23 @@ export function GunSelector(): React.ReactNode {
               const tierLabel = registryGun ? getTierLabel(registryGun.tier) : 'UNSORTED';
               const typeLabel = registryGun?.type ?? gun.traits[0] ?? 'NODE';
               const isSelected = selectedGun?.tokenId === gun.tokenId;
-              const cooldownRemaining = getCooldownRemainingMs(
-                weaponCooldowns,
-                gun.tokenId
-              );
-              const isCoolingDown = cooldownRemaining > 0 || !gun.canBattle;
+              const isUnavailable = !gun.canBattle && !isWalletCoolingDown;
+              const isCoolingDown = isWalletCoolingDown;
+              const isLocked = isCoolingDown || isUnavailable;
 
               return (
                 <button
                   key={gun.tokenId}
                   type="button"
                   className={`gun-card ${arsenalBonus && isSelected ? 'gun-card--selected' : ''} ${
-                    isCoolingDown ? 'gun-card--locked' : ''
+                    isLocked ? 'gun-card--locked' : ''
                   }`}
                   onClick={() => {
-                    if (!isCoolingDown) {
+                    if (!isLocked) {
                       selectGun(gun);
                     }
                   }}
-                  disabled={isCoolingDown}
+                  disabled={isLocked}
                 >
                   <div className="gun-frame">
                     <img src={gun.image} alt={gun.name} />
@@ -99,8 +104,10 @@ export function GunSelector(): React.ReactNode {
                   </div>
                   {isCoolingDown ? (
                     <p className="gun-card__cooldown">
-                      COOLING DOWN {formatCooldownLabel(cooldownRemaining)}
+                      WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}
                     </p>
+                  ) : isUnavailable ? (
+                    <p className="gun-card__cooldown">BATTLE LOCKED</p>
                   ) : null}
                   <div className="gun-card__stats">
                     <StatBar label="Damage" value={gun.stats.damage} tone="red" />

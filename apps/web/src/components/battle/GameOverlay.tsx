@@ -6,6 +6,7 @@ import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { GUNS_BY_ID } from '@/data/guns';
 import { getCountryByCode } from '@/data/countries';
 import { applyBattleCooldowns } from '@/lib/cooldowns';
+import { DEMO_MODE, getDemoGunCountForAddress } from '@/lib/demo';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -29,7 +30,8 @@ export function GameOverlay(): React.ReactNode {
     clearGun,
     reset,
     setPhase,
-    refreshWeaponCooldowns,
+    refreshWalletCooldown,
+    guns,
   } = useStore();
   const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
   const selectedCountryData = useMemo(() => getCountryByCode(selectedCountry), [selectedCountry]);
@@ -66,12 +68,25 @@ export function GameOverlay(): React.ReactNode {
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
       if (currentBattle) {
-        applyBattleCooldowns(currentBattle);
-        refreshWeaponCooldowns();
+        const currentSessionAddress = sessionAddress?.toLowerCase() ?? null;
+        const participants = [currentBattle.left.address, currentBattle.right.address].map(
+          (address) => ({
+            address,
+            gunCount:
+              currentSessionAddress && address.toLowerCase() === currentSessionAddress
+                ? guns.length
+                : DEMO_MODE
+                  ? getDemoGunCountForAddress(address)
+                  : 1,
+          })
+        );
+
+        applyBattleCooldowns(participants);
+        refreshWalletCooldown();
       }
       setPhase(winner === playerSide ? 'result_win' : 'result_loss');
     },
-    [currentBattle, playerSide, refreshWeaponCooldowns, setPhase]
+    [currentBattle, guns.length, playerSide, refreshWalletCooldown, sessionAddress, setPhase]
   );
 
   return (

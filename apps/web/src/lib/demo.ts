@@ -1,7 +1,7 @@
 import type { Battle, GunMetadata, LeaderboardEntry } from '@warpath/shared';
 import { GUNS_BY_ID } from '@/data/guns';
 import { getCountrySide } from '@/data/countries';
-import { isWeaponOnCooldown } from './cooldowns';
+import { isWalletOnCooldown } from './cooldowns';
 import { createSecureBattleSeed } from './rng';
 import { generateStats, resolveWeightedBattle } from './stats';
 
@@ -98,6 +98,18 @@ const DEMO_OPPONENTS = [
   },
 ];
 
+export function getDemoGunCountForAddress(address: string): number {
+  if (address.toLowerCase() === DEMO_PLAYER_ADDRESS.toLowerCase()) {
+    return DEMO_GUNS.length;
+  }
+
+  return (
+    DEMO_OPPONENTS.find(
+      (entry) => entry.address.toLowerCase() === address.toLowerCase()
+    )?.gunCount ?? 1
+  );
+}
+
 export function createDemoBattle(
   selectedGun: GunMetadata,
   selectedCountry: string
@@ -108,7 +120,7 @@ export function createDemoBattle(
       .reduce((sum, character) => sum + character.charCodeAt(0), 0) %
     DEMO_OPPONENTS.length;
   const availableOpponents = DEMO_OPPONENTS.filter(
-    (entry) => !isWeaponOnCooldown(entry.address, entry.gun.tokenId)
+    (entry) => !isWalletOnCooldown(entry.address)
   );
   const pool = availableOpponents.length > 0 ? availableOpponents : DEMO_OPPONENTS;
   const opponent = pool[seededIndex % pool.length]!;

@@ -8,6 +8,7 @@ import {
   pollQueueStatus,
   getBattle,
 } from '@/lib/api';
+import { formatCooldownLabel, getCooldownRemainingMs } from '@/lib/cooldowns';
 import { createQueueAuthMessage } from '@warpath/shared';
 import { createDemoBattle, DEMO_MODE } from '@/lib/demo';
 
@@ -31,6 +32,7 @@ export function useMatchmaking(): UseMatchmakingReturn {
     setBattle,
     queueId,
     phase,
+    walletCooldownExpiresAt,
   } = useStore();
 
   const [isMatching, setIsMatching] = useState(false);
@@ -61,13 +63,22 @@ export function useMatchmaking(): UseMatchmakingReturn {
   }, [stopPolling, setPhase, setQueueId]);
 
   const startMatchmaking = useCallback(async (): Promise<void> => {
+    const walletCooldownRemaining = getCooldownRemainingMs(walletCooldownExpiresAt);
+
     if (!selectedCountry || !selectedGun) {
       setError('Select a country and weapon first');
       return;
     }
 
+    if (walletCooldownRemaining > 0) {
+      setError(
+        `Wallet cooling down ${formatCooldownLabel(walletCooldownRemaining)}`
+      );
+      return;
+    }
+
     if (!selectedGun.canBattle) {
-      setError('Selected weapon is cooling down');
+      setError('Selected weapon unavailable');
       return;
     }
 
@@ -174,6 +185,7 @@ export function useMatchmaking(): UseMatchmakingReturn {
     setBattle,
     stopPolling,
     signMessageAsync,
+    walletCooldownExpiresAt,
   ]);
 
   // Cleanup on unmount

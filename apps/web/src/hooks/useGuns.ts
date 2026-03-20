@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 import type { GunMetadata } from '@warpath/shared';
@@ -18,7 +18,8 @@ interface UseGunsReturn {
 export function useGuns(): UseGunsReturn {
   const { address, isConnected } = useAccount();
   const sessionAddress = useSessionAddress();
-  const weaponCooldowns = useStore((state) => state.weaponCooldowns);
+  const walletCooldownExpiresAt = useStore((state) => state.walletCooldownExpiresAt);
+  const setGuns = useStore((state) => state.setGuns);
   const query = useQuery({
     queryKey: ['guns', address],
     queryFn: async () => {
@@ -42,15 +43,31 @@ export function useGuns(): UseGunsReturn {
   }, [query]);
 
   const applyCooldowns = useCallback(
-    (guns: GunMetadata[]): GunMetadata[] =>
-      guns.map((gun) => ({
+    (guns: GunMetadata[]): GunMetadata[] => {
+      const isWalletCoolingDown =
+        getCooldownRemainingMs(walletCooldownExpiresAt) > 0;
+
+      return guns.map((gun) => ({
         ...gun,
-        canBattle:
-          gun.canBattle &&
-          getCooldownRemainingMs(weaponCooldowns, gun.tokenId) === 0,
-      })),
-    [weaponCooldowns]
+        canBattle: gun.canBattle && !isWalletCoolingDown,
+      }));
+    },
+    [walletCooldownExpiresAt]
   );
+
+  useEffect(() => {
+    if (!sessionAddress) {
+      setGuns([]);
+      return;
+    }
+
+    if (DEMO_MODE) {
+      setGuns(DEMO_GUNS);
+      return;
+    }
+
+    setGuns(query.data ?? []);
+  }, [query.data, sessionAddress, setGuns]);
 
   if (DEMO_MODE) {
     return {
