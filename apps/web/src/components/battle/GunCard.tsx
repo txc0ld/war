@@ -34,9 +34,31 @@ export function GunCard({
   const classes = ['warpath-gun-card', `warpath-gun-card--${side}`, className]
     .filter(Boolean)
     .join(' ');
+  const idleRotation =
+    animated
+      ? side === 'left'
+        ? [0, -0.45, 0.15, -0.2, 0]
+        : [0, 0.45, -0.15, 0.2, 0]
+      : 0;
 
   return (
-    <motion.article className={classes} layout>
+    <motion.article
+      className={classes}
+      layout
+      animate={{
+        rotate: idleRotation,
+        y: animated ? [0, -1.5, 0, 1.2, 0] : 0,
+      }}
+      transition={
+        animated
+          ? {
+              duration: 4.2,
+              repeat: Infinity,
+              ease: [0.76, 0, 0.24, 1],
+            }
+          : { duration: 0.2 }
+      }
+    >
       {typeof hp === 'number' ? (
         <HealthBar
           current={hp}

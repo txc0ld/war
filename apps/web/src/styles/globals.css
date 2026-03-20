@@ -24,6 +24,14 @@
   --font-body: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-display: 'Rubik Glitch', 'Plus Jakarta Sans', sans-serif;
   --header-height: 5.15rem;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.22, 1.4, 0.36, 1);
+  --duration-hover: 160ms;
+  --duration-enter: 440ms;
+  --duration-page: 560ms;
 }
 
 *,
@@ -155,8 +163,12 @@ img {
   letter-spacing: 0.2em;
   font-size: 0.76rem;
   cursor: pointer;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease,
-    box-shadow 160ms ease;
+  transition:
+    transform var(--duration-hover) var(--ease-out-quart),
+    background var(--duration-hover) var(--ease-out-quart),
+    color var(--duration-hover) var(--ease-out-quart),
+    border-color var(--duration-hover) var(--ease-out-quart),
+    box-shadow var(--duration-hover) var(--ease-out-quart);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.32);
   will-change: transform, box-shadow;
 }
@@ -165,6 +177,10 @@ img {
   transform: translateY(-2px);
   border-color: rgba(204, 255, 0, 0.78);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42), 0 0 28px rgba(204, 255, 0, 0.14);
+}
+
+.warpath-button:active:not(:disabled) {
+  transform: scale(0.985);
 }
 
 .warpath-button:disabled {
@@ -285,7 +301,7 @@ img {
   appearance: none;
   border: 1px solid transparent;
   background: transparent;
-  padding: 0;
+  padding: 0.35rem 0.2rem 0.45rem;
   margin: 0;
   color: var(--text-muted);
   font-size: 0.7rem;
@@ -295,6 +311,8 @@ img {
 
 .site-nav__button {
   cursor: pointer;
+  position: relative;
+  min-height: 2.75rem;
 }
 
 .site-nav__button:hover {
@@ -303,7 +321,10 @@ img {
 
 .site-nav__button,
 .site-logo {
-  transition: transform 160ms ease, opacity 160ms ease;
+  transition:
+    transform var(--duration-hover) var(--ease-out-quart),
+    opacity var(--duration-hover) var(--ease-out-quart),
+    color var(--duration-hover) var(--ease-out-quart);
 }
 
 .site-nav__button:hover,
@@ -315,13 +336,26 @@ img {
   color: var(--accent);
 }
 
-.site-nav__button--active::after {
+.site-nav__button::after {
   content: '';
-  display: block;
-  width: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   height: 1px;
-  margin-top: 0.28rem;
   background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition:
+    transform var(--duration-hover) var(--ease-out-expo),
+    opacity var(--duration-hover) var(--ease-out-quart);
+}
+
+.site-nav__button:hover::after,
+.site-nav__button--active::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .site-header__wallet {
@@ -391,9 +425,8 @@ img {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 58% 42% at 50% 50%, rgba(204, 255, 0, 0.07), transparent 70%),
-    radial-gradient(ellipse 36% 22% at 50% 14%, rgba(245, 247, 239, 0.035), transparent 78%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.16));
+    radial-gradient(circle at 50% 48%, rgba(204, 255, 0, 0.055), transparent 60%),
+    radial-gradient(circle at 50% 18%, rgba(245, 247, 239, 0.018), transparent 42%);
   opacity: 1;
 }
 
@@ -443,7 +476,11 @@ img {
   vector-effect: non-scaling-stroke;
   cursor: pointer;
   pointer-events: auto;
-  transition: stroke 120ms ease, opacity 120ms ease, fill 120ms ease;
+  transition:
+    stroke var(--duration-hover) var(--ease-out-quart),
+    opacity var(--duration-hover) var(--ease-out-quart),
+    fill var(--duration-hover) var(--ease-out-quart),
+    transform var(--duration-hover) var(--ease-out-quart);
 }
 
 .world-map__country--left {
@@ -493,17 +530,10 @@ img {
 
 .world-map__marker-pulse {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.34);
+  stroke: rgba(204, 255, 0, 0.18);
   stroke-width: 1;
-  opacity: 0;
-  animation: markerHaloPulse 3.8s ease-out infinite;
+  opacity: 0.24;
   transform-origin: center;
-}
-
-.world-map__marker-pulse--selected,
-.world-map__marker-pulse--active {
-  stroke: rgba(204, 255, 0, 0.72);
-  animation-duration: 2.2s;
 }
 
 .world-map__marker--left {
@@ -526,13 +556,19 @@ img {
   animation: markerPulse 2.2s ease-in-out infinite;
 }
 
-.world-map__marker-pulse--left,
-.world-map__marker-pulse--right,
 .world-map__marker-pulse--selected-left,
 .world-map__marker-pulse--selected-right,
 .world-map__marker-pulse--active-left,
 .world-map__marker-pulse--active-right {
-  animation: markerHaloPulse 2.2s ease-out infinite;
+  animation: markerHaloPulse 2.6s var(--ease-in-out-quart) infinite;
+}
+
+.world-map__marker-pulse--selected-left,
+.world-map__marker-pulse--selected-right,
+.world-map__marker-pulse--active-left,
+.world-map__marker-pulse--active-right {
+  stroke: rgba(204, 255, 0, 0.72);
+  opacity: 0.9;
 }
 
 .world-map__network-line {
@@ -567,6 +603,7 @@ img {
 
 .world-map__callout {
   pointer-events: none;
+  animation: calloutReveal 280ms var(--ease-out-expo) both;
 }
 
 .world-map__callout-line {
@@ -742,6 +779,10 @@ img {
   align-items: center;
 }
 
+.vs-screen__fighter-shell {
+  width: 100%;
+}
+
 .vs-screen__center {
   position: fixed;
   left: 50%;
@@ -772,7 +813,10 @@ img {
   padding: 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition:
+    transform 220ms var(--ease-out-quart),
+    box-shadow 220ms var(--ease-out-quart),
+    border-color 220ms var(--ease-out-quart);
 }
 
 .gun-card:disabled {
@@ -812,6 +856,11 @@ img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 280ms var(--ease-out-expo);
+}
+
+.gun-card:hover .gun-frame img {
+  transform: scale(1.025);
 }
 
 .gun-card__name {
@@ -861,6 +910,7 @@ img {
   place-items: center;
   padding: 2rem;
   background: rgba(2, 3, 2, 0.9);
+  animation: modalFade 260ms var(--ease-out-quart) both;
 }
 
 .gun-selector {
@@ -875,7 +925,7 @@ img {
   padding: 1.4rem;
   box-shadow: var(--shadow);
   backdrop-filter: blur(16px);
-  animation: panelRise 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: panelRise 420ms var(--ease-out-expo) both;
 }
 
 .gun-selector__header {
@@ -1312,6 +1362,15 @@ img {
   }
 }
 
+@keyframes modalFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes markerPulse {
   0%,
   100% {
@@ -1326,12 +1385,12 @@ img {
 
 @keyframes markerHaloPulse {
   0% {
-    opacity: 0.52;
+    opacity: 0.62;
     transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: scale(1.24);
+    transform: scale(1.16);
   }
 }
 
@@ -1342,6 +1401,38 @@ img {
   }
   50% {
     opacity: 0.92;
+  }
+}
+
+@keyframes calloutReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes matchLetterPulse {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes loaderSweep {
+  0% {
+    transform: translateX(-102%);
+  }
+  100% {
+    transform: translateX(102%);
   }
 }
 
@@ -1414,6 +1505,17 @@ img {
   }
   75% {
     width: calc(var(--base-width) + 1%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -1607,9 +1709,9 @@ img {
   }
 
   .world-map__control {
-    min-width: 2.3rem;
-    height: 2.3rem;
-    padding-inline: 0.72rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    padding-inline: 0.8rem;
     font-size: 0.68rem;
     letter-spacing: 0.1em;
   }

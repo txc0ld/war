@@ -55,6 +55,8 @@ export function ChatPanel({
       timestamp: entry.timestamp,
     })) ?? MOCK_MESSAGES;
 
+  const visibleEntries = embedded ? entries.slice(-3) : entries;
+
   return (
     <AnimatePresence>
       {isOpen ? (
@@ -68,8 +70,10 @@ export function ChatPanel({
         >
           <div className="warpath-chat-header">
             <div>
-              <h2 className="warpath-chat-title">Field Chat</h2>
-              <p className="warpath-chat-subtitle">Live battle chatter</p>
+              <h2 className="warpath-chat-title">{embedded ? 'Battle Log' : 'Field Chat'}</h2>
+              <p className="warpath-chat-subtitle">
+                {embedded ? 'Last exchange' : 'Live battle chatter'}
+              </p>
             </div>
             {onToggle ? (
               <button type="button" onClick={onToggle} className="warpath-chat-close">
@@ -79,7 +83,7 @@ export function ChatPanel({
           </div>
 
           <div className="warpath-chat-feed">
-            {entries.map((msg) => (
+            {visibleEntries.map((msg) => (
               <ChatMessage
                 key={msg.id}
                 address={msg.address}
@@ -89,14 +93,16 @@ export function ChatPanel({
             ))}
           </div>
 
-          <div className="warpath-chat-input">
-            <input
-              type="text"
-              disabled
-              placeholder="Chat coming soon..."
-              className="warpath-chat-input__field"
-            />
-          </div>
+          {!embedded ? (
+            <div className="warpath-chat-input">
+              <input
+                type="text"
+                disabled
+                placeholder="Chat coming soon..."
+                className="warpath-chat-input__field"
+              />
+            </div>
+          ) : null}
         </motion.aside>
       ) : null}
     </AnimatePresence>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import './battlePresentation.css';
 
@@ -6,6 +7,8 @@ interface MatchingPulseProps {
 }
 
 export function MatchingPulse({ onCancel }: MatchingPulseProps): React.ReactNode {
+  const letters = 'MATCHING'.split('');
+
   return (
     <motion.div
       className="warpath-match-overlay"
@@ -14,12 +17,17 @@ export function MatchingPulse({ onCancel }: MatchingPulseProps): React.ReactNode
       exit={{ opacity: 0 }}
     >
       <div className="warpath-match-panel">
-        <motion.h2
-          className="warpath-match-title"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          MATCHING
+        <div className="warpath-match-loader" aria-hidden="true" />
+        <motion.h2 className="warpath-match-title" aria-label="MATCHING">
+          {letters.map((letter, index) => (
+            <span
+              key={`${letter}-${index}`}
+              className="warpath-match-title__letter"
+              style={{ '--delay': `${index * 60}ms` } as CSSProperties}
+            >
+              {letter}
+            </span>
+          ))}
         </motion.h2>
         <p className="warpath-match-subtitle">SCANNING OPEN SECTORS</p>
         {onCancel ? (

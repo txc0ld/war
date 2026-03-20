@@ -72,7 +72,6 @@ export function DeathOverlay({
               FIGHT AGAIN
             </button>
           </div>
-          <p className="warpath-result-hint">Click or tap anywhere to continue</p>
         </div>
       </motion.div>
     </AnimatePresence>

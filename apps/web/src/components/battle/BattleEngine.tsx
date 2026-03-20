@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Battle, BattleRound, GunStats } from '@warpath/shared';
 import { GUNS_BY_ID } from '@/data/guns';
+import { DEMO_MODE } from '@/lib/demo';
 import { GunCard } from './GunCard';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import './battlePresentation.css';
@@ -120,6 +121,7 @@ export function BattleEngine({
       : 'warpath-battle-event warpath-battle-event--impact';
   const leftLabel = playerSide === 'left' ? 'Player' : 'Opponent';
   const rightLabel = playerSide === 'right' ? 'Player' : 'Opponent';
+  const showTimeline = !DEMO_MODE;
 
   return (
     <motion.div
@@ -133,23 +135,25 @@ export function BattleEngine({
       transition={screenShake ? { duration: 0.15 } : { duration: 0.3 }}
     >
       <div className="warpath-battle-grid" />
-      <div className="warpath-battle-stage">
-        <div className="warpath-battle-stage__topline">
-          <p className="warpath-battle-round">
-            Round {Math.max(currentTick + 1, 0)}/{rounds.length}
-          </p>
-          <div
-            className="warpath-battle-progress"
-            style={{ '--progress': `${progress}%` } as CSSProperties}
-          >
-            <motion.div
-              className="warpath-battle-progress__fill"
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.2 }}
-            />
+      <div className={`warpath-battle-stage ${showTimeline ? '' : 'warpath-battle-stage--demo'}`}>
+        {showTimeline ? (
+          <div className="warpath-battle-stage__topline">
+            <p className="warpath-battle-round">
+              Round {Math.max(currentTick + 1, 0)}/{rounds.length}
+            </p>
+            <div
+              className="warpath-battle-progress"
+              style={{ '--progress': `${progress}%` } as CSSProperties}
+            >
+              <motion.div
+                className="warpath-battle-progress__fill"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.2 }}
+              />
+            </div>
+            <p className="warpath-battle-readout">{progress.toFixed(0)}% Complete</p>
           </div>
-          <p className="warpath-battle-readout">{progress.toFixed(0)}% Complete</p>
-        </div>
+        ) : null}
 
         <div className="warpath-battle-stage__status">
           <p className="warpath-battle-stage__side warpath-battle-stage__side--left">

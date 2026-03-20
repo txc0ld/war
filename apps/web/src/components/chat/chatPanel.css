@@ -22,6 +22,40 @@
   min-height: 0;
 }
 
+.warpath-chat-panel--embedded .warpath-chat-header {
+  padding: 0.8rem 0.9rem 0.7rem;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-subtitle {
+  margin-top: 0.18rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-feed {
+  gap: 0.55rem;
+  padding: 0.75rem 0.9rem 0.85rem;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-message {
+  gap: 0.22rem;
+  padding-top: 0.55rem;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-address {
+  font-size: 0.66rem;
+}
+
+.warpath-chat-panel--embedded .warpath-chat-copy {
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
 .warpath-chat-header,
 .warpath-chat-input {
   display: flex;

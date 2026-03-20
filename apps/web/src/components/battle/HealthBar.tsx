@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import './battlePresentation.css';
 
@@ -19,12 +20,24 @@ export function HealthBar({
 }: HealthBarProps): React.ReactNode {
   const value = typeof current === 'number' ? current : hp ?? max;
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
+  const previousPctRef = useRef(pct);
+  const [isFlashing, setIsFlashing] = useState(false);
   const fillClass =
     pct <= 25
       ? 'warpath-meter__fill--health-low'
       : side === 'left'
         ? 'warpath-meter__fill--health-left'
         : 'warpath-meter__fill--health-right';
+
+  useEffect(() => {
+    if (pct < previousPctRef.current) {
+      setIsFlashing(true);
+      const timer = window.setTimeout(() => setIsFlashing(false), 260);
+      previousPctRef.current = pct;
+      return () => window.clearTimeout(timer);
+    }
+    previousPctRef.current = pct;
+  }, [pct]);
 
   return (
     <div className="warpath-health">
@@ -42,8 +55,14 @@ export function HealthBar({
           <motion.div
             className={`warpath-meter__fill ${fillClass}`}
             initial={{ width: '100%' }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            animate={{
+              width: `${pct}%`,
+              boxShadow: isFlashing
+                ? '0 0 18px rgba(245, 247, 239, 0.3)'
+                : '0 0 0 rgba(0, 0, 0, 0)',
+              opacity: isFlashing ? 0.72 : 1,
+            }}
+            transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
             style={{ '--fill': `${pct}%` } as CSSProperties}
           />
           {[25, 50, 75].map((mark) => (
