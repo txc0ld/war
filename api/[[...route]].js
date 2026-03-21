@@ -1,8 +1,3 @@
-import { createRequire } from 'node:module';
-
-export const runtime = 'nodejs';
-
-const require = createRequire(import.meta.url);
 const apiRuntime = require('../apps/api/dist/index.cjs');
 const app = apiRuntime.app ?? apiRuntime.default?.app;
 
@@ -39,7 +34,7 @@ function toFetchRequest(req) {
   return new Request(url, init);
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (!app) {
     throw new Error('API runtime did not expose a Hono app instance');
   }
@@ -60,3 +55,5 @@ export default async function handler(req, res) {
   const body = Buffer.from(await response.arrayBuffer());
   res.end(body);
 }
+
+module.exports = handler;
