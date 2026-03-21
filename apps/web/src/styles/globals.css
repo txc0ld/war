@@ -925,13 +925,12 @@ img {
 }
 
 .vs-screen__center {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
   text-align: center;
   z-index: 2;
-  width: min(14rem, 34vw);
+  width: 100%;
+  min-height: 100%;
   pointer-events: none;
 }
 
@@ -2340,9 +2339,8 @@ img {
   }
 
   .vs-screen__center {
-    position: static;
-    transform: none;
     width: 100%;
+    min-height: 0;
   }
 
   .vs-screen__headline {

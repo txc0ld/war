@@ -1,12 +1,19 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ConnectButton } from '@/components/wallet/ConnectButton';
 import { DEMO_MODE } from '@/lib/demo';
+import { useStore } from '@/store';
 
 export function Header(): React.ReactNode {
   const navigate = useNavigate();
   const location = useLocation();
+  const phase = useStore((state) => state.phase);
   const isHome = location.pathname === '/';
   const isLeaderboard = location.pathname === '/leaderboard';
+  const hideForBattlePhase = location.pathname === '/' && phase !== 'idle';
+
+  if (hideForBattlePhase) {
+    return null;
+  }
 
   return (
     <header className="site-header">

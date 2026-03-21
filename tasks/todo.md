@@ -5,6 +5,7 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [completed] Battle phase chrome fix: remove the fixed header rail from active fight phases and move the `VS` / `FIGHT` stamp into the duel center lane between both fighters
 - [completed] Gold-standard UI/UX hardening pass: rebuild the live web shell, map framing, selector hierarchy, battle-state composition, and leaderboard rhythm so the runtime feels production-ready across desktop, tablet, and phone
 - [completed] Header grid stabilization: lock the brand, wallet chip, and navigation rails into a consistent responsive system with no wrap-driven drift
 - [completed] Map shell refinement: remove CSS zoom hacks, improve responsive framing, integrate cleaner map controls, and restore context on touch layouts
@@ -82,6 +83,7 @@
 - [completed] BATTLE-004: Verify with targeted typecheck/build coverage and record exact changed files
 
 ## Review
+- Battle phase chrome fix: hid the global header during non-idle home-map phases so combat screens run clean fullscreen, and moved the `VS` / `FIGHT` headline into the duel grid itself so it now sits between the left/right fighters instead of floating as a separate fixed overlay. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, and a local Playwright battle flow on `http://127.0.0.1:4177/`.
 - Gold-standard UI/UX hardening pass: rebuilt the connect-stage hero shell, stabilized the fixed header into a cleaner grid rail, replaced CSS map zoom hacks with responsive viewBox framing, integrated the map controls into a dedicated control rail, added a mobile map context chip, strengthened the armory selector header/status hierarchy, reduced selector card density, unified the leaderboard into a single operator/score/combat model across breakpoints, and tightened matching/battle/result hierarchy plus tertiary battle log treatment for a more authored runtime on desktop/tablet/phone. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, `pnpm -r test`, and local Playwright checks on `http://127.0.0.1:4176/` covering connect, map, selector, and leaderboard at desktop and mobile widths.
 - CRIT-001: Added signed queue auth message verification, onchain `ownerOf` checks, and frontend queue signing. Verified with `pnpm install`, package typechecks, and `pnpm -r build`. Commit blocked because the workspace snapshot is not a Git worktree.
 - CRIT-002: Wrapped matchmaking, battle creation, queue resolution, and score mutation in a single transaction with row locking and queue-entry idempotency constraints. Verified with `pnpm install`, package typechecks, and `pnpm -r build`. Commit blocked because the workspace snapshot is not a Git worktree.
