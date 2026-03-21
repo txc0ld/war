@@ -7,8 +7,10 @@ function ConnectScreen(): React.ReactNode {
   return (
     <section className="connect-screen">
       <div className="connect-screen__inner">
-        <h1 className="connect-screen__title">WAR ROOM</h1>
-        <p className="connect-screen__subtitle">[Glocks & Nodes]</p>
+        <h1 className="connect-screen__title" data-text="WAR ROOM">
+          WAR ROOM
+        </h1>
+        <p className="connect-screen__subtitle">GLOCKS + NODES</p>
         <ConnectButton />
       </div>
     </section>

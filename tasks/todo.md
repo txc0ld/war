@@ -5,6 +5,7 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [completed] Connect-screen title polish: add a restrained glitch effect to the `WAR ROOM` lockup and normalize the subtitle copy to `GLOCKS + NODES`
 - [completed] Connect-screen subtitle correction: replace `ALL OUT WAR` with `[Glocks & Nodes]` on the wallet entry screen
 - [completed] Screenshot-driven UI upgrade: remove the map-frame rail feel, widen the globe composition, quiet the header/navigation divider, tighten gun selector chrome, and apply the requested stat colors (`damage #97ff3b`, `dodge #ff4fce`, `speed #0044ff`) across live surfaces
 - [completed] Accent palette shift: replace the live `#CCFF00` / neon-green accent family with `#00BDFE` blue across runtime surfaces, glows, gradients, registry accents, and supporting docs so the app reads colder and more technical
@@ -126,3 +127,4 @@
 - Map rail cleanup: removed the remaining horizontal side-wash from `.world-map::before` and replaced it with centered atmospheric gradients only, so the map frame edges stay clean instead of reading as left/right rails. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
 - Screenshot-driven UI upgrade: widened the map projection and container so the globe uses more of the desktop frame, flattened the outer shell/chrome so the side gutters read as pure black instead of gradient rails, moved the country callout to a white-outline box with an accent leader, replaced the selector close button with a cleaner editorial underlined control, and aligned both selector and battle stat systems to `damage #97ff3b`, `dodge #ff4fce`, and `speed #0044ff`. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm -r test`, and `pnpm -r build`.
 - Connect-screen subtitle correction: changed the wallet-entry subtitle from `ALL OUT WAR` to `[Glocks & Nodes]` in the live connect screen without touching broader branding or metadata. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
+- Connect-screen title polish: added a restrained glitch effect to the `WAR ROOM` connect-screen title using layered pseudo-elements and timed channel offsets while keeping the one-line lockup intact, and normalized the subtitle copy to `GLOCKS + NODES`. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
