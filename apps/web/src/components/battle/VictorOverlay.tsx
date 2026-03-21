@@ -6,12 +6,14 @@ interface VictorOverlayProps {
   gunName: string;
   score: number;
   onDismiss: () => void;
+  onFightAgain: () => void;
 }
 
 export function VictorOverlay({
   gunName,
   score,
   onDismiss,
+  onFightAgain,
 }: VictorOverlayProps): React.ReactNode {
   const dismiss = useCallback(() => {
     onDismiss();
@@ -68,7 +70,7 @@ export function VictorOverlay({
             </motion.div>
           </div>
           <div className="warpath-result-actions">
-            <button type="button" className="warpath-button" onClick={dismiss}>
+            <button type="button" className="warpath-button" onClick={onFightAgain}>
               FIGHT AGAIN
             </button>
           </div>

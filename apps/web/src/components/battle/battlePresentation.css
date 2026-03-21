@@ -8,6 +8,7 @@
   overflow: hidden;
   color: var(--text);
   font-family: var(--font-body);
+  pointer-events: auto;
 }
 
 .warpath-battle-engine,

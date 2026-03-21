@@ -28,6 +28,7 @@ export function GameOverlay(): React.ReactNode {
     selectedGun,
     clearCountry,
     clearGun,
+    openGunSelector,
     reset,
     setPhase,
     refreshWalletCooldown,
@@ -64,6 +65,18 @@ export function GameOverlay(): React.ReactNode {
     clearCountry();
     clearGun();
   }, [clearCountry, clearGun, reset]);
+
+  const handleFightAgain = useCallback(() => {
+    reset();
+    clearGun();
+
+    if (selectedCountry) {
+      openGunSelector();
+      return;
+    }
+
+    clearCountry();
+  }, [clearCountry, clearGun, openGunSelector, reset, selectedCountry]);
 
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
@@ -219,6 +232,7 @@ export function GameOverlay(): React.ReactNode {
               gunName={selectedGun?.name ?? 'Unknown'}
               score={100}
               onDismiss={handleResultDismiss}
+              onFightAgain={handleFightAgain}
             />
           </Suspense>
         ) : null}
@@ -229,6 +243,7 @@ export function GameOverlay(): React.ReactNode {
               gunName={selectedGun?.name ?? 'Unknown'}
               score={-100}
               onDismiss={handleResultDismiss}
+              onFightAgain={handleFightAgain}
             />
           </Suspense>
         ) : null}

@@ -6,12 +6,14 @@ interface DeathOverlayProps {
   gunName: string;
   score: number;
   onDismiss: () => void;
+  onFightAgain: () => void;
 }
 
 export function DeathOverlay({
   gunName,
   score,
   onDismiss,
+  onFightAgain,
 }: DeathOverlayProps): React.ReactNode {
   const dismiss = useCallback(() => {
     onDismiss();
@@ -68,7 +70,11 @@ export function DeathOverlay({
             </motion.div>
           </div>
           <div className="warpath-result-actions">
-            <button type="button" className="warpath-button warpath-button--outline" onClick={dismiss}>
+            <button
+              type="button"
+              className="warpath-button warpath-button--outline"
+              onClick={onFightAgain}
+            >
               FIGHT AGAIN
             </button>
           </div>

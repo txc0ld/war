@@ -5,6 +5,7 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [completed] Result CTA flow fix: make `FIGHT AGAIN` reopen a fresh deploy/armory flow instead of behaving like a passive dismiss
 - [completed] Battle layout polish: reduce gun/card scale, add cleaner spacing through the battle arena and VS reveal, and eliminate crowding or overlap across desktop and mobile
 - [completed] Connect-screen title polish: add a restrained glitch effect to the `WAR ROOM` lockup and normalize the subtitle copy to `GLOCKS + NODES`
 - [completed] Connect-screen subtitle correction: replace `ALL OUT WAR` with `[Glocks & Nodes]` on the wallet entry screen
@@ -130,3 +131,4 @@
 - Connect-screen subtitle correction: changed the wallet-entry subtitle from `ALL OUT WAR` to `[Glocks & Nodes]` in the live connect screen without touching broader branding or metadata. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
 - Connect-screen title polish: added a restrained glitch effect to the `WAR ROOM` connect-screen title using layered pseudo-elements and timed channel offsets while keeping the one-line lockup intact, and normalized the subtitle copy to `GLOCKS + NODES`. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
 - Battle layout polish: tightened the battle stage width and padding, reduced gun-card/frame scale, protected the arena center lane with explicit fighter max widths, shortened the divider stack, and added VS-screen shell constraints so the central stamp never collides with the entering guns. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, `pnpm -r test`, and a local browser flow through connect, deploy, matching, and result on the preview build.
+- Result CTA flow fix: split overlay dismiss from the `FIGHT AGAIN` action so clicking the CTA now resets battle state, preserves the chosen country, clears the previous gun, and reopens the armory for a fresh run instead of dumping the user out of the flow. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json` and `pnpm --filter @warpath/web build`.
