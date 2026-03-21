@@ -14,7 +14,7 @@ const variants = {
   ),
   secondary: cn(
     'border-accent-neon bg-bg-primary text-accent-neon',
-    'hover:bg-accent-neon/10 hover:shadow-[0_0_20px_rgba(204,255,0,0.3)]'
+    'hover:bg-accent-neon/10 hover:shadow-[0_0_20px_rgba(0,189,254,0.3)]'
   ),
   danger: cn(
     'border-accent-red bg-bg-primary text-accent-red',

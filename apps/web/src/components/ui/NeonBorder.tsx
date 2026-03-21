@@ -20,9 +20,9 @@ const colorMap = {
   neon: {
     border: 'border-accent-neon',
     shadow: {
-      low: 'shadow-[0_0_8px_rgba(204,255,0,0.15)]',
-      medium: 'shadow-[0_0_16px_rgba(204,255,0,0.25)]',
-      high: 'shadow-[0_0_30px_rgba(204,255,0,0.4)]',
+      low: 'shadow-[0_0_8px_rgba(0,189,254,0.15)]',
+      medium: 'shadow-[0_0_16px_rgba(0,189,254,0.25)]',
+      high: 'shadow-[0_0_30px_rgba(0,189,254,0.4)]',
     },
   },
   red: {

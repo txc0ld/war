@@ -95,7 +95,7 @@ export function WalletGate({ children }: WalletGateProps): ReactNode {
               'border border-accent-neon bg-bg-primary px-6 py-3',
               'text-accent-neon',
               'transition-all duration-200',
-              'hover:bg-accent-neon/10 hover:shadow-[0_0_20px_rgba(204,255,0,0.3)]'
+              'hover:bg-accent-neon/10 hover:shadow-[0_0_20px_rgba(0,189,254,0.3)]'
             )}
           >
             Get Armed on OpenSea

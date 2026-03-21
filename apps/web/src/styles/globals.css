@@ -8,14 +8,14 @@
   --black: #0a0a0a;
   --red: #ff3b3b;
   --blue: #4f7cff;
-  --accent: #ccff00;
-  --accent-soft: rgba(204, 255, 0, 0.14);
-  --accent-glow: rgba(204, 255, 0, 0.28);
+  --accent: #00bdfe;
+  --accent-soft: rgba(0, 189, 254, 0.14);
+  --accent-glow: rgba(0, 189, 254, 0.28);
   --text: #f5f7ef;
   --text-muted: rgba(245, 247, 239, 0.58);
   --text-ghost: rgba(245, 247, 239, 0.18);
-  --border: rgba(204, 255, 0, 0.22);
-  --border-strong: rgba(204, 255, 0, 0.5);
+  --border: rgba(0, 189, 254, 0.22);
+  --border-strong: rgba(0, 189, 254, 0.5);
   --border-light: rgba(245, 247, 239, 0.1);
   --surface: rgba(8, 11, 8, 0.92);
   --surface-soft: rgba(10, 13, 10, 0.86);
@@ -53,7 +53,7 @@ body {
   min-height: 100vh;
   background-color: #020302;
   background:
-    radial-gradient(circle at top, rgba(204, 255, 0, 0.05), transparent 28%),
+    radial-gradient(circle at top, rgba(0, 189, 254, 0.05), transparent 28%),
     linear-gradient(180deg, #040504 0%, #020302 100%);
   color: var(--text);
   font-family: var(--font-body);
@@ -89,7 +89,7 @@ img {
   min-height: 100vh;
   place-items: center;
   background:
-    radial-gradient(circle at 50% 18%, rgba(204, 255, 0, 0.06), transparent 22%),
+    radial-gradient(circle at 50% 18%, rgba(0, 189, 254, 0.06), transparent 22%),
     linear-gradient(180deg, rgba(6, 8, 6, 0.98), rgba(2, 3, 2, 1));
 }
 
@@ -175,8 +175,8 @@ img {
 
 .warpath-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: rgba(204, 255, 0, 0.78);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42), 0 0 28px rgba(204, 255, 0, 0.14);
+  border-color: rgba(0, 189, 254, 0.78);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.42), 0 0 28px rgba(0, 189, 254, 0.14);
 }
 
 .warpath-button:active:not(:disabled) {
@@ -213,7 +213,7 @@ img {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at top, rgba(204, 255, 0, 0.07), transparent 24%),
+    radial-gradient(circle at top, rgba(0, 189, 254, 0.07), transparent 24%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 16%, transparent 84%, rgba(0, 0, 0, 0.16));
   opacity: 0.9;
 }
@@ -370,7 +370,7 @@ img {
   height: min(78vh, calc(100vh - var(--header-height) - 2.75rem));
   max-height: 860px;
   background: linear-gradient(180deg, rgba(10, 13, 9, 0.98), rgba(4, 6, 4, 0.98));
-  border: 1px solid rgba(204, 255, 0, 0.14);
+  border: 1px solid rgba(0, 189, 254, 0.14);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
   border-radius: 1.4rem;
   overflow: hidden;
@@ -425,7 +425,7 @@ img {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 48%, rgba(204, 255, 0, 0.055), transparent 60%),
+    radial-gradient(circle at 50% 48%, rgba(0, 189, 254, 0.055), transparent 60%),
     radial-gradient(circle at 50% 18%, rgba(245, 247, 239, 0.018), transparent 42%);
   opacity: 1;
 }
@@ -451,27 +451,27 @@ img {
 
 .world-map__land {
   fill: rgba(255, 255, 255, 0.02);
-  stroke: rgba(204, 255, 0, 0.14);
+  stroke: rgba(0, 189, 254, 0.14);
   stroke-width: 1.1;
   vector-effect: non-scaling-stroke;
 }
 
 .world-map__graticule {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.08);
+  stroke: rgba(0, 189, 254, 0.08);
   stroke-width: 0.8;
 }
 
 .world-map__borders {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.11);
+  stroke: rgba(0, 189, 254, 0.11);
   stroke-width: 0.75;
   vector-effect: non-scaling-stroke;
 }
 
 .world-map__country {
   fill: transparent;
-  stroke: rgba(204, 255, 0, 0.26);
+  stroke: rgba(0, 189, 254, 0.26);
   stroke-width: 1.15;
   vector-effect: non-scaling-stroke;
   cursor: pointer;
@@ -484,16 +484,16 @@ img {
 }
 
 .world-map__country--left {
-  stroke: rgba(204, 255, 0, 0.22);
+  stroke: rgba(0, 189, 254, 0.22);
 }
 
 .world-map__country--right {
-  stroke: rgba(204, 255, 0, 0.22);
+  stroke: rgba(0, 189, 254, 0.22);
 }
 
 .world-map__country:hover,
 .world-map__country:focus-visible {
-  fill: rgba(204, 255, 0, 0.05);
+  fill: rgba(0, 189, 254, 0.05);
   opacity: 1;
   outline: none;
 }
@@ -510,12 +510,12 @@ img {
 
 .world-map__country--selected-left {
   stroke: var(--accent);
-  fill: rgba(204, 255, 0, 0.08);
+  fill: rgba(0, 189, 254, 0.08);
 }
 
 .world-map__country--selected-right {
   stroke: var(--accent);
-  fill: rgba(204, 255, 0, 0.08);
+  fill: rgba(0, 189, 254, 0.08);
 }
 
 .world-map__marker {
@@ -530,7 +530,7 @@ img {
 
 .world-map__marker-pulse {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.18);
+  stroke: rgba(0, 189, 254, 0.18);
   stroke-width: 1;
   opacity: 0.24;
   transform-origin: center;
@@ -567,26 +567,26 @@ img {
 .world-map__marker-pulse--selected-right,
 .world-map__marker-pulse--active-left,
 .world-map__marker-pulse--active-right {
-  stroke: rgba(204, 255, 0, 0.72);
+  stroke: rgba(0, 189, 254, 0.72);
   opacity: 0.9;
 }
 
 .world-map__network-line {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.12);
+  stroke: rgba(0, 189, 254, 0.12);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
 .world-map__network-line--active {
-  stroke: rgba(204, 255, 0, 0.72);
+  stroke: rgba(0, 189, 254, 0.72);
   animation: networkLinePulse 2.4s ease-in-out infinite;
 }
 
 .world-map__route {
   fill: none;
-  stroke: rgba(204, 255, 0, 0.92);
+  stroke: rgba(0, 189, 254, 0.92);
   stroke-width: 1.4;
   stroke-dasharray: 8 10;
   vector-effect: non-scaling-stroke;
@@ -829,7 +829,7 @@ img {
 }
 
 .gun-card--selected {
-  box-shadow: 0 0 0 1px var(--accent), 0 0 26px rgba(204, 255, 0, 0.18);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 26px rgba(0, 189, 254, 0.18);
   animation: arsenalPulse 1.8s infinite;
 }
 
@@ -1225,11 +1225,11 @@ img {
 }
 
 .leaderboard__row:hover {
-  background: rgba(204, 255, 0, 0.05);
+  background: rgba(0, 189, 254, 0.05);
 }
 
 .leaderboard__row--active {
-  background: rgba(204, 255, 0, 0.08);
+  background: rgba(0, 189, 254, 0.08);
 }
 
 .leaderboard__empty {
@@ -1485,10 +1485,10 @@ img {
 @keyframes arsenalPulse {
   0%,
   100% {
-    box-shadow: 0 0 15px rgba(204, 255, 0, 0.22);
+    box-shadow: 0 0 15px rgba(0, 189, 254, 0.22);
   }
   50% {
-    box-shadow: 0 0 30px rgba(204, 255, 0, 0.36), 0 0 60px rgba(204, 255, 0, 0.14);
+    box-shadow: 0 0 30px rgba(0, 189, 254, 0.36), 0 0 60px rgba(0, 189, 254, 0.14);
   }
 }
 

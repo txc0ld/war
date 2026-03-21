@@ -11,7 +11,7 @@ export function LocationMarker({
   isCurrentUser,
   address,
 }: LocationMarkerProps): React.ReactNode {
-  const color = isCurrentUser ? '#CCFF00' : '#00F0FF';
+  const color = isCurrentUser ? '#00BDFE' : '#00F0FF';
   const opacity = isCurrentUser ? 1 : 0.5;
   const label = `${address.slice(0, 6)}...${address.slice(-4)}`;
 

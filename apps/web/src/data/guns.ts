@@ -24,8 +24,8 @@ export const TIER_CONFIG = {
   3: {
     label: 'RARE',
     statRange: [58, 76],
-    accent: '#CCFF00',
-    glow: 'rgba(204, 255, 0, 0.28)',
+    accent: '#00BDFE',
+    glow: 'rgba(0, 189, 254, 0.28)',
     summary: 'Competitive mid-high tier weapons with solid stat density and broad variety.',
   },
   4: {
@@ -236,7 +236,7 @@ export const GUN_TYPE_METADATA: Record<GunTypeId, GunTypeMetadata> = {
   Gamble: {
     label: 'Gamble',
     family: 'chaos',
-    accent: '#CCFF00',
+    accent: '#00BDFE',
     summary: 'Risk-coded set built around volatility and loud chance-driven flair.',
   },
   Speaker: {

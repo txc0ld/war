@@ -38,8 +38,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(204, 255, 0, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(204, 255, 0, 0.09) 1px, transparent 1px);
+    linear-gradient(rgba(0, 189, 254, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 189, 254, 0.09) 1px, transparent 1px);
   background-size: 48px 48px;
   opacity: 0.18;
   pointer-events: none;
@@ -48,7 +48,7 @@
 .warpath-match-scanline {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent, rgba(204, 255, 0, 0.06), transparent);
+  background: linear-gradient(180deg, transparent, rgba(0, 189, 254, 0.06), transparent);
   pointer-events: none;
 }
 
@@ -420,7 +420,7 @@
 .warpath-battle-progress__fill {
   height: 100%;
   background: var(--accent);
-  box-shadow: 0 0 18px rgba(204, 255, 0, 0.22);
+  box-shadow: 0 0 18px rgba(0, 189, 254, 0.22);
 }
 
 .warpath-battle-arena {
@@ -698,7 +698,7 @@
   border: 1px solid var(--border);
   padding: clamp(0.4rem, 1vw, 0.6rem);
   background:
-    linear-gradient(180deg, rgba(204, 255, 0, 0.08), rgba(4, 6, 4, 0.4)),
+    linear-gradient(180deg, rgba(0, 189, 254, 0.08), rgba(4, 6, 4, 0.4)),
     rgba(10, 13, 10, 0.96);
   overflow: hidden;
   box-shadow: 0 22px 42px rgba(0, 0, 0, 0.36);

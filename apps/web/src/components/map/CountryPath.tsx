@@ -60,14 +60,14 @@ export function CountryPath({
         className="cursor-pointer transition-all duration-300"
         fill={
           isSelected
-            ? 'rgba(204, 255, 0, 0.22)'
+            ? 'rgba(0, 189, 254, 0.22)'
             : isActive
               ? 'rgba(0, 240, 255, 0.16)'
               : 'rgba(125, 220, 255, 0.035)'
         }
         stroke={
           isSelected
-            ? '#CCFF00'
+            ? '#00BDFE'
             : isActive
               ? '#8EF7FF'
               : 'rgba(91, 214, 255, 0.14)'
@@ -75,7 +75,7 @@ export function CountryPath({
         strokeWidth={isSelected ? 1.6 : isActive ? 1.15 : 0.8}
         style={
           isSelected
-            ? { filter: 'drop-shadow(0 0 24px rgba(204, 255, 0, 0.32))' }
+            ? { filter: 'drop-shadow(0 0 24px rgba(0, 189, 254, 0.32))' }
             : isActive
               ? { filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.18))' }
               : undefined
@@ -94,12 +94,12 @@ export function CountryPath({
           cy={y}
           r={isSelected ? 8 : isActive ? 6.5 : 4}
           fill="none"
-          stroke={isSelected ? 'rgba(204,255,0,0.65)' : 'rgba(0,240,255,0.24)'}
+          stroke={isSelected ? 'rgba(0,189,254,0.65)' : 'rgba(0,240,255,0.24)'}
           strokeWidth={1}
           vectorEffect="non-scaling-stroke"
           style={{
             filter: isSelected
-              ? 'drop-shadow(0 0 10px rgba(204,255,0,0.24))'
+              ? 'drop-shadow(0 0 10px rgba(0,189,254,0.24))'
               : undefined,
           }}
         />
@@ -107,7 +107,7 @@ export function CountryPath({
           cx={x}
           cy={y}
           r={isSelected ? 3 : 2.2}
-          fill={isSelected ? '#CCFF00' : '#8EF7FF'}
+          fill={isSelected ? '#00BDFE' : '#8EF7FF'}
         />
         {(isSelected || isActive) && (
           <circle
@@ -115,7 +115,7 @@ export function CountryPath({
             cy={y}
             r={isSelected ? 12 : 9}
             fill="none"
-            stroke={isSelected ? 'rgba(204,255,0,0.18)' : 'rgba(142,247,255,0.14)'}
+            stroke={isSelected ? 'rgba(0,189,254,0.18)' : 'rgba(142,247,255,0.14)'}
             strokeWidth={0.8}
             vectorEffect="non-scaling-stroke"
           />
