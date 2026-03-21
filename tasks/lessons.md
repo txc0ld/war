@@ -30,3 +30,4 @@
 - 2026-03-21: Embedded battle chat should not reuse the full chat panel contract; strip it down to a compact battle-log variant or it competes with the primary combat hierarchy on mobile and small laptops.
 - 2026-03-21: On this map surface, keep the country callout box stroke and the leader-line stroke on separate selectors; coupling them under the side modifier makes it impossible to get a white framed label with an accent connector.
 - 2026-03-21: Any interactive overlay mounted under `.site-shell__content` needs its own `pointer-events: auto`; otherwise the fixed world map can intercept clicks from visible buttons even when the overlay has the higher visual z-order.
+- 2026-03-21: For branded glitch treatments, pushing RGB channel separation too far can read as color styling instead of distortion; if the ask is “just distortion,” keep the effect monochrome and sell it through slice jumps, skew, blur, and side tearing.
