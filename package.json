@@ -13,6 +13,14 @@
   "engines": {
     "node": ">=18"
   },
+  "dependencies": {
+    "@warpath/shared": "workspace:*",
+    "drizzle-orm": "^0.36.0",
+    "hono": "^4.12.8",
+    "pg": "^8.13.0",
+    "viem": "^2.21.0",
+    "zod": "^4.3.6"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "bufferutil",
