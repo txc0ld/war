@@ -55,28 +55,30 @@ export function VSReveal({
               showStats={false}
             />
           </motion.div>
-          <motion.div
-            className="vs-screen__center"
-            animate={
-              showFight
-                ? { x: [0, -3, 3, -2, 2, 0], y: [0, 2, -2, 1, -1, 0] }
-                : { x: 0, y: 0 }
-            }
-            transition={showFight ? { duration: 0.2 } : { duration: 0.4 }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.h2
-                key={showFight ? 'fight' : 'vs'}
-                className={`vs-screen__headline ${showFight ? 'vs-screen__headline--fight' : 'vs-screen__headline--slam'}`}
-                initial={{ opacity: 0, letterSpacing: '0.36em', scale: 1.12 }}
-                animate={{ opacity: 1, letterSpacing: '0.18em', scale: 1 }}
-                exit={{ opacity: 0, scale: 0.92 }}
-                transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              >
-                {showFight ? 'FIGHT' : 'VS'}
-              </motion.h2>
-            </AnimatePresence>
-          </motion.div>
+          <div className="vs-screen__center-slot">
+            <motion.div
+              className="vs-screen__center"
+              animate={
+                showFight
+                  ? { x: [0, -3, 3, -2, 2, 0], y: [0, 2, -2, 1, -1, 0] }
+                  : { x: 0, y: 0 }
+              }
+              transition={showFight ? { duration: 0.2 } : { duration: 0.4 }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.h2
+                  key={showFight ? 'fight' : 'vs'}
+                  className={`vs-screen__headline ${showFight ? 'vs-screen__headline--fight' : 'vs-screen__headline--slam'}`}
+                  initial={{ opacity: 0, letterSpacing: '0.36em', scale: 1.12 }}
+                  animate={{ opacity: 1, letterSpacing: '0.18em', scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {showFight ? 'FIGHT' : 'VS'}
+                </motion.h2>
+              </AnimatePresence>
+            </motion.div>
+          </div>
           <motion.div
             className="vs-screen__fighter-shell vs-screen__fighter-shell--right"
             initial={{ opacity: 0, x: 140, scale: 0.96 }}

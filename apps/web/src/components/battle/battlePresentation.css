@@ -806,7 +806,20 @@
 }
 
 .vs-screen__center-slot {
-  min-height: 1px;
+  display: grid;
+  place-items: center;
+  min-height: clamp(7rem, 16vw, 11rem);
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+}
+
+.vs-screen__fighter-shell--left {
+  justify-self: end;
+}
+
+.vs-screen__fighter-shell--right {
+  justify-self: start;
 }
 
 .warpath-result-panel::-webkit-scrollbar {
@@ -1058,7 +1071,14 @@
   }
 
   .vs-screen__center-slot {
-    display: none;
+    display: grid;
+    min-height: auto;
+    order: 2;
+  }
+
+  .vs-screen__fighter-shell--left,
+  .vs-screen__fighter-shell--right {
+    justify-self: center;
   }
 
   .warpath-battle-readout,
