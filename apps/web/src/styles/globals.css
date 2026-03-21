@@ -797,19 +797,23 @@ img {
 
 .vs-screen__inner {
   display: grid;
-  gap: 2rem;
+  gap: 2.25rem;
   width: min(1100px, 100%);
+  padding-inline: clamp(1rem, 4vw, 3rem);
 }
 
 .vs-screen__fighters {
   display: grid;
-  gap: 2rem;
+  gap: clamp(2.5rem, 6vw, 5.5rem);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
+  align-items: start;
 }
 
 .vs-screen__fighter-shell {
-  width: 100%;
+  width: min(100%, 320px);
+  margin-inline: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .vs-screen__center {
@@ -818,12 +822,15 @@ img {
   top: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
+  z-index: 2;
+  width: min(14rem, 34vw);
+  pointer-events: none;
 }
 
 .vs-screen__headline {
   margin: 0;
-  font-size: clamp(3rem, 10vw, 10rem);
-  letter-spacing: 0.22em;
+  font-size: clamp(2.4rem, 8vw, 7.2rem);
+  letter-spacing: 0.16em;
 }
 
 .vs-screen__headline--slam {
@@ -1979,21 +1986,23 @@ img {
   }
 
   .vs-screen__inner {
-    gap: 1rem;
+    gap: 1.2rem;
   }
 
   .vs-screen__fighters {
-    gap: 1rem;
+    gap: 1.2rem;
   }
 
   .vs-screen__center {
     position: static;
     transform: none;
+    width: 100%;
   }
 
   .vs-screen__headline {
-    font-size: clamp(2.6rem, 18vw, 4.6rem);
+    font-size: clamp(2.3rem, 16vw, 4.2rem);
     text-align: center;
+    letter-spacing: 0.1em;
   }
 
   .leaderboard-page__content {
