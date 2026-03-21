@@ -1,7 +1,7 @@
-import { app } from '../apps/api/src/index.ts';
+import apiRuntime from '../apps/api/dist/index.js';
 
 export const runtime = 'nodejs';
 
 export default async function handler(request) {
-  return app.fetch(request);
+  return apiRuntime.fetch(request);
 }
