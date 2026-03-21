@@ -19,7 +19,15 @@ export function ConnectButton(): React.ReactNode {
       return;
     }
 
-    const connector = connectors[0];
+    const hasInjectedProvider =
+      typeof window !== 'undefined' && 'ethereum' in window;
+    const connector =
+      (hasInjectedProvider
+        ? connectors.find((candidate) => candidate.id === 'injected')
+        : undefined) ??
+      connectors.find((candidate) => candidate.id === 'walletConnect') ??
+      connectors[0];
+
     if (connector) {
       connect({ connector });
     }
