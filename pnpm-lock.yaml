@@ -168,6 +168,9 @@ importers:
         specifier: ^2.21.0
         version: 2.47.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@6.0.6)(zod@4.3.6)
     devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.8)(typescript@5.9.3)
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
