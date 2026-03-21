@@ -27,10 +27,12 @@ export function LeaderboardRow({
         </span>
       </span>
       <span className="leaderboard__score">{entry.score}</span>
-      <span className="leaderboard__record">
-        {entry.wins}/{entry.losses}
+      <span className="leaderboard__combat">
+        <span className="leaderboard__combat-record">
+          {entry.wins}/{entry.losses}
+        </span>
+        <span className="leaderboard__combat-guns">{entry.gunCount} guns</span>
       </span>
-      <span className="leaderboard__guns">{entry.gunCount}</span>
     </div>
   );
 }

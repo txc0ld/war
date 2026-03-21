@@ -38,7 +38,7 @@ export function VSReveal({
   return (
     <div className="vs-screen">
       <div className="vs-screen__inner">
-        <div className="vs-screen__fighters">
+        <div className="vs-screen__duel">
           <motion.div
             className="vs-screen__fighter-shell vs-screen__fighter-shell--left"
             initial={{ opacity: 0, x: -140, scale: 0.96 }}
@@ -52,8 +52,10 @@ export function VSReveal({
               imageUrl={left.imageUrl}
               stats={left.stats}
               side={left.side}
+              showStats={false}
             />
           </motion.div>
+          <div className="vs-screen__center-slot" aria-hidden="true" />
           <motion.div
             className="vs-screen__fighter-shell vs-screen__fighter-shell--right"
             initial={{ opacity: 0, x: 140, scale: 0.96 }}
@@ -67,6 +69,7 @@ export function VSReveal({
               imageUrl={right.imageUrl}
               stats={right.stats}
               side={right.side}
+              showStats={false}
             />
           </motion.div>
         </div>

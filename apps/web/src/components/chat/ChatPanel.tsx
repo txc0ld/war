@@ -70,9 +70,9 @@ export function ChatPanel({
         >
           <div className="warpath-chat-header">
             <div>
-              <h2 className="warpath-chat-title">{embedded ? 'Battle Log' : 'Field Chat'}</h2>
+              <h2 className="warpath-chat-title">{embedded ? 'Signal' : 'Field Chat'}</h2>
               <p className="warpath-chat-subtitle">
-                {embedded ? 'Last exchange' : 'Live battle chatter'}
+                {embedded ? 'Latest exchange' : 'Live battle chatter'}
               </p>
             </div>
             {onToggle ? (

@@ -5,6 +5,12 @@
 - Proceed with implementation and verification in audited priority order.
 
 ## Current Task
+- [completed] Gold-standard UI/UX hardening pass: rebuild the live web shell, map framing, selector hierarchy, battle-state composition, and leaderboard rhythm so the runtime feels production-ready across desktop, tablet, and phone
+- [completed] Header grid stabilization: lock the brand, wallet chip, and navigation rails into a consistent responsive system with no wrap-driven drift
+- [completed] Map shell refinement: remove CSS zoom hacks, improve responsive framing, integrate cleaner map controls, and restore context on touch layouts
+- [completed] Selector hierarchy pass: strengthen the armory header/status strip, reduce card density, and normalize card rhythm across breakpoints
+- [completed] Battle-state focus pass: compress matching, reserve a safer VS center lane, simplify battle hierarchy, and keep result overlays above the fold
+- [completed] Leaderboard system pass: align the ladder width with the app shell and keep one row hierarchy that scales cleanly across breakpoints
 - [completed] Connect-title irregular timing pass: replace the evenly repeating glitch cadence with longer uneven pause windows so the distortion feels more like intermittent signal failure
 - [completed] Connect-title cadence shaping: keep the monochrome distortion but add clear pause windows between glitch clusters so the title alternates between stable and broken states
 - [completed] Connect-title cadence tuning: keep the monochrome distortion treatment but slow the glitch cycle by roughly 25% so it breathes more between events
@@ -76,6 +82,7 @@
 - [completed] BATTLE-004: Verify with targeted typecheck/build coverage and record exact changed files
 
 ## Review
+- Gold-standard UI/UX hardening pass: rebuilt the connect-stage hero shell, stabilized the fixed header into a cleaner grid rail, replaced CSS map zoom hacks with responsive viewBox framing, integrated the map controls into a dedicated control rail, added a mobile map context chip, strengthened the armory selector header/status hierarchy, reduced selector card density, unified the leaderboard into a single operator/score/combat model across breakpoints, and tightened matching/battle/result hierarchy plus tertiary battle log treatment for a more authored runtime on desktop/tablet/phone. Verified with `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, `pnpm -r test`, and local Playwright checks on `http://127.0.0.1:4176/` covering connect, map, selector, and leaderboard at desktop and mobile widths.
 - CRIT-001: Added signed queue auth message verification, onchain `ownerOf` checks, and frontend queue signing. Verified with `pnpm install`, package typechecks, and `pnpm -r build`. Commit blocked because the workspace snapshot is not a Git worktree.
 - CRIT-002: Wrapped matchmaking, battle creation, queue resolution, and score mutation in a single transaction with row locking and queue-entry idempotency constraints. Verified with `pnpm install`, package typechecks, and `pnpm -r build`. Commit blocked because the workspace snapshot is not a Git worktree.
 - HIGH-002: Generated and committed Drizzle migration artifacts in `apps/api/drizzle/`, added root and API `db:migrate` scripts, and verified schema/build/typechecks. Runtime migration against `postgresql://postgres:postgres@localhost:5432/warpath` is blocked in this environment because PostgreSQL is not running (`ECONNREFUSED`). Commit blocked because the workspace snapshot is not a Git worktree.

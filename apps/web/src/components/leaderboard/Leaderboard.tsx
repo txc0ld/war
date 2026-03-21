@@ -14,10 +14,9 @@ export function Leaderboard(): React.ReactNode {
       </div>
       <header className="leaderboard__header">
         <span>Rank</span>
-        <span>Player</span>
+        <span>Operator</span>
         <span>Score</span>
-        <span>W/L</span>
-        <span>Guns</span>
+        <span>Combat</span>
       </header>
 
       {isLoading && <div className="leaderboard__empty">LOADING LEADERBOARD…</div>}

@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
@@ -75,6 +75,46 @@ function splitCalloutName(name: string): string[] {
   return [words.slice(0, midpoint).join(' '), words.slice(midpoint).join(' ')];
 }
 
+function createResponsiveViewBox(viewportWidth: number, viewportHeight: number): ViewBoxState {
+  const shortViewport = viewportHeight <= 840;
+
+  if (viewportWidth <= 560 || shortViewport) {
+    const width = 1218;
+    return {
+      x: 92,
+      y: 34,
+      width,
+      height: (width / VIEWBOX_WIDTH) * VIEWBOX_HEIGHT,
+    };
+  }
+
+  if (viewportWidth <= 720) {
+    const width = 1272;
+    return {
+      x: 64,
+      y: 22,
+      width,
+      height: (width / VIEWBOX_WIDTH) * VIEWBOX_HEIGHT,
+    };
+  }
+
+  if (viewportWidth <= 980) {
+    const width = 1332;
+    return {
+      x: 34,
+      y: 16,
+      width,
+      height: (width / VIEWBOX_WIDTH) * VIEWBOX_HEIGHT,
+    };
+  }
+
+  return DEFAULT_VIEWBOX;
+}
+
+function isSameViewBox(a: ViewBoxState, b: ViewBoxState) {
+  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+
 const countriesTopology = countriesAtlas as unknown as CountriesTopology;
 const landTopology = landAtlas as unknown as LandTopology;
 const landFeature = feature(
@@ -133,14 +173,21 @@ const PROJECTED_COUNTRIES: ProjectedCountry[] = COUNTRIES.flatMap((country) => {
 
 const COUNTRY_MAP = new Map(PROJECTED_COUNTRIES.map((country) => [country.code, country]));
 
-function getCalloutPosition(x: number, y: number) {
-  const alignLeft = x > 1020;
-  const alignBottom = y < 140;
+function getCalloutPosition(x: number, y: number, boxWidth: number, boxHeight: number) {
+  const alignLeft = x > VIEWBOX_WIDTH * 0.64;
+  const alignBottom = y < VIEWBOX_HEIGHT * 0.2;
+  const unclampedBoxX = alignLeft ? x - (boxWidth + 30) : x + 26;
+  const unclampedBoxY = alignBottom ? y + 18 : y - (boxHeight + 18);
+  const boxX = clamp(unclampedBoxX, 18, VIEWBOX_WIDTH - boxWidth - 18);
+  const boxY = clamp(unclampedBoxY, 18, VIEWBOX_HEIGHT - boxHeight - 18);
+  const boxOnLeft = boxX < x;
+
   return {
-    lineX: alignLeft ? x - 38 : x + 38,
-    lineY: alignBottom ? y + 42 : y - 42,
-    boxX: alignLeft ? x - 270 : x + 26,
-    boxY: alignBottom ? y + 18 : y - 102,
+    boxX,
+    boxY,
+    lineX: boxOnLeft ? boxX + boxWidth : boxX,
+    lineY: clamp(y, boxY + 18, boxY + boxHeight - 18),
+    boxOnLeft,
   };
 }
 
@@ -182,6 +229,13 @@ function getMidpoint(a: PointerPoint, b: PointerPoint): PointerPoint {
 }
 
 export function WorldMap(): React.ReactNode {
+  const initialViewBox = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return DEFAULT_VIEWBOX;
+    }
+
+    return createResponsiveViewBox(window.innerWidth, window.innerHeight);
+  }, []);
   const {
     selectedCountry,
     selectCountry,
@@ -190,9 +244,10 @@ export function WorldMap(): React.ReactNode {
     currentBattle,
   } = useStore();
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
-  const [viewBox, setViewBox] = useState<ViewBoxState>(DEFAULT_VIEWBOX);
+  const [defaultViewBox, setDefaultViewBox] = useState<ViewBoxState>(initialViewBox);
+  const [viewBox, setViewBox] = useState<ViewBoxState>(initialViewBox);
   const svgRef = useRef<SVGSVGElement | null>(null);
-  const viewBoxRef = useRef<ViewBoxState>(DEFAULT_VIEWBOX);
+  const viewBoxRef = useRef<ViewBoxState>(initialViewBox);
   const pointersRef = useRef(new Map<number, PointerPoint>());
   const gestureRef = useRef<GestureState>({
     mode: null,
@@ -200,6 +255,29 @@ export function WorldMap(): React.ReactNode {
   });
   const suppressClickRef = useRef(false);
   const showMapControls = phase === 'idle' && !showGunSelector;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleResize = () => {
+      const nextDefault = createResponsiveViewBox(window.innerWidth, window.innerHeight);
+
+      setDefaultViewBox((previousDefault) => {
+        if (isSameViewBox(viewBoxRef.current, previousDefault)) {
+          setViewBox(nextDefault);
+          viewBoxRef.current = nextDefault;
+        }
+
+        return nextDefault;
+      });
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const getRatiosFromClientPoint = useCallback((point: PointerPoint) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -281,11 +359,11 @@ export function WorldMap(): React.ReactNode {
     pointersRef.current.clear();
     gestureRef.current = {
       mode: null,
-      startViewBox: DEFAULT_VIEWBOX,
+      startViewBox: defaultViewBox,
     };
-    setViewBox(DEFAULT_VIEWBOX);
-    viewBoxRef.current = DEFAULT_VIEWBOX;
-  }, []);
+    setViewBox(defaultViewBox);
+    viewBoxRef.current = defaultViewBox;
+  }, [defaultViewBox]);
 
   const activeCountry = hoveredCountry ?? selectedCountry;
   const activeData = activeCountry ? COUNTRY_MAP.get(activeCountry) ?? null : null;
@@ -518,12 +596,14 @@ export function WorldMap(): React.ReactNode {
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
       {showMapControls ? (
         <div className="world-map__controls" aria-label="Map zoom controls">
-          <button type="button" className="world-map__control" onClick={() => handleZoomButton('in')} aria-label="Zoom in">
-            +
-          </button>
-          <button type="button" className="world-map__control" onClick={() => handleZoomButton('out')} aria-label="Zoom out">
-            -
-          </button>
+          <div className="world-map__zoom-rail">
+            <button type="button" className="world-map__control" onClick={() => handleZoomButton('in')} aria-label="Zoom in">
+              +
+            </button>
+            <button type="button" className="world-map__control" onClick={() => handleZoomButton('out')} aria-label="Zoom out">
+              -
+            </button>
+          </div>
           <button type="button" className="world-map__control world-map__control--reset" onClick={handleReset} aria-label="Reset map position">
             Reset
           </button>
@@ -635,9 +715,10 @@ export function WorldMap(): React.ReactNode {
         )}
 
         {activeData && (() => {
-          const position = getCalloutPosition(activeData.x, activeData.y);
           const nameLines = splitCalloutName(activeData.name);
+          const boxWidth = 268;
           const boxHeight = nameLines.length > 1 ? 102 : 88;
+          const position = getCalloutPosition(activeData.x, activeData.y, boxWidth, boxHeight);
           const stateY = position.boxY + (nameLines.length > 1 ? 88 : 74);
           const calloutSideClass = `world-map__callout--${activeData.side}`;
           return (
@@ -649,7 +730,7 @@ export function WorldMap(): React.ReactNode {
               <rect
                 x={position.boxX}
                 y={position.boxY}
-                width={264}
+                width={boxWidth}
                 height={boxHeight}
                 rx={18}
                 className="world-map__callout-box"
@@ -675,6 +756,15 @@ export function WorldMap(): React.ReactNode {
           );
         })()}
       </svg>
+      {!showGunSelector && activeData ? (
+        <div className={`world-map__mobile-chip world-map__mobile-chip--${activeData.side}`}>
+          <p className="world-map__mobile-chip-code">{activeData.code}</p>
+          <p className="world-map__mobile-chip-name">{activeData.name}</p>
+          <p className="world-map__mobile-chip-state">
+            {selectedCountry === activeData.code ? 'Deployment Locked' : 'Ready To Deploy'}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

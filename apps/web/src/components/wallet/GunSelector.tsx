@@ -38,21 +38,28 @@ export function GunSelector(): React.ReactNode {
             <h2 className="gun-selector__title" id="gun-selector-title">
               {countryName}
             </h2>
-            {arsenalBonus && <p className="arsenal-bonus">ARSENAL BONUS +10%</p>}
+          </div>
+          <div className="gun-selector__header-actions">
+            <button
+              type="button"
+              className="gun-selector__close"
+              onClick={closeGunSelector}
+            >
+              Close
+            </button>
+          </div>
+        </header>
+
+        {arsenalBonus || isWalletCoolingDown ? (
+          <div className="gun-selector__status-strip">
+            {arsenalBonus ? <p className="arsenal-bonus">ARSENAL BONUS +10%</p> : null}
             {isWalletCoolingDown ? (
               <p className="arsenal-bonus">
                 WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}
               </p>
             ) : null}
           </div>
-          <button
-            type="button"
-            className="gun-selector__close"
-            onClick={closeGunSelector}
-          >
-            Close
-          </button>
-        </header>
+        ) : null}
 
         {isLoading && (
           <div className="warpath-panel">
@@ -92,10 +99,12 @@ export function GunSelector(): React.ReactNode {
                   }}
                   disabled={isLocked}
                 >
-                  <div className="gun-frame">
-                    <img src={gun.image} alt={gun.name} />
+                  <div className="gun-card__media">
+                    <div className="gun-frame">
+                      <img src={gun.image} alt={gun.name} />
+                    </div>
                   </div>
-                  <div>
+                  <div className="gun-card__identity">
                     <p className="gun-card__name">{gun.name}</p>
                     <div className="gun-card__meta">
                       <span>{tierLabel}</span>
@@ -103,13 +112,13 @@ export function GunSelector(): React.ReactNode {
                     </div>
                   </div>
                   {isCoolingDown ? (
-                    <p className="gun-card__cooldown">
+                    <p className="gun-card__cooldown gun-card__cooldown--warning">
                       WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}
                     </p>
                   ) : isUnavailable ? (
                     <p className="gun-card__cooldown">BATTLE LOCKED</p>
                   ) : null}
-                  <div className="gun-card__stats">
+                  <div className="gun-card__stats gun-card__stats--selector">
                     <StatBar label="Damage" value={gun.stats.damage} tone="red" />
                     <StatBar label="Dodge" value={gun.stats.dodge} tone="blue" />
                     <StatBar label="Speed" value={gun.stats.speed} tone="black" />

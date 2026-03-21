@@ -18,6 +18,7 @@ export function MatchingPulse({ onCancel }: MatchingPulseProps): React.ReactNode
     >
       <div className="warpath-match-panel">
         <div className="warpath-match-loader" aria-hidden="true" />
+        <p className="warpath-match-kicker">Sector handshake</p>
         <motion.h2 className="warpath-match-title" aria-label="MATCHING">
           {letters.map((letter, index) => (
             <span
@@ -29,19 +30,21 @@ export function MatchingPulse({ onCancel }: MatchingPulseProps): React.ReactNode
             </span>
           ))}
         </motion.h2>
-        <p className="warpath-match-subtitle">SCANNING OPEN SECTORS</p>
-        {onCancel ? (
-          <motion.button
-            type="button"
-            onClick={onCancel}
-            className="warpath-match-cancel"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-          >
-            Cancel
-          </motion.button>
-        ) : null}
+        <div className="warpath-match-footer">
+          <p className="warpath-match-subtitle">Scanning open sectors for an opposing bracket.</p>
+          {onCancel ? (
+            <motion.button
+              type="button"
+              onClick={onCancel}
+              className="warpath-match-cancel"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+            >
+              Cancel search
+            </motion.button>
+          ) : null}
+        </div>
       </div>
     </motion.div>
   );

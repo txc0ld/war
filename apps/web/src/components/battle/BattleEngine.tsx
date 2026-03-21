@@ -119,8 +119,8 @@ export function BattleEngine({
     currentEvent === 'dodge_left' || currentEvent === 'dodge_right'
       ? 'warpath-battle-event warpath-battle-event--evasion'
       : 'warpath-battle-event warpath-battle-event--impact';
-  const leftLabel = playerSide === 'left' ? 'Player' : 'Opponent';
-  const rightLabel = playerSide === 'right' ? 'Player' : 'Opponent';
+  const leftLabel = playerSide === 'left' ? 'You' : 'Opponent';
+  const rightLabel = playerSide === 'right' ? 'You' : 'Opponent';
   const showTimeline = !DEMO_MODE;
 
   return (
@@ -156,12 +156,11 @@ export function BattleEngine({
         ) : null}
 
         <div className="warpath-battle-stage__status">
-          <p className="warpath-battle-stage__side warpath-battle-stage__side--left">
-            {leftLabel}
-          </p>
           <p className={eventTone}>{eventLabel}</p>
-          <p className="warpath-battle-stage__side warpath-battle-stage__side--right">
-            {rightLabel}
+          <p className="warpath-battle-stage__status-copy">
+            {playerSide === 'left'
+              ? 'You are pushing from the left sector.'
+              : 'You are pushing from the right sector.'}
           </p>
         </div>
 
@@ -210,16 +209,18 @@ export function BattleEngine({
 
           <div className="warpath-battle-center">
             <motion.div
-              className="warpath-battle-divider"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-            <p className="warpath-battle-center__stamp">Engaged</p>
-            <motion.div
-              className="warpath-battle-divider"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: 0.35 }}
-            />
+              className="warpath-battle-center__core"
+              animate={{ opacity: [0.35, 1, 0.35], scale: [0.96, 1.04, 0.96] }}
+              transition={{ duration: 1.8, repeat: Infinity }}
+            >
+              <motion.div
+                className="warpath-battle-divider"
+                animate={{ opacity: [0.18, 0.62, 0.18] }}
+                transition={{ duration: 1.7, repeat: Infinity }}
+              />
+              <p className="warpath-battle-center__stamp">Engaged</p>
+              <p className="warpath-battle-center__detail">Live fire exchange</p>
+            </motion.div>
           </div>
 
           <motion.div

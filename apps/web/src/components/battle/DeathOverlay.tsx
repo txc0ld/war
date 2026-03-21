@@ -33,7 +33,9 @@ export function DeathOverlay({
           className="warpath-result-panel warpath-result-panel--defeat"
           onClick={(event) => event.stopPropagation()}
         >
-          <p className="warpath-result-kicker">Battle resolved</p>
+          <div className="warpath-result-headline">
+            <p className="warpath-result-kicker">Battle resolved</p>
+          </div>
           <div className="warpath-result-stack warpath-result-stack--defeat">
             <motion.h1
               className="warpath-result-title warpath-result-title--defeat"
