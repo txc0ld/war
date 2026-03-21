@@ -88,8 +88,8 @@ const collection = feature(
 
 const projection = geoNaturalEarth1().fitExtent(
   [
-    [44, 48],
-    [1356, 720],
+    [10, 28],
+    [1390, 738],
   ],
   landFeature
 );
@@ -541,7 +541,7 @@ export function WorldMap(): React.ReactNode {
         onPointerLeave={handlePointerEnd}
         onWheel={handleWheel}
       >
-        <rect width="1400" height="768" fill="#050705" />
+        <rect width="1400" height="768" fill="#020304" />
         <path d={landPath} className="world-map__land" />
         <path d={graticulePath} className="world-map__graticule" />
         <path d={bordersPath} className="world-map__borders" />

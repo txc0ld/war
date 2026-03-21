@@ -28,3 +28,4 @@
 - 2026-03-20: If a framed map starts reading like it has vertical rails, check for a horizontal `90deg` wash inside the container overlay before adjusting borders or shadows; center-weighted atmosphere holds depth without dirtying the edges.
 - 2026-03-21: For demo battle playback, remove round/progress telemetry if it reads like a timer; decorative simulation scaffolding can make the combat surface busier without adding meaningful information to the review flow.
 - 2026-03-21: Embedded battle chat should not reuse the full chat panel contract; strip it down to a compact battle-log variant or it competes with the primary combat hierarchy on mobile and small laptops.
+- 2026-03-21: On this map surface, keep the country callout box stroke and the leader-line stroke on separate selectors; coupling them under the side modifier makes it impossible to get a white framed label with an accent connector.

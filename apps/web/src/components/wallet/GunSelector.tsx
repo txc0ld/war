@@ -47,7 +47,7 @@ export function GunSelector(): React.ReactNode {
           </div>
           <button
             type="button"
-            className="warpath-button warpath-button--outline"
+            className="gun-selector__close"
             onClick={closeGunSelector}
           >
             Close
