@@ -3,10 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
-import { GUNS_BY_ID } from '@/data/guns';
 import { getCountryByCode } from '@/data/countries';
-import { applyBattleCooldowns } from '@/lib/cooldowns';
-import { DEMO_MODE, getDemoGunCountForAddress } from '@/lib/demo';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -31,15 +28,21 @@ export function GameOverlay(): React.ReactNode {
     openGunSelector,
     reset,
     setPhase,
-    refreshWalletCooldown,
     guns,
   } = useStore();
-  const { startMatchmaking, cancelMatchmaking, error } = useMatchmaking();
+  const {
+    startMatchmaking,
+    cancelMatchmaking,
+    error,
+    statusDetail,
+    canCancel,
+  } = useMatchmaking();
   const selectedCountryData = useMemo(() => getCountryByCode(selectedCountry), [selectedCountry]);
   const countryName = useMemo(
     () => selectedCountryData?.name ?? selectedCountry,
     [selectedCountry, selectedCountryData]
   );
+  const resolvedBattle = currentBattle?.status === 'resolved' ? currentBattle : null;
   const playerSide = useMemo(() => {
     const normalizedAddress = sessionAddress?.toLowerCase();
 
@@ -55,6 +58,15 @@ export function GameOverlay(): React.ReactNode {
 
     return selectedCountryData?.side ?? 'left';
   }, [currentBattle, selectedCountryData?.side, sessionAddress]);
+  const playerGunName = useMemo(() => {
+    if (!currentBattle) {
+      return selectedGun?.name ?? 'Unknown';
+    }
+
+    return playerSide === 'left'
+      ? currentBattle.left.name
+      : currentBattle.right.name;
+  }, [currentBattle, playerSide, selectedGun?.name]);
 
   const handleFight = useCallback(async () => {
     await startMatchmaking();
@@ -80,26 +92,9 @@ export function GameOverlay(): React.ReactNode {
 
   const handleBattleComplete = useCallback(
     (winner: 'left' | 'right') => {
-      if (currentBattle) {
-        const currentSessionAddress = sessionAddress?.toLowerCase() ?? null;
-        const participants = [currentBattle.left.address, currentBattle.right.address].map(
-          (address) => ({
-            address,
-            gunCount:
-              currentSessionAddress && address.toLowerCase() === currentSessionAddress
-                ? guns.length
-                : DEMO_MODE
-                  ? getDemoGunCountForAddress(address)
-                  : 1,
-          })
-        );
-
-        applyBattleCooldowns(participants);
-        refreshWalletCooldown();
-      }
       setPhase(winner === playerSide ? 'result_win' : 'result_loss');
     },
-    [currentBattle, guns.length, playerSide, refreshWalletCooldown, sessionAddress, setPhase]
+    [playerSide, setPhase]
   );
 
   return (
@@ -179,7 +174,11 @@ export function GameOverlay(): React.ReactNode {
 
       <AnimatePresence mode="wait">
         {phase === 'matching' ? (
-          <MatchingPulse key="matching" onCancel={cancelMatchmaking} />
+          <MatchingPulse
+            key="matching"
+            subtitle={statusDetail}
+            onCancel={canCancel ? cancelMatchmaking : undefined}
+          />
         ) : null}
 
         {phase === 'vs_reveal' && currentBattle ? (
@@ -189,10 +188,9 @@ export function GameOverlay(): React.ReactNode {
               imageUrl: currentBattle.left.imageUrl,
               name:
                 playerSide === 'left'
-                  ? selectedGun?.name ??
-                    GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
+                  ? currentBattle.left.name ??
                     `Gun #${currentBattle.left.tokenId}`
-                  : GUNS_BY_ID.get(currentBattle.left.tokenId)?.name ??
+                  : currentBattle.left.name ??
                     `Gun #${currentBattle.left.tokenId}`,
               tokenId: currentBattle.left.tokenId,
               stats: currentBattle.left.stats,
@@ -203,10 +201,9 @@ export function GameOverlay(): React.ReactNode {
               imageUrl: currentBattle.right.imageUrl,
               name:
                 playerSide === 'right'
-                  ? selectedGun?.name ??
-                    GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
+                  ? currentBattle.right.name ??
                     `Gun #${currentBattle.right.tokenId}`
-                  : GUNS_BY_ID.get(currentBattle.right.tokenId)?.name ??
+                  : currentBattle.right.name ??
                     `Gun #${currentBattle.right.tokenId}`,
               tokenId: currentBattle.right.tokenId,
               stats: currentBattle.right.stats,
@@ -217,10 +214,10 @@ export function GameOverlay(): React.ReactNode {
           />
         ) : null}
 
-        {phase === 'fighting' && currentBattle ? (
+        {phase === 'fighting' && resolvedBattle ? (
           <BattleEngine
             key="battle"
-            battle={currentBattle}
+            battle={resolvedBattle}
             playerSide={playerSide}
             onComplete={handleBattleComplete}
           />
@@ -229,7 +226,7 @@ export function GameOverlay(): React.ReactNode {
         {phase === 'result_win' ? (
           <Suspense key="victor" fallback={null}>
             <LazyVictorOverlay
-              gunName={selectedGun?.name ?? 'Unknown'}
+              gunName={playerGunName}
               score={100}
               onDismiss={handleResultDismiss}
               onFightAgain={handleFightAgain}
@@ -240,7 +237,7 @@ export function GameOverlay(): React.ReactNode {
         {phase === 'result_loss' ? (
           <Suspense key="death" fallback={null}>
             <LazyDeathOverlay
-              gunName={selectedGun?.name ?? 'Unknown'}
+              gunName={playerGunName}
               score={-100}
               onDismiss={handleResultDismiss}
               onFightAgain={handleFightAgain}
