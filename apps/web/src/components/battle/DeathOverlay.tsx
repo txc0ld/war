@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './battlePresentation.css';
 
@@ -15,9 +15,29 @@ export function DeathOverlay({
   onDismiss,
   onFightAgain,
 }: DeathOverlayProps): React.ReactNode {
+  const loserAudioRef = useRef<HTMLAudioElement | null>(null);
+
   const dismiss = useCallback(() => {
     onDismiss();
   }, [onDismiss]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const audio = new Audio('/assets/Loser.mp3');
+    audio.preload = 'auto';
+    audio.loop = false;
+    loserAudioRef.current = audio;
+    void audio.play().catch(() => {});
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      loserAudioRef.current = null;
+    };
+  }, []);
 
   return (
     <AnimatePresence>

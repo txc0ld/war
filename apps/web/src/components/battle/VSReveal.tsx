@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GunStats } from '@warpath/shared';
 import { GunCard } from './GunCard';
@@ -24,6 +24,7 @@ export function VSReveal({
   onComplete,
 }: VSRevealProps): React.ReactNode {
   const [showFight, setShowFight] = useState(false);
+  const fightAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const vsTimer = window.setTimeout(() => setShowFight(true), 1350);
@@ -34,6 +35,37 @@ export function VSReveal({
       window.clearTimeout(completeTimer);
     };
   }, [onComplete]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const audio = new Audio('/assets/Fight.mp3');
+    audio.preload = 'auto';
+    audio.loop = false;
+    fightAudioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      fightAudioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showFight) {
+      return;
+    }
+
+    const audio = fightAudioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+  }, [showFight]);
 
   return (
     <div className="vs-screen">

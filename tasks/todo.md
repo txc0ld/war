@@ -12,7 +12,11 @@
 - [completed] Enter Battle click audio: ship the provided `Enterbattle.mp3` with the web app and trigger it from the Enter Battle action
 - [completed] Matching-phase audio: ship the provided `Loading.mp3` and loop it while the matchmaking overlay is active
 - [completed] Matching-audio delay: start the `Loading.mp3` loop one second after the matchmaking overlay appears so the search state lands before the sound begins
+- [completed] Matching-audio swap: replace the matchmaking loop source with the provided `Matching.mp3` while keeping the existing delayed start behavior
 - [completed] Battle-phase audio: ship the provided `Battle.mp3` and loop it only while the fight animation is active
+- [completed] Fight-stamp audio: ship the provided `Fight.mp3` and trigger it only when the `FIGHT` stamp appears during the VS reveal
+- [completed] Result audio: ship `Winner.mp3` and `Loser.mp3` so the correct outcome sound plays on the corresponding result overlay
+- [completed] Audio one-shot enforcement: ensure `Matching`, `Fight`, `Winner`, and `Loser` cues are all explicit single-play sounds with no looping
 - [completed] Chunk-load recovery hardening: stop lazy-splitting tiny result overlays and auto-recover once from stale deploy chunk fetch failures in already-open tabs
 - [completed] Favicon refresh: replace the default SVG favicon with the provided `Favicon.png` for browser tabs and Apple touch icon usage
 - [completed] Connect-wordmark tracking trim: remove all letter spacing from the main wallet-entry `WAR ROOM` lockup so `WAR` and `ROOM` read as a tight brand mark
@@ -238,6 +242,10 @@
 - Updated `apps/web/src/components/battle/MatchingPulse.tsx` so the `Loading.mp3` loop starts after a 1 second timeout instead of immediately when the overlay mounts.
 - Added timeout cleanup alongside the existing audio teardown so short-lived matching overlays do not leave a pending delayed playback behind after the screen exits.
 
+## 2026-03-23 Matching Audio Source Swap Review
+- Copied the provided `Matching.mp3` into `apps/web/public/assets/Matching.mp3`.
+- Updated `apps/web/src/components/battle/MatchingPulse.tsx` so the matchmaking overlay now loops `Matching.mp3` instead of `Loading.mp3` while preserving the existing 1 second delayed start and teardown behavior.
+
 ## 2026-03-23 Chunk Recovery Review
 - Replaced the lazy-loaded result overlays in `apps/web/src/components/battle/GameOverlay.tsx` with direct imports so battle results no longer depend on separate hashed `VictorOverlay` and `DeathOverlay` chunks.
 - Added one-shot chunk fetch recovery in `apps/web/src/main.tsx` for `vite:preloadError` and dynamic-import rejection errors so an already-open tab can refresh itself once after a production deploy swaps the asset hashes.
@@ -245,6 +253,17 @@
 ## 2026-03-23 Favicon Review
 - Copied the provided `Favicon.png` into `apps/web/public/favicon.png` so the icon ships as a stable public asset.
 - Updated `apps/web/index.html` to use the PNG favicon for both the standard browser tab icon and the Apple touch icon instead of the previous `favicon.svg`.
+
+## 2026-03-23 Fight Reveal Audio Review
+- Copied the provided `Fight.mp3` into `apps/web/public/assets/Fight.mp3`.
+- Updated `apps/web/src/components/battle/VSReveal.tsx` to preload the sound on mount and play it once at the exact `showFight` transition so the cue lands only when the `FIGHT` wordmark appears.
+
+## 2026-03-23 Result Audio Review
+- Copied the provided `Winner.mp3` and `Loser.mp3` into `apps/web/public/assets/`.
+- Updated `apps/web/src/components/battle/VictorOverlay.tsx` and `apps/web/src/components/battle/DeathOverlay.tsx` so each result overlay preloads and plays its own outcome sound on mount, then stops and resets it on teardown.
+
+## 2026-03-23 Audio One-Shot Review
+- Updated `apps/web/src/components/battle/MatchingPulse.tsx`, `apps/web/src/components/battle/VSReveal.tsx`, `apps/web/src/components/battle/VictorOverlay.tsx`, and `apps/web/src/components/battle/DeathOverlay.tsx` so `Matching`, `Fight`, `Winner`, and `Loser` all explicitly set `audio.loop = false`.
 
 ## 2026-03-21 Header Rail Clearance Review
 - Reworked the fixed header geometry in `apps/web/src/styles/globals.css` so the rail height is explicit, the `header.jpg` wordmark is constrained by height instead of raw width, and the wallet chip/nav rhythm fits inside the reserved header footprint.

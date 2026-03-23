@@ -21,9 +21,9 @@ export function MatchingPulse({
       return;
     }
 
-    const audio = new Audio('/assets/Loading.mp3');
+    const audio = new Audio('/assets/Matching.mp3');
     audio.preload = 'auto';
-    audio.loop = true;
+    audio.loop = false;
     loadingAudioRef.current = audio;
     loadingAudioDelayRef.current = window.setTimeout(() => {
       void audio.play().catch(() => {});
