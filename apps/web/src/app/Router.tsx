@@ -4,6 +4,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 const MapPage = React.lazy(() => import('@/app/pages/MapPage'));
 const LeaderboardPage = React.lazy(() => import('@/app/pages/LeaderboardPage'));
 const BattlePage = React.lazy(() => import('@/app/pages/BattlePage'));
+const KillfeedPage = React.lazy(() => import('@/app/pages/KillfeedPage'));
+const ChatPage = React.lazy(() => import('@/app/pages/ChatPage'));
 
 function LoadingFallback(): React.ReactNode {
   return (
@@ -27,6 +29,22 @@ const router = createBrowserRouter([
     element: (
       <Suspense fallback={<LoadingFallback />}>
         <LeaderboardPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/killfeed',
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <KillfeedPage />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/chat',
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ChatPage />
       </Suspense>
     ),
   },

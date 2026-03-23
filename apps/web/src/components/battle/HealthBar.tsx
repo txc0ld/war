@@ -54,16 +54,18 @@ export function HealthBar({
         <div className="warpath-meter__track">
           <motion.div
             className={`warpath-meter__fill ${fillClass}`}
-            initial={{ width: '100%' }}
+            initial={{ scaleX: 1 }}
             animate={{
-              width: `${pct}%`,
-              boxShadow: isFlashing
-                ? '0 0 18px rgba(245, 247, 239, 0.3)'
-                : '0 0 0 rgba(0, 0, 0, 0)',
-              opacity: isFlashing ? 0.72 : 1,
+              scaleX: pct / 100,
+              opacity: isFlashing ? 0.7 : 1,
+              scaleY: isFlashing ? 0.96 : 1,
             }}
-            transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
-            style={{ '--fill': `${pct}%` } as CSSProperties}
+            transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+            style={{
+              '--fill': `${pct}%`,
+              '--fill-scale': pct / 100,
+              transformOrigin: 'left center',
+            } as CSSProperties}
           />
           {[25, 50, 75].map((mark) => (
             <div

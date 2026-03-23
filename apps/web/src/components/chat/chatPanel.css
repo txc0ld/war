@@ -7,11 +7,13 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   width: min(20rem, calc(100vw - 3rem));
-  background: rgba(8, 11, 8, 0.94);
-  border: 1px solid var(--border);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.36);
-  backdrop-filter: blur(14px);
-  animation: chatPanelRise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  background:
+    linear-gradient(180deg, rgba(0, 189, 254, 0.05), rgba(10, 10, 10, 0.18)),
+    var(--surface-glass);
+  border: 1px solid var(--edge-soft);
+  box-shadow: var(--shadow-deep);
+  backdrop-filter: blur(18px) saturate(1.08);
+  animation: chatPanelRise 700ms var(--ease-out-expo) both;
 }
 
 .warpath-chat-panel--embedded {
@@ -20,9 +22,12 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: rgba(7, 10, 14, 0.72);
-  border-color: rgba(0, 189, 254, 0.12);
-  box-shadow: none;
+  background:
+    linear-gradient(180deg, rgba(0, 189, 254, 0.04), rgba(10, 10, 10, 0.14)),
+    var(--surface-0);
+  border-color: var(--edge-soft);
+  box-shadow: var(--shadow-lift);
+  backdrop-filter: blur(14px) saturate(1.04);
 }
 
 .warpath-chat-panel--embedded .warpath-chat-header {
@@ -47,9 +52,14 @@
 }
 
 .warpath-chat-panel--embedded .warpath-chat-message {
-  gap: 0.18rem;
+  gap: 0.5rem;
   padding-top: 0.45rem;
   border-top-color: rgba(245, 247, 239, 0.05);
+}
+
+.warpath-chat-panel--embedded .warpath-chat-message__avatar {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .warpath-chat-panel--embedded .warpath-chat-address {
@@ -65,8 +75,8 @@
 
 .warpath-chat-panel--embedded .warpath-chat-timestamp {
   margin-top: 0;
-  font-size: 0.54rem;
-  letter-spacing: 0.16em;
+  font-size: 0.48rem;
+  letter-spacing: 0.12em;
 }
 
 .warpath-chat-header,
@@ -79,7 +89,7 @@
 }
 
 .warpath-chat-header {
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--edge-soft);
 }
 
 .warpath-chat-title {
@@ -90,8 +100,7 @@
   text-transform: uppercase;
 }
 
-.warpath-chat-subtitle,
-.warpath-chat-timestamp {
+.warpath-chat-subtitle {
   margin: 0.3rem 0 0;
   font-size: 0.66rem;
   letter-spacing: 0.18em;
@@ -110,13 +119,18 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   padding: 0.6rem 0.8rem;
-  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+  transition:
+    transform var(--duration-hover) var(--ease-out-quart),
+    background var(--duration-hover) var(--ease-out-quart),
+    color var(--duration-hover) var(--ease-out-quart),
+    box-shadow var(--duration-hover) var(--ease-out-quart);
 }
 
 .warpath-chat-close:hover {
   transform: translateY(-2px);
   background: rgba(14, 18, 13, 0.98);
   color: var(--accent);
+  box-shadow: var(--shadow-glow-blue);
 }
 
 .warpath-chat-feed {
@@ -124,14 +138,16 @@
   display: grid;
   gap: 0.8rem;
   padding: 1rem;
+  scroll-behavior: smooth;
 }
 
 .warpath-chat-message {
   display: grid;
-  gap: 0.35rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
   padding-top: 0.8rem;
-  border-top: 1px solid var(--border-light);
-  animation: chatLineIn 500ms ease both;
+  border-top: 1px solid var(--edge-soft);
+  animation: chatLineIn 240ms var(--ease-out-expo) both;
 }
 
 .warpath-chat-message:first-child {
@@ -139,11 +155,40 @@
   border-top: 0;
 }
 
+.warpath-chat-message__avatar {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--edge-soft);
+  background: linear-gradient(180deg, rgba(0, 189, 254, 0.12), rgba(5, 7, 10, 0.94));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.warpath-chat-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.warpath-chat-avatar-fallback {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.warpath-chat-message__body {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .warpath-chat-message__topline {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
 }
 
 .warpath-chat-address {
@@ -151,6 +196,22 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--accent);
+}
+
+.warpath-chat-address-secondary {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.warpath-chat-timestamp {
+  margin: 0 0 0 auto;
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 247, 239, 0.58);
+  white-space: nowrap;
 }
 
 .warpath-chat-copy {
@@ -173,16 +234,26 @@
   font: inherit;
   font-size: 0.74rem;
   letter-spacing: 0.08em;
+  transition:
+    border-color 160ms var(--ease-out-quart),
+    box-shadow 160ms var(--ease-out-quart),
+    color 160ms var(--ease-out-quart);
 }
 
 .warpath-chat-input__field::placeholder {
   color: var(--text-muted);
 }
 
+.warpath-chat-input__field:focus-visible {
+  border-color: var(--blue);
+  box-shadow: var(--focus-ring);
+  color: var(--text);
+}
+
 @keyframes chatPanelRise {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -193,7 +264,7 @@
 @keyframes chatLineIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

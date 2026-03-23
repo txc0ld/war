@@ -4,7 +4,6 @@ import { ConnectButton } from './ConnectButton';
 import { useGuns } from '@/hooks/useGuns';
 import { GlitchText } from '@/components/ui/GlitchText';
 import { cn } from '@/lib/cn';
-import { DEMO_MODE } from '@/lib/demo';
 
 interface WalletGateProps {
   children: ReactNode;
@@ -13,10 +12,6 @@ interface WalletGateProps {
 export function WalletGate({ children }: WalletGateProps): ReactNode {
   const { isConnected, isConnecting } = useAccount();
   const { guns, isLoading, error } = useGuns();
-
-  if (DEMO_MODE) {
-    return <>{children}</>;
-  }
 
   if (!isConnected) {
     return (
@@ -87,7 +82,7 @@ export function WalletGate({ children }: WalletGateProps): ReactNode {
             You need a Glocks &amp; Nodes NFT to enter the war zone.
           </p>
           <a
-            href="https://opensea.io/collection/glocks-and-nodes"
+            href="https://opensea.io/collection/glock-node"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(

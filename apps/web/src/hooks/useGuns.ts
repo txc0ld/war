@@ -1,9 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-import type { GunMetadata } from '@warpath/shared';
+import type { GunMetadata, GunsResponse } from '@warpath/shared';
 import { getGuns } from '@/lib/api';
-import { DEMO_GUNS, DEMO_MODE } from '@/lib/demo';
 import { useSessionAddress } from './useSessionAddress';
 import { useStore } from '@/store';
 import { getCooldownRemainingMs } from '@/lib/cooldowns';
@@ -20,25 +19,28 @@ export function useGuns(): UseGunsReturn {
   const sessionAddress = useSessionAddress();
   const walletCooldownExpiresAt = useStore((state) => state.walletCooldownExpiresAt);
   const setGuns = useStore((state) => state.setGuns);
+  const setWalletCooldown = useStore((state) => state.setWalletCooldown);
   const query = useQuery({
     queryKey: ['guns', address],
     queryFn: async () => {
       if (!address) {
-        return [] as GunMetadata[];
+        return {
+          guns: [] as GunMetadata[],
+          cooldown: {
+            expiresAt: null,
+            remainingMs: 0,
+            gunCount: 0,
+          },
+        } satisfies GunsResponse;
       }
 
-      const response = await getGuns(address);
-      return response.guns;
+      return getGuns(address);
     },
     enabled: isConnected && !!address,
     staleTime: 60_000,
   });
 
   const refetch = useCallback(() => {
-    if (DEMO_MODE) {
-      return;
-    }
-
     void query.refetch();
   }, [query]);
 
@@ -61,25 +63,15 @@ export function useGuns(): UseGunsReturn {
       return;
     }
 
-    if (DEMO_MODE) {
-      setGuns(DEMO_GUNS);
-      return;
-    }
-
-    setGuns(query.data ?? []);
-  }, [query.data, sessionAddress, setGuns]);
-
-  if (DEMO_MODE) {
-    return {
-      guns: sessionAddress ? applyCooldowns(DEMO_GUNS) : DEMO_GUNS,
-      isLoading: false,
-      error: null,
-      refetch,
-    };
-  }
+    setGuns(query.data?.guns ?? []);
+    const expiresAt = query.data?.cooldown.expiresAt
+      ? Date.parse(query.data.cooldown.expiresAt)
+      : null;
+    setWalletCooldown(Number.isNaN(expiresAt ?? Number.NaN) ? null : expiresAt);
+  }, [query.data, sessionAddress, setGuns, setWalletCooldown]);
 
   return {
-    guns: sessionAddress ? applyCooldowns(query.data ?? []) : query.data ?? [],
+    guns: sessionAddress ? applyCooldowns(query.data?.guns ?? []) : query.data?.guns ?? [],
     isLoading: query.isLoading || query.isFetching,
     error: query.error instanceof Error ? query.error.message : null,
     refetch,

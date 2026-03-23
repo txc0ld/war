@@ -8,13 +8,14 @@
     "dev:api": "pnpm --filter @warpath/api dev",
     "dev": "pnpm run --parallel dev:web dev:api",
     "test": "pnpm -r test",
-    "typecheck": "pnpm --filter @warpath/shared exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/api exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --filter @warpath/shared build && pnpm --filter @warpath/api exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "@warpath/shared": "workspace:*",
+    "drand-client": "^1.4.2",
     "drizzle-orm": "^0.36.0",
     "hono": "^4.12.8",
     "pg": "^8.13.0",

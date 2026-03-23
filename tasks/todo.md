@@ -6,6 +6,15 @@
 
 ## Current Task
 - [completed] Production deploy: publish the current repo state to Vercel and verify the public domain serves the updated wallet-entry CSS bundle
+- [completed] VS reveal centering correction: anchor the left and right fighter cards to the inside edges of the duel grid so the `FIGHT` stamp sits on the true midpoint between them
+- [completed] Temporary cooldown shutdown: disable wallet cooldown enforcement and post-battle cooldown writes in the backend so repeated live matchmaking tests can run without battle locks
+- [completed] RNG bonus rebalance: reduce the 3+ gun arsenal bonus from a 10-point to a 5-point win-chance edge and keep fallback/frontend copy aligned
+- [completed] Enter Battle click audio: ship the provided `Enterbattle.mp3` with the web app and trigger it from the Enter Battle action
+- [completed] Matching-phase audio: ship the provided `Loading.mp3` and loop it while the matchmaking overlay is active
+- [completed] Matching-audio delay: start the `Loading.mp3` loop one second after the matchmaking overlay appears so the search state lands before the sound begins
+- [completed] Battle-phase audio: ship the provided `Battle.mp3` and loop it only while the fight animation is active
+- [completed] Chunk-load recovery hardening: stop lazy-splitting tiny result overlays and auto-recover once from stale deploy chunk fetch failures in already-open tabs
+- [completed] Favicon refresh: replace the default SVG favicon with the provided `Favicon.png` for browser tabs and Apple touch icon usage
 - [completed] Connect-wordmark tracking trim: remove all letter spacing from the main wallet-entry `WAR ROOM` lockup so `WAR` and `ROOM` read as a tight brand mark
 - [completed] Live-only battle enforcement: remove frontend demo/dummy battle branches so queueing, gun loading, leaderboard polling, and battle playback only run through real wallet/API data
 - [completed] Wallet-connect reliability correction: replace the rejected MetaMask in-app-browser deeplink on mobile Safari with the provided WalletConnect project flow, keep desktop extension-first, and redeploy after verification
@@ -225,6 +234,18 @@
 - Prioritized official WalletConnect explorer listings for MetaMask, Coinbase Wallet, Trust Wallet, and Rabby in the WalletConnect modal so the mobile wallet sheet surfaces the common choices first.
 - Updated `.env.example` and `.env.vercel.production` to document the WalletConnect project ID, then verified with `pnpm --filter @warpath/web test`, `pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json`, `pnpm --filter @warpath/web build`, a local browser smoke check, and a production deploy to `https://www.glocksandnode.xyz`.
 
+## 2026-03-23 Matching Audio Delay Review
+- Updated `apps/web/src/components/battle/MatchingPulse.tsx` so the `Loading.mp3` loop starts after a 1 second timeout instead of immediately when the overlay mounts.
+- Added timeout cleanup alongside the existing audio teardown so short-lived matching overlays do not leave a pending delayed playback behind after the screen exits.
+
+## 2026-03-23 Chunk Recovery Review
+- Replaced the lazy-loaded result overlays in `apps/web/src/components/battle/GameOverlay.tsx` with direct imports so battle results no longer depend on separate hashed `VictorOverlay` and `DeathOverlay` chunks.
+- Added one-shot chunk fetch recovery in `apps/web/src/main.tsx` for `vite:preloadError` and dynamic-import rejection errors so an already-open tab can refresh itself once after a production deploy swaps the asset hashes.
+
+## 2026-03-23 Favicon Review
+- Copied the provided `Favicon.png` into `apps/web/public/favicon.png` so the icon ships as a stable public asset.
+- Updated `apps/web/index.html` to use the PNG favicon for both the standard browser tab icon and the Apple touch icon instead of the previous `favicon.svg`.
+
 ## 2026-03-21 Header Rail Clearance Review
 - Reworked the fixed header geometry in `apps/web/src/styles/globals.css` so the rail height is explicit, the `header.jpg` wordmark is constrained by height instead of raw width, and the wallet chip/nav rhythm fits inside the reserved header footprint.
 - Increased the leaderboard page top inset from the actual header height instead of a stale estimate, and tightened the map-shell/header spacing at the same time so the fixed rail stops drifting over both the leaderboard masthead and the world map.
@@ -251,6 +272,16 @@
 - API surfaces: added verifier-ready `GET /api/battles/:battleId/proof` and `GET /api/battles/:battleId/replay` routes plus explicit Vercel shims for both nested paths, while preserving `GET /api/battles/:battleId` as the main battle envelope that can now return committed/resolving/failed states.
 - Frontend flow: changed matchmaking polling so a matched queue no longer assumes an immediately replayable battle. The client now keeps polling through the drand wait window, removes the cancel action once the battle is committed, and shows pending replay messaging on the standalone battle page until the proof-backed resolution is available.
 - Verification: `pnpm --filter @warpath/shared test`, `pnpm --filter @warpath/api test`, `pnpm typecheck`, `pnpm test`, and `pnpm build` all pass after the lifecycle rewrite.
+
+## 2026-03-22 VS Reveal Centering Review
+- Adjusted the desktop duel grid in `apps/web/src/components/battle/battlePresentation.css` from fixed fighter-column widths to `1fr auto 1fr`, then anchored the left fighter shell to the inside-right edge and the right fighter shell to the inside-left edge so the center stamp aligns to the midpoint between the rendered cards instead of the biased start edge of both shells.
+- Kept the existing single-column mobile collapse unchanged so the correction only affects the desktop/tablet reveal where the drift was visible.
+- Verification: `pnpm --filter @warpath/web test` and `pnpm --filter @warpath/web build` both pass after the CSS correction.
+
+## 2026-03-22 Temporary Cooldown Shutdown Review
+- Disabled wallet cooldown enforcement in `apps/api/src/services/players.ts` by forcing the cooldown read path to return `remainingMs: 0` / `expiresAt: null` and making `applyWalletCooldown(...)` clear `cooldown_until` instead of writing a future lock timestamp. This keeps the rest of the queue and battle code untouched while turning cooldowns off at the single backend boundary that both matchmaking and gun payloads depend on.
+- Updated `apps/api/src/__tests__/matchmaking.test.ts` so a stored `cooldownUntil` row no longer blocks queue joins while the temporary override is active.
+- Verification: `pnpm --filter @warpath/api test` and `pnpm typecheck` pass after the cooldown disable.
 - [pending] Apply Motion Director refinements across connect, map, selector, matching, versus, battle, result, chat, and leaderboard states using transform/opacity-first choreography and reduced-motion-safe fallbacks.
 - [pending] Apply Surface & Detail refinements across headers, panels, modal glass, depth, scrollbars, selection, focus, and atmospheric overlays without changing layout hierarchy or game logic.
 - [pending] Run integration cleanup for conflicting transitions, stale animation rules, layout-triggering motion, z-index consistency, and palette compliance.
@@ -545,3 +576,39 @@
 - Updated `apps/api/src/services/guns.ts` to return the strict canonical collection name for each Glock Node token instead of trusting the metadata `name` field.
 - Updated `apps/web/src/components/battle/GameOverlay.tsx` so result overlays prefer the resolved battle payload name and only fall back to the selected gun when no battle payload exists.
 - Verified with `pnpm --filter @warpath/api test`, `pnpm --filter @warpath/web test`, `pnpm typecheck`, and `pnpm build`.
+
+## 2026-03-22 Live Matchmaking 500 Recovery
+- [completed] Diagnose the production `/api/battles/queue` `500` caused by battle-schema drift between deployed code and the live Postgres database.
+- [completed] Apply the missing `0005_lively_mandroid.sql` battle lifecycle migration directly to the production database.
+
+## 2026-03-22 Live Matchmaking 500 Review
+- Verified that production `queue` already had `status_token`, but `battles` was still missing the drand lifecycle columns (`status`, `commit_hash`, `drand_round`, `engine_version`, `committed_at`, `updated_at`, etc.), which made the live `joinQueue()` insert fail at runtime.
+- Applied `apps/api/drizzle/0005_lively_mandroid.sql` against the production Neon database and confirmed `battles` now exposes all 23 expected columns.
+- Verified post-fix schema state directly with `psql` against the production database after the migration completed.
+
+## 2026-03-22 RNG-Only Battle Engine
+- [completed] Remove all stat-based win weighting from battle resolution.
+- [completed] Make battle outcome a pure RNG roll with only a 5-point win-chance edge for wallets holding 3+ guns.
+- [completed] Remove stat-driven replay-speed bias so stats are presentation-only on the frontend too.
+
+## 2026-03-22 RNG-Only Battle Engine Review
+- Replaced the shared resolver in `packages/shared/src/stats.ts` with a pure RNG battle outcome model: base win chance is `50/50`, one-sided arsenal bonus now shifts that to `55/45`, and battle-round attacks/dodges/crits are fixed-probability rolls that ignore gun stats entirely.
+- Versioned the new engine as `v3-drand-rng-only` in `packages/shared/src/constants.ts` so new committed battles are clearly separated from the prior stat-weighted engine semantics.
+- Updated the dormant web-side battle helper in `apps/web/src/lib/stats.ts` and removed replay tick-duration scaling from `apps/web/src/components/battle/BattleEngine.tsx` so stats no longer change battle pacing or future fallback simulation behavior.
+- Added shared coverage proving deterministic replay for the same seed, stats-independence for outcomes, and the arsenal bonus distribution shift; verified with `pnpm --filter @warpath/shared test`, `pnpm --filter @warpath/api test`, `pnpm typecheck`, and `pnpm build`.
+
+## 2026-03-23 RNG Bonus Rebalance Review
+- Reduced `BATTLE_CONFIG.ARSENAL_WIN_CHANCE_BONUS` in `packages/shared/src/constants.ts` from `0.1` to `0.05`, which changes the one-sided arsenal edge from `60/40` to `55/45` while keeping the same RNG-only battle engine and proof model.
+- Updated the shared statistical assertions in `packages/shared/src/__tests__/stats.test.ts`, the dormant web-side compatibility shim in `apps/web/src/lib/stats.ts`, and the selector copy in `apps/web/src/components/wallet/GunSelector.tsx` so both fallback logic and user-facing bonus language match the new 5% edge.
+
+## 2026-03-23 Enter Battle Audio Review
+- Copied the provided local file `Sounds/Enterbattle.mp3` into `apps/web/public/assets/Enterbattle.mp3` so the sound is bundled as a first-party static asset in production.
+- Updated `apps/web/src/components/battle/GameOverlay.tsx` to preload that asset into an `Audio` instance on mount and replay it whenever the `Enter Battle` button is clicked, while swallowing autoplay promise failures so queueing still proceeds if the browser blocks audio for any reason.
+
+## 2026-03-23 Matching Audio Review
+- Copied the provided local file `Sounds/Loading.mp3` into `apps/web/public/assets/Loading.mp3` so the matchmaking sound ships as a first-party production asset.
+- Updated `apps/web/src/components/battle/MatchingPulse.tsx` to create an `Audio('/assets/Loading.mp3')` instance on mount, loop it for the lifetime of the matching overlay, and stop/reset it on unmount so the sound is scoped strictly to the active matchmaking phase.
+
+## 2026-03-23 Battle Audio Review
+- Copied the provided local file `Sounds/Battle.mp3` into `apps/web/public/assets/Battle.mp3` so the combat sound ships as a first-party production asset.
+- Updated `apps/web/src/components/battle/BattleEngine.tsx` to create an `Audio('/assets/Battle.mp3')` instance on mount, loop it for the lifetime of the fighting phase, and stop/reset it on unmount so the sound only plays during active combat playback.

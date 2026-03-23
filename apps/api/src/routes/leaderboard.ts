@@ -42,7 +42,13 @@ app.get('/:address', async (c) => {
     });
   }
 
-  return c.json(player);
+  return c.json({
+    address: player.address,
+    score: player.score,
+    wins: player.wins,
+    losses: player.losses,
+    gunCount: player.gunCount,
+  });
 });
 
 export default app;

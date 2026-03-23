@@ -1,29 +1,35 @@
 import type { CSSProperties } from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { Battle, BattleRound, GunStats } from '@warpath/shared';
-import { GUNS_BY_ID } from '@/data/guns';
-import { DEMO_MODE } from '@/lib/demo';
+import type { BattleRound, GunStats, ResolvedBattle } from '@warpath/shared';
 import { GunCard } from './GunCard';
 import { ChatPanel } from '@/components/chat/ChatPanel';
 import './battlePresentation.css';
 
 interface BattleEngineProps {
-  battle: Battle;
+  battle: ResolvedBattle;
   playerSide?: 'left' | 'right';
   onComplete: (winner: 'left' | 'right') => void;
 }
 
 const TICK_DURATION_MS = 520;
-const TICK_SPEED_FACTOR_MS = 1.6;
 const MIN_TICK_DURATION_MS = 360;
 const RESULT_HOLD_MS = 1400;
+const HIT_SHAKE = {
+  x: [0, 4, -3, 2, 0],
+  y: [0, -2, 2, -1, 0],
+};
+const CARD_HIT_SHIFT = {
+  x: [0, -6, 3, -2, 0],
+  opacity: [1, 0.88, 1, 0.94, 1],
+};
 
 export function BattleEngine({
   battle,
   playerSide = 'left',
   onComplete,
 }: BattleEngineProps): React.ReactNode {
+  const battleAudioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTick, setCurrentTick] = useState(-1);
   const [leftHp, setLeftHp] = useState(100);
   const [rightHp, setRightHp] = useState(100);
@@ -37,6 +43,24 @@ export function BattleEngine({
   const completedRef = useRef(false);
 
   const rounds = battle.result.rounds;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const audio = new Audio('/assets/Battle.mp3');
+    audio.preload = 'auto';
+    audio.loop = true;
+    battleAudioRef.current = audio;
+    void audio.play().catch(() => {});
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+      battleAudioRef.current = null;
+    };
+  }, []);
 
   const playTick = useCallback(
     (tick: number) => {
@@ -75,11 +99,7 @@ export function BattleEngine({
       }
 
       if (tick < rounds.length - 1) {
-        const speedBonus = Math.max(battle.left.stats.speed, battle.right.stats.speed);
-        const adjustedDuration = Math.max(
-          MIN_TICK_DURATION_MS,
-          TICK_DURATION_MS - speedBonus * TICK_SPEED_FACTOR_MS
-        );
+        const adjustedDuration = Math.max(MIN_TICK_DURATION_MS, TICK_DURATION_MS);
         tickRef.current = setTimeout(() => playTick(tick + 1), adjustedDuration);
       } else {
         tickRef.current = setTimeout(() => {
@@ -90,7 +110,7 @@ export function BattleEngine({
         }, RESULT_HOLD_MS);
       }
     },
-    [rounds, battle.result.winner, battle.left.stats.speed, battle.right.stats.speed, onComplete]
+    [rounds, battle.result.winner, onComplete]
   );
 
   useEffect(() => {
@@ -121,39 +141,41 @@ export function BattleEngine({
       : 'warpath-battle-event warpath-battle-event--impact';
   const leftLabel = playerSide === 'left' ? 'You' : 'Opponent';
   const rightLabel = playerSide === 'right' ? 'You' : 'Opponent';
-  const showTimeline = !DEMO_MODE;
 
   return (
     <motion.div
       className="warpath-battle-engine"
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{
         opacity: 1,
-        x: screenShake ? [0, -3, 3, -2, 2, 0] : 0,
-        y: screenShake ? [0, 2, -2, 1, -1, 0] : 0,
+        x: screenShake ? HIT_SHAKE.x : 0,
+        y: screenShake ? HIT_SHAKE.y : 0,
       }}
-      transition={screenShake ? { duration: 0.15 } : { duration: 0.3 }}
+      transition={
+        screenShake
+          ? { duration: 0.18, ease: [0.34, 1.56, 0.64, 1] }
+          : { duration: 0.32, ease: [0.16, 1, 0.3, 1] }
+      }
     >
       <div className="warpath-battle-grid" />
-      <div className={`warpath-battle-stage ${showTimeline ? '' : 'warpath-battle-stage--demo'}`}>
-        {showTimeline ? (
-          <div className="warpath-battle-stage__topline">
-            <p className="warpath-battle-round">
-              Round {Math.max(currentTick + 1, 0)}/{rounds.length}
-            </p>
-            <div
-              className="warpath-battle-progress"
-              style={{ '--progress': `${progress}%` } as CSSProperties}
-            >
-              <motion.div
-                className="warpath-battle-progress__fill"
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.2 }}
-              />
-            </div>
-            <p className="warpath-battle-readout">{progress.toFixed(0)}% Complete</p>
+      <div className="warpath-battle-stage">
+        <div className="warpath-battle-stage__topline">
+          <p className="warpath-battle-round">
+            Round {Math.max(currentTick + 1, 0)}/{rounds.length}
+          </p>
+          <div
+            className="warpath-battle-progress"
+            style={{ '--progress': `${progress}%` } as CSSProperties}
+          >
+            <motion.div
+              className="warpath-battle-progress__fill"
+              animate={{ scaleX: progress / 100 }}
+              transition={{ duration: 0.24, ease: [0.25, 1, 0.5, 1] }}
+              style={{ transformOrigin: 'left center' }}
+            />
           </div>
-        ) : null}
+          <p className="warpath-battle-readout">{progress.toFixed(0)}% Complete</p>
+        </div>
 
         <div className="warpath-battle-stage__status">
           <p className={eventTone}>{eventLabel}</p>
@@ -169,37 +191,34 @@ export function BattleEngine({
             className="warpath-battle-fighter warpath-battle-fighter--left"
             animate={
               currentEvent === 'hit_left' || currentEvent === 'both_hit'
-                ? {
-                    x: [0, -8, 4, -2, 0],
-                    filter: [
-                      'brightness(1)',
-                      'brightness(2.5)',
-                      'brightness(1.5)',
-                      'brightness(1)',
-                    ],
-                  }
+                ? CARD_HIT_SHIFT
                 : {}
             }
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
           >
             <GunCard
               imageUrl={battle.left.imageUrl}
-              name={GUNS_BY_ID.get(battle.left.tokenId)?.name ?? `Gun #${battle.left.tokenId}`}
+              name={battle.left.name}
               tokenId={battle.left.tokenId}
               hp={leftHp}
               stats={leftStats}
               side="left"
               label={leftLabel}
               animated
+              className={
+                currentEvent === 'hit_left' || currentEvent === 'both_hit'
+                  ? 'warpath-gun-card--impact'
+                  : undefined
+              }
             />
             <AnimatePresence>
               {showMissLeft ? (
                 <motion.div
                   className="warpath-battle-miss warpath-battle-miss--left"
-                  initial={{ opacity: 0, scale: 0.5, x: 0 }}
-                  animate={{ opacity: 1, scale: 1, x: 10 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, scale: 0.72, x: 0 }}
+                  animate={{ opacity: 1, scale: 1, x: 8 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.88 }}
+                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 >
                   MISS
                 </motion.div>
@@ -210,13 +229,13 @@ export function BattleEngine({
           <div className="warpath-battle-center">
             <motion.div
               className="warpath-battle-center__core"
-              animate={{ opacity: [0.35, 1, 0.35], scale: [0.96, 1.04, 0.96] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
+              animate={{ opacity: [0.42, 1, 0.42], scale: [0.98, 1.02, 0.98] }}
+              transition={{ duration: 2.8, repeat: Infinity, ease: [0.76, 0, 0.24, 1] }}
             >
               <motion.div
                 className="warpath-battle-divider"
-                animate={{ opacity: [0.18, 0.62, 0.18] }}
-                transition={{ duration: 1.7, repeat: Infinity }}
+                animate={{ opacity: [0.24, 0.66, 0.24] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: [0.76, 0, 0.24, 1] }}
               />
               <p className="warpath-battle-center__stamp">Engaged</p>
               <p className="warpath-battle-center__detail">Live fire exchange</p>
@@ -228,36 +247,36 @@ export function BattleEngine({
             animate={
               currentEvent === 'hit_right' || currentEvent === 'both_hit'
                 ? {
-                    x: [0, 8, -4, 2, 0],
-                    filter: [
-                      'brightness(1)',
-                      'brightness(2.5)',
-                      'brightness(1.5)',
-                      'brightness(1)',
-                    ],
+                    x: [0, 6, -3, 2, 0],
+                    opacity: [1, 0.9, 1, 0.95, 1],
                   }
                 : {}
             }
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
           >
             <GunCard
               imageUrl={battle.right.imageUrl}
-              name={GUNS_BY_ID.get(battle.right.tokenId)?.name ?? `Gun #${battle.right.tokenId}`}
+              name={battle.right.name}
               tokenId={battle.right.tokenId}
               hp={rightHp}
               stats={rightStats}
               side="right"
               label={rightLabel}
               animated
+              className={
+                currentEvent === 'hit_right' || currentEvent === 'both_hit'
+                  ? 'warpath-gun-card--impact'
+                  : undefined
+              }
             />
             <AnimatePresence>
               {showMissRight ? (
                 <motion.div
                   className="warpath-battle-miss warpath-battle-miss--right"
-                  initial={{ opacity: 0, scale: 0.5, x: 0 }}
-                  animate={{ opacity: 1, scale: 1, x: -10 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, scale: 0.72, x: 0 }}
+                  animate={{ opacity: 1, scale: 1, x: -8 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.88 }}
+                  transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
                 >
                   MISS
                 </motion.div>

@@ -7,6 +7,7 @@ export {
   createBattleCommitmentHash,
   createBattleSeed,
   effectivePower,
+  getBattleWinChance,
   getStatsForToken,
   recomputeBattleResultFromProof,
   resolveBattle,

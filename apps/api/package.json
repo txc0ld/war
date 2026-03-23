@@ -8,10 +8,11 @@
     "build": "tsup --config tsup.config.ts",
     "start": "bun dist/index.js",
     "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
-    "test": "vitest run"
+    "test": "pnpm --filter @warpath/shared build && vitest run"
   },
   "dependencies": {
     "@warpath/shared": "workspace:*",
+    "drand-client": "^1.4.2",
     "drizzle-orm": "^0.36.0",
     "hono": "^4.6.0",
     "pg": "^8.13.0",

@@ -1,8 +1,10 @@
+import type { CSSProperties } from 'react';
 import type { LeaderboardEntry } from '@warpath/shared';
 
 interface LeaderboardRowProps {
   entry: LeaderboardEntry;
   isActive: boolean;
+  index: number;
 }
 
 function shortenAddress(value: string): string {
@@ -12,9 +14,13 @@ function shortenAddress(value: string): string {
 export function LeaderboardRow({
   entry,
   isActive,
+  index,
 }: LeaderboardRowProps): React.ReactNode {
   return (
-    <div className={`leaderboard__row ${isActive ? 'leaderboard__row--active' : ''}`}>
+    <div
+      className={`leaderboard__row ${isActive ? 'leaderboard__row--active' : ''}`}
+      style={{ '--row-index': index } as CSSProperties}
+    >
       <span className="leaderboard__rank">#{entry.rank}</span>
       <span className="leaderboard__player">
         <span className="leaderboard__player-main">

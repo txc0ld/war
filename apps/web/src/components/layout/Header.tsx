@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ConnectButton } from '@/components/wallet/ConnectButton';
-import { DEMO_MODE } from '@/lib/demo';
+import { ProfilePanel } from '@/components/profile/ProfilePanel';
 import { useStore } from '@/store';
 
 export function Header(): React.ReactNode {
@@ -9,6 +9,8 @@ export function Header(): React.ReactNode {
   const phase = useStore((state) => state.phase);
   const isHome = location.pathname === '/';
   const isLeaderboard = location.pathname === '/leaderboard';
+  const isKillfeed = location.pathname === '/killfeed';
+  const isChat = location.pathname === '/chat';
   const hideForBattlePhase = location.pathname === '/' && phase !== 'idle';
 
   if (hideForBattlePhase) {
@@ -22,12 +24,18 @@ export function Header(): React.ReactNode {
           <button
             type="button"
             className="site-logo"
+            aria-label="War Room home"
             onClick={() => navigate('/')}
           >
-            WAR ROOM
+            <img
+              src="/branding/header.png"
+              alt="WAR ROOM"
+              className="site-logo__image"
+            />
           </button>
 
           <div className="site-header__wallet">
+            <ProfilePanel />
             <ConnectButton />
           </div>
         </div>
@@ -47,7 +55,20 @@ export function Header(): React.ReactNode {
           >
             Leaderboard
           </button>
-          {DEMO_MODE ? <span className="site-nav__mode">Demo Mode</span> : null}
+          <button
+            type="button"
+            className={`site-nav__button ${isKillfeed ? 'site-nav__button--active' : ''}`}
+            onClick={() => navigate('/killfeed')}
+          >
+            Killfeed
+          </button>
+          <button
+            type="button"
+            className={`site-nav__button ${isChat ? 'site-nav__button--active' : ''}`}
+            onClick={() => navigate('/chat')}
+          >
+            Comms
+          </button>
         </nav>
       </div>
     </header>

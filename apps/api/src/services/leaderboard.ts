@@ -1,4 +1,4 @@
-import { desc, sql } from 'drizzle-orm';
+import { desc, gt, or, sql } from 'drizzle-orm';
 import { db } from '../db/client';
 import { players } from '../db/schema';
 
@@ -20,9 +20,11 @@ export async function getLeaderboard(
   limit = 50,
   offset = 0
 ): Promise<LeaderboardResponse> {
+  const hasCombatRecord = or(gt(players.wins, 0), gt(players.losses, 0));
   const rows = await db
     .select()
     .from(players)
+    .where(hasCombatRecord)
     .orderBy(desc(players.score))
     .limit(limit)
     .offset(offset);
@@ -38,7 +40,8 @@ export async function getLeaderboard(
 
   const totals = await db
     .select({ count: sql<number>`count(*)` })
-    .from(players);
+    .from(players)
+    .where(hasCombatRecord);
   const total = Number(totals[0]?.count ?? 0);
 
   return { entries, total };

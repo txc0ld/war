@@ -3,7 +3,7 @@ dist
 apps/web/dist/
 apps/api/dist/
 packages/shared/dist/
-public/
+/public/
 .env
 .env.local
 *.log

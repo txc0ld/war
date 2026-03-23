@@ -1,4 +1,4 @@
-import { useCallback, lazy, Suspense, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
@@ -7,16 +7,12 @@ import { getCountryByCode } from '@/data/countries';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
+import { VictorOverlay } from './VictorOverlay';
+import { DeathOverlay } from './DeathOverlay';
 import './battlePresentation.css';
 
-const LazyVictorOverlay = lazy(() =>
-  import('./VictorOverlay').then((module) => ({ default: module.VictorOverlay }))
-);
-const LazyDeathOverlay = lazy(() =>
-  import('./DeathOverlay').then((module) => ({ default: module.DeathOverlay }))
-);
-
 export function GameOverlay(): React.ReactNode {
+  const enterBattleAudioRef = useRef<HTMLAudioElement | null>(null);
   const sessionAddress = useSessionAddress();
   const {
     phase,
@@ -68,7 +64,28 @@ export function GameOverlay(): React.ReactNode {
       : currentBattle.right.name;
   }, [currentBattle, playerSide, selectedGun?.name]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const audio = new Audio('/assets/Enterbattle.mp3');
+    audio.preload = 'auto';
+    enterBattleAudioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      enterBattleAudioRef.current = null;
+    };
+  }, []);
+
   const handleFight = useCallback(async () => {
+    const audio = enterBattleAudioRef.current;
+    if (audio) {
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
+    }
+
     await startMatchmaking();
   }, [startMatchmaking]);
 
@@ -224,25 +241,23 @@ export function GameOverlay(): React.ReactNode {
         ) : null}
 
         {phase === 'result_win' ? (
-          <Suspense key="victor" fallback={null}>
-            <LazyVictorOverlay
-              gunName={playerGunName}
-              score={100}
-              onDismiss={handleResultDismiss}
-              onFightAgain={handleFightAgain}
-            />
-          </Suspense>
+          <VictorOverlay
+            key="victor"
+            gunName={playerGunName}
+            score={100}
+            onDismiss={handleResultDismiss}
+            onFightAgain={handleFightAgain}
+          />
         ) : null}
 
         {phase === 'result_loss' ? (
-          <Suspense key="death" fallback={null}>
-            <LazyDeathOverlay
-              gunName={playerGunName}
-              score={-100}
-              onDismiss={handleResultDismiss}
-              onFightAgain={handleFightAgain}
-            />
-          </Suspense>
+          <DeathOverlay
+            key="death"
+            gunName={playerGunName}
+            score={-100}
+            onDismiss={handleResultDismiss}
+            onFightAgain={handleFightAgain}
+          />
         ) : null}
       </AnimatePresence>
     </>

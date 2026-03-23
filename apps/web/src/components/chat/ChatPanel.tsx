@@ -10,8 +10,10 @@ export interface ChatPanelProps {
     author?: string;
     body?: string;
     address?: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
     message?: string;
-    timestamp?: number;
+    timestamp?: number | string;
   }>;
 }
 
@@ -45,12 +47,16 @@ export function ChatPanel({
   const entries: Array<{
     id: string;
     address: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
     message: string;
-    timestamp?: number;
+    timestamp?: number | string;
   }> =
     messages?.map((entry, index) => ({
       id: `${entry.address ?? entry.author ?? 'chat'}-${index}`,
       address: entry.address ?? entry.author ?? 'Observer',
+      displayName: entry.displayName ?? null,
+      avatarUrl: entry.avatarUrl ?? null,
       message: entry.message ?? entry.body ?? '',
       timestamp: entry.timestamp,
     })) ?? MOCK_MESSAGES;
@@ -65,14 +71,14 @@ export function ChatPanel({
           initial={embedded ? { opacity: 0, y: 12 } : { x: '100%' }}
           animate={embedded ? { opacity: 1, y: 0 } : { x: 0 }}
           exit={embedded ? { opacity: 0, y: 12 } : { x: '100%' }}
-          transition={{ type: 'spring', damping: 26, stiffness: 220 }}
-          aria-label="Battle log"
+          transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+          aria-label="Battle comms"
         >
           <div className="warpath-chat-header">
             <div>
-              <h2 className="warpath-chat-title">{embedded ? 'Signal' : 'Field Chat'}</h2>
+              <h2 className="warpath-chat-title">{embedded ? 'Signal' : 'Field Comms'}</h2>
               <p className="warpath-chat-subtitle">
-                {embedded ? 'Latest exchange' : 'Live battle chatter'}
+                {embedded ? 'Latest exchange' : 'Live battle comms'}
               </p>
             </div>
             {onToggle ? (
@@ -87,6 +93,8 @@ export function ChatPanel({
               <ChatMessage
                 key={msg.id}
                 address={msg.address}
+                displayName={msg.displayName}
+                avatarUrl={msg.avatarUrl}
                 message={msg.message}
                 timestamp={msg.timestamp}
               />
@@ -98,7 +106,7 @@ export function ChatPanel({
               <input
                 type="text"
                 disabled
-                placeholder="Chat coming soon..."
+                placeholder="Comms coming soon..."
                 className="warpath-chat-input__field"
               />
             </div>

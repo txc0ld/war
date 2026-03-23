@@ -1,4 +1,5 @@
 import type { BattleResult, BattleRound, GunStats } from '@warpath/shared';
+import { BATTLE_CONFIG } from '@warpath/shared';
 import { TIER_CONFIG } from '@/data/guns';
 import { createDeterministicRandom } from './rng';
 
@@ -16,9 +17,7 @@ export function generateStats(
 }
 
 export function calcPower(stats: GunStats, holderGunCount: number): number {
-  const base = stats.damage * 0.5 + stats.dodge * 0.25 + stats.speed * 0.25;
-  const buff = holderGunCount >= 3 ? 1.1 : 1;
-  return Number((base * buff).toFixed(2));
+  return holderGunCount >= 3 ? 1 + BATTLE_CONFIG.ARSENAL_WIN_CHANCE_BONUS : 1;
 }
 
 function fluctuateStat(value: number, variation: number): number {
@@ -42,10 +41,11 @@ export function resolveWeightedBattle(
   seed: string
 ): BattleResult {
   const rng = createDeterministicRandom(seed);
-  const leftBuff = leftGunCount >= 3 ? 1.1 : 1;
-  const rightBuff = rightGunCount >= 3 ? 1.1 : 1;
-  const leftPower = calcPower(leftStats, leftGunCount);
-  const rightPower = calcPower(rightStats, rightGunCount);
+  const leftWinChance =
+    BATTLE_CONFIG.BASE_WIN_CHANCE +
+    (leftGunCount >= 3 ? BATTLE_CONFIG.ARSENAL_WIN_CHANCE_BONUS : 0) -
+    (rightGunCount >= 3 ? BATTLE_CONFIG.ARSENAL_WIN_CHANCE_BONUS : 0);
+  const winner: 'left' | 'right' = rng(0) < leftWinChance ? 'left' : 'right';
   let rngIndex = 0;
   const nextRandom = () => rng(rngIndex++);
 
@@ -54,23 +54,21 @@ export function resolveWeightedBattle(
   const rounds: BattleRound[] = [];
   let tick = 0;
 
-  while (leftHp > 0 && rightHp > 0 && tick < 18) {
-    const attackerFirst =
-      leftStats.speed + nextRandom() * 20 > rightStats.speed + nextRandom() * 20;
+  while (leftHp > 0 && rightHp > 0 && tick < 30) {
+    const attackerFirst = nextRandom() >= 0.5;
+    let damageToRight = 6 + Math.floor(nextRandom() * 11);
+    let damageToLeft = 6 + Math.floor(nextRandom() * 11);
 
-    let damageToRight = leftStats.damage * leftBuff * (0.7 + nextRandom() * 0.6);
-    let damageToLeft = rightStats.damage * rightBuff * (0.7 + nextRandom() * 0.6);
-
-    if (nextRandom() < 0.05 + (leftPower > rightPower ? 0.05 : 0)) {
-      damageToRight *= 1.5;
+    if (nextRandom() < 0.08) {
+      damageToRight = Math.round(damageToRight * 1.5);
     }
 
-    if (nextRandom() < 0.05 + (rightPower > leftPower ? 0.05 : 0)) {
-      damageToLeft *= 1.5;
+    if (nextRandom() < 0.08) {
+      damageToLeft = Math.round(damageToLeft * 1.5);
     }
 
-    const rightDodged = nextRandom() < rightStats.dodge / 200;
-    const leftDodged = nextRandom() < leftStats.dodge / 200;
+    const rightDodged = nextRandom() < 0.12;
+    const leftDodged = nextRandom() < 0.12;
 
     let event: BattleRound['event'] = 'both_hit';
 
@@ -120,12 +118,11 @@ export function resolveWeightedBattle(
     tick += 1;
   }
 
-  const winner = leftHp === rightHp ? (leftPower >= rightPower ? 'left' : 'right') : leftHp > rightHp ? 'left' : 'right';
-  if (winner === 'left' && rightHp > 0) {
+  if (winner === 'left') {
+    leftHp = Math.max(1, leftHp);
     rightHp = 0;
-  }
-
-  if (winner === 'right' && leftHp > 0) {
+  } else {
+    rightHp = Math.max(1, rightHp);
     leftHp = 0;
   }
 

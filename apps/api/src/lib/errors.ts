@@ -1,4 +1,13 @@
-export type AppErrorStatusCode = 400 | 401 | 403 | 404 | 429 | 500 | 502;
+export type AppErrorStatusCode =
+  | 400
+  | 401
+  | 403
+  | 404
+  | 409
+  | 429
+  | 500
+  | 502
+  | 503;
 
 export class AppError extends Error {
   constructor(

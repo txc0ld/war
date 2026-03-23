@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useMemo } from 'react';
 import { COUNTRIES } from '@/data/countries';
 import { GUNS_BY_ID, getTierLabel } from '@/data/guns';
@@ -52,7 +53,7 @@ export function GunSelector(): React.ReactNode {
 
         {arsenalBonus || isWalletCoolingDown ? (
           <div className="gun-selector__status-strip">
-            {arsenalBonus ? <p className="arsenal-bonus">ARSENAL BONUS +10%</p> : null}
+            {arsenalBonus ? <p className="arsenal-bonus">ARSENAL BONUS +5%</p> : null}
             {isWalletCoolingDown ? (
               <p className="arsenal-bonus">
                 WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}
@@ -76,10 +77,9 @@ export function GunSelector(): React.ReactNode {
 
         {!isLoading && !error && (
           <div className="gun-selector__grid">
-            {guns.map((gun) => {
+            {guns.map((gun, index) => {
               const registryGun = GUNS_BY_ID.get(gun.tokenId);
               const tierLabel = registryGun ? getTierLabel(registryGun.tier) : 'UNSORTED';
-              const typeLabel = registryGun?.type ?? gun.traits[0] ?? 'NODE';
               const isSelected = selectedGun?.tokenId === gun.tokenId;
               const isUnavailable = !gun.canBattle && !isWalletCoolingDown;
               const isCoolingDown = isWalletCoolingDown;
@@ -92,6 +92,7 @@ export function GunSelector(): React.ReactNode {
                   className={`gun-card ${arsenalBonus && isSelected ? 'gun-card--selected' : ''} ${
                     isLocked ? 'gun-card--locked' : ''
                   }`}
+                  style={{ '--card-index': index } as CSSProperties}
                   onClick={() => {
                     if (!isLocked) {
                       selectGun(gun);
@@ -108,7 +109,7 @@ export function GunSelector(): React.ReactNode {
                     <p className="gun-card__name">{gun.name}</p>
                     <div className="gun-card__meta">
                       <span>{tierLabel}</span>
-                      <span className="gun-card__type">{typeLabel}</span>
+                      <span className="gun-card__type">{`Token #${gun.tokenId}`}</span>
                     </div>
                   </div>
                   {isCoolingDown ? (

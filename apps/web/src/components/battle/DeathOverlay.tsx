@@ -26,7 +26,7 @@ export function DeathOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
         onClick={dismiss}
       >
         <div
@@ -39,34 +39,25 @@ export function DeathOverlay({
           <div className="warpath-result-stack warpath-result-stack--defeat">
             <motion.h1
               className="warpath-result-title warpath-result-title--defeat"
-              initial={{ scale: 3, opacity: 0 }}
+              initial={{ scale: 2.6, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 12, stiffness: 150 }}
+              transition={{ duration: 0.36, ease: [0.22, 1.4, 0.36, 1] }}
             >
               ELIMINATED
             </motion.h1>
-            <div className="warpath-result-art">
-              <motion.img
-                src="/assets/dead.gif"
-                alt=""
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1.2, delay: 0.3 }}
-              />
-            </div>
             <motion.p
               className="warpath-result-gun"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              transition={{ delay: 0.38, duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
             >
               {gunName}
             </motion.p>
             <motion.div
               className="warpath-result-score warpath-result-score--defeat"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.4, 1], opacity: [0, 1, 1] }}
-              transition={{ delay: 0.6, duration: 0.6, ease: 'easeOut' }}
+              initial={{ scale: 0.8, opacity: 0, y: 6 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ delay: 0.58, duration: 0.34, ease: [0.34, 1.56, 0.64, 1] }}
             >
               {score}
             </motion.div>

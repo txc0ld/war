@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
@@ -27,6 +28,8 @@ interface ProjectedCountry {
   d: string;
   x: number;
   y: number;
+  markerRenderX: number;
+  markerRenderY: number;
 }
 
 interface ViewBoxState {
@@ -161,12 +164,19 @@ const PROJECTED_COUNTRIES: ProjectedCountry[] = COUNTRIES.flatMap((country) => {
   }
 
   const [x, y] = pathGenerator.centroid(match);
+  const projectedMarkerPoint =
+    country.code === 'FR' ? projection([country.longitude, country.latitude]) : null;
+  const markerRenderX = projectedMarkerPoint?.[0] ?? x;
+  const markerRenderY = projectedMarkerPoint?.[1] ?? y;
+
   return [
     {
       ...country,
       d,
       x: Number.isFinite(x) ? x : 0,
       y: Number.isFinite(y) ? y : 0,
+      markerRenderX: Number.isFinite(markerRenderX) ? markerRenderX : 0,
+      markerRenderY: Number.isFinite(markerRenderY) ? markerRenderY : 0,
     },
   ];
 });
@@ -633,7 +643,7 @@ export function WorldMap(): React.ReactNode {
           />
         ))}
 
-        {PROJECTED_COUNTRIES.map((country) => {
+        {PROJECTED_COUNTRIES.map((country, index) => {
           const isSelected = selectedCountry === country.code;
           const countryClasses = [
             'world-map__country',
@@ -656,6 +666,10 @@ export function WorldMap(): React.ReactNode {
           ]
             .filter(Boolean)
             .join(' ');
+          const markerStyle = {
+            '--marker-delay': `${index * 38}ms`,
+            '--marker-idle-delay': `${(index % 7) * 0.42}s`,
+          } as CSSProperties;
 
           return (
             <g key={country.code}>
@@ -677,16 +691,19 @@ export function WorldMap(): React.ReactNode {
                   }
                 }}
               />
-              <g className={`world-map__marker-cluster ${isSelected ? 'world-map__marker-cluster--selected' : ''}`}>
+              <g
+                className={`world-map__marker-cluster ${isSelected ? 'world-map__marker-cluster--selected' : ''}`}
+                style={markerStyle}
+              >
                 <circle
-                  cx={country.x}
-                  cy={country.y}
+                  cx={country.markerRenderX}
+                  cy={country.markerRenderY}
                   r={isSelected ? 15 : 10}
                   className={pulseClasses}
                 />
                 <circle
-                  cx={country.x}
-                  cy={country.y}
+                  cx={country.markerRenderX}
+                  cy={country.markerRenderY}
                   r={isSelected ? 8 : 5}
                   className={markerClasses}
                 />
@@ -700,14 +717,14 @@ export function WorldMap(): React.ReactNode {
         {opponentCountry && phase !== 'idle' && (
           <g className="world-map__marker-cluster world-map__marker-cluster--active">
             <circle
-              cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
-              cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
+              cx={COUNTRY_MAP.get(opponentCountry.code)?.markerRenderX ?? 0}
+              cy={COUNTRY_MAP.get(opponentCountry.code)?.markerRenderY ?? 0}
               r={16}
               className={`world-map__marker-pulse world-map__marker-pulse--active-${opponentCountry.side}`}
             />
             <circle
-              cx={COUNTRY_MAP.get(opponentCountry.code)?.x ?? 0}
-              cy={COUNTRY_MAP.get(opponentCountry.code)?.y ?? 0}
+              cx={COUNTRY_MAP.get(opponentCountry.code)?.markerRenderX ?? 0}
+              cy={COUNTRY_MAP.get(opponentCountry.code)?.markerRenderY ?? 0}
               r={8}
               className={`world-map__marker world-map__marker--active-${opponentCountry.side}`}
             />

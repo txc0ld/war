@@ -12,14 +12,14 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "composite": true,
     "noEmit": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@warpath/shared": ["../../packages/shared/src/index.ts"],
+      "@warpath/shared/*": ["../../packages/shared/src/*"]
     },
     "baseUrl": "."
   },
-  "include": ["src", "vite-env.d.ts"],
-  "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "../../packages/shared" }]
+  "include": ["src", "vite-env.d.ts", "../../packages/shared/src"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -47,16 +47,16 @@ export function GunCard({
       layout
       animate={{
         rotate: idleRotation,
-        y: animated ? [0, -1.5, 0, 1.2, 0] : 0,
+        y: animated ? [0, -1.2, 0, 0.9, 0] : 0,
       }}
       transition={
         animated
           ? {
-              duration: 4.2,
+              duration: 5.4,
               repeat: Infinity,
               ease: [0.76, 0, 0.24, 1],
             }
-          : { duration: 0.2 }
+          : { duration: 0.18, ease: [0.25, 1, 0.5, 1] }
       }
     >
       {typeof hp === 'number' ? (

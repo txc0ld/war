@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getLeaderboard } from '@/lib/api';
-import { DEMO_LEADERBOARD, DEMO_MODE } from '@/lib/demo';
 import type { LeaderboardEntry } from '@warpath/shared';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -26,19 +25,6 @@ export function useLeaderboard(
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (DEMO_MODE) {
-      setError(null);
-      setTotal(DEMO_LEADERBOARD.length);
-      setEntries(
-        DEMO_LEADERBOARD.slice(
-          normalizedOffset,
-          normalizedOffset + normalizedLimit,
-        ),
-      );
-      setIsLoading(false);
-      return;
-    }
-
     try {
       setError(null);
       const result = await getLeaderboard(normalizedLimit, normalizedOffset);
@@ -56,10 +42,6 @@ export function useLeaderboard(
   useEffect(() => {
     setIsLoading(true);
     void fetchData();
-
-    if (DEMO_MODE) {
-      return;
-    }
 
     intervalRef.current = setInterval(() => {
       void fetchData();

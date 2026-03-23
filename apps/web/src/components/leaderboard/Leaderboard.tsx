@@ -28,11 +28,12 @@ export function Leaderboard(): React.ReactNode {
 
       {!isLoading &&
         !error &&
-        entries.map((entry) => (
+        entries.map((entry, index) => (
           <LeaderboardRow
             key={entry.address}
             entry={entry}
             isActive={entry.address.toLowerCase() === sessionAddress}
+            index={index}
           />
         ))}
     </section>
