@@ -13,13 +13,15 @@
 - [completed] Matching-phase audio: ship the provided `Loading.mp3` and loop it while the matchmaking overlay is active
 - [completed] Matching-audio delay: start the `Loading.mp3` loop one second after the matchmaking overlay appears so the search state lands before the sound begins
 - [completed] Matching-audio swap: replace the matchmaking loop source with the provided `Matching.mp3` while keeping the existing delayed start behavior
+- [completed] Matching audio removal: remove the matchmaking sound completely while leaving the visual matching overlay behavior intact
 - [completed] Battle-phase audio: ship the provided `Battle.mp3` and loop it only while the fight animation is active
 - [completed] Fight-stamp audio: ship the provided `Fight.mp3` and trigger it only when the `FIGHT` stamp appears during the VS reveal
 - [completed] Result audio: ship `Winner.mp3` and `Loser.mp3` so the correct outcome sound plays on the corresponding result overlay
 - [completed] Audio one-shot enforcement: ensure `Matching`, `Fight`, `Winner`, and `Loser` cues are all explicit single-play sounds with no looping
 - [completed] Mobile delayed-audio fix: route `Fight`, `Winner`, and `Loser` through an unlocked shared battle-audio pool so they can play on mobile after the initial tap gesture
 - [completed] Mobile battle-loop audio fix: route `Battle.mp3` through the same unlocked shared audio pool so the looping fight-phase sound can play on mobile too
-- [completed] Global ambient website audio: ship `Website.mp3` as a looped 10%-volume background track that persists across map, battle, and result screens without interrupting the phase-specific cues
+- [completed] Global ambient website audio: ship `Website.mp3` as a looped 5%-volume background track that persists across map, battle, and result screens without interrupting the phase-specific cues
+- [completed] Map interaction audio: ship `maphover.mp3` and `mapselection.mp3` as 70%-volume one-shot cues for country hover and country selection
 - [completed] Battle chat removal: remove the embedded battle-only chat feed from the active fight screen without changing the standalone chat surfaces
 - [completed] Chunk-load recovery hardening: stop lazy-splitting tiny result overlays and auto-recover once from stale deploy chunk fetch failures in already-open tabs
 - [completed] Favicon refresh: replace the default SVG favicon with the provided `Favicon.png` for browser tabs and Apple touch icon usage
@@ -249,6 +251,9 @@
 ## 2026-03-23 Matching Audio Source Swap Review
 - Copied the provided `Matching.mp3` into `apps/web/public/assets/Matching.mp3`.
 - Updated `apps/web/src/components/battle/MatchingPulse.tsx` so the matchmaking overlay now loops `Matching.mp3` instead of `Loading.mp3` while preserving the existing 1 second delayed start and teardown behavior.
+
+## 2026-03-23 Matching Audio Removal Review
+- Removed the matching-phase audio effect from `apps/web/src/components/battle/MatchingPulse.tsx` so the overlay no longer starts or stops any cue while the visual search state remains unchanged.
 
 ## 2026-03-23 Chunk Recovery Review
 - Replaced the lazy-loaded result overlays in `apps/web/src/components/battle/GameOverlay.tsx` with direct imports so battle results no longer depend on separate hashed `VictorOverlay` and `DeathOverlay` chunks.
@@ -651,4 +656,9 @@
 
 ## 2026-03-23 Global Ambient Website Audio Review
 - Copied the provided local file `Sounds/website.mp3` into `apps/web/public/assets/Website.mp3` so the ambient website track ships as a first-party production asset on a stable public path.
-- Added a singleton website-audio controller in `apps/web/src/lib/siteAudio.ts` and mounted `apps/web/src/components/app/AmbientAudio.tsx` from `apps/web/src/app/App.tsx` so the track loops at `0.1` volume across the whole SPA, attempts immediate desktop playback, and falls back to the first user gesture on mobile-style autoplay-restricted browsers.
+- Added a singleton website-audio controller in `apps/web/src/lib/siteAudio.ts` and mounted `apps/web/src/components/app/AmbientAudio.tsx` from `apps/web/src/app/App.tsx` so the track loops at `0.05` volume across the whole SPA, attempts immediate desktop playback, and falls back to the first user gesture on mobile-style autoplay-restricted browsers.
+
+## 2026-03-23 Map Interaction Audio Review
+- Copied the provided local files `Sounds/maphover.mp3` and `Sounds/mapselection.mp3` into `apps/web/public/assets/` so both map cues ship as first-party production assets.
+- Added `apps/web/src/lib/mapAudio.ts` as a small shared map-audio pool with explicit `0.15` volume and one-shot playback.
+- Updated `apps/web/src/components/map/WorldMap.tsx` so entering a new country hover target plays `maphover.mp3`, while selecting a country by click or keyboard activation plays `mapselection.mp3`.

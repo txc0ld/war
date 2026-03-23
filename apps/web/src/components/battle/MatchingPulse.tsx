@@ -1,7 +1,5 @@
-import { useEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { motion } from 'framer-motion';
-import { playBattleCue, prepareBattleAudio, stopBattleCue } from '@/lib/battleAudio';
 import './battlePresentation.css';
 
 interface MatchingPulseProps {
@@ -13,27 +11,7 @@ export function MatchingPulse({
   onCancel,
   subtitle = 'Scanning open sectors for an opposing bracket.',
 }: MatchingPulseProps): React.ReactNode {
-  const loadingAudioDelayRef = useRef<number | null>(null);
   const letters = 'MATCHING'.split('');
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    prepareBattleAudio();
-    loadingAudioDelayRef.current = window.setTimeout(() => {
-      playBattleCue('matching');
-    }, 1_000);
-
-    return () => {
-      if (loadingAudioDelayRef.current !== null) {
-        window.clearTimeout(loadingAudioDelayRef.current);
-        loadingAudioDelayRef.current = null;
-      }
-      stopBattleCue('matching');
-    };
-  }, []);
 
   return (
     <motion.div

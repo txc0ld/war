@@ -1,5 +1,5 @@
 const WEBSITE_AUDIO_PATH = '/assets/Website.mp3';
-const WEBSITE_AUDIO_VOLUME = 0.1;
+const WEBSITE_AUDIO_VOLUME = 0.05;
 
 let siteAudio: HTMLAudioElement | null = null;
 

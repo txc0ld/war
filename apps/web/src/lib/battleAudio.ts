@@ -1,6 +1,5 @@
 type BattleCueName =
   | 'enterBattle'
-  | 'matching'
   | 'battle'
   | 'fight'
   | 'winner'
@@ -8,7 +7,6 @@ type BattleCueName =
 
 const BATTLE_CUE_PATHS: Record<BattleCueName, string> = {
   enterBattle: '/assets/Enterbattle.mp3',
-  matching: '/assets/Matching.mp3',
   battle: '/assets/Battle.mp3',
   fight: '/assets/Fight.mp3',
   winner: '/assets/Winner.mp3',

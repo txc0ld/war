@@ -6,6 +6,7 @@ import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
 import landAtlas from 'world-atlas/land-110m.json';
 import { COUNTRIES, NETWORK_LINKS, type CountrySide } from '@/data/countries';
+import { playMapCue, prepareMapAudio } from '@/lib/mapAudio';
 import { useStore } from '@/store';
 
 interface CountriesTopology {
@@ -287,6 +288,10 @@ export function WorldMap(): React.ReactNode {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    prepareMapAudio();
   }, []);
 
   const getRatiosFromClientPoint = useCallback((point: PointerPoint) => {
@@ -597,10 +602,21 @@ export function WorldMap(): React.ReactNode {
         return;
       }
 
+      playMapCue('selection');
       selectCountry(countryCode);
     },
     [selectCountry]
   );
+
+  const handleCountryHover = useCallback((countryCode: string) => {
+    setHoveredCountry((previous) => {
+      if (previous !== countryCode) {
+        playMapCue('hover');
+      }
+
+      return countryCode;
+    });
+  }, []);
 
   return (
     <div className={`world-map ${showGunSelector ? 'world-map--muted' : ''}`}>
@@ -679,9 +695,9 @@ export function WorldMap(): React.ReactNode {
                 role="button"
                 tabIndex={0}
                 aria-label={country.name}
-                onMouseEnter={() => setHoveredCountry(country.code)}
+                onMouseEnter={() => handleCountryHover(country.code)}
                 onMouseLeave={() => setHoveredCountry(null)}
-                onFocus={() => setHoveredCountry(country.code)}
+                onFocus={() => handleCountryHover(country.code)}
                 onBlur={() => setHoveredCountry(null)}
                 onClick={() => handleCountrySelect(country.code)}
                 onKeyDown={(event) => {
