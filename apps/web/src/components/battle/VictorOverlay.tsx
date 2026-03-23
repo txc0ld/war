@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { playBattleCue, prepareBattleAudio, stopBattleCue } from '@/lib/battleAudio';
 import './battlePresentation.css';
 
 interface VictorOverlayProps {
@@ -15,27 +16,16 @@ export function VictorOverlay({
   onDismiss,
   onFightAgain,
 }: VictorOverlayProps): React.ReactNode {
-  const winnerAudioRef = useRef<HTMLAudioElement | null>(null);
-
   const dismiss = useCallback(() => {
     onDismiss();
   }, [onDismiss]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const audio = new Audio('/assets/Winner.mp3');
-    audio.preload = 'auto';
-    audio.loop = false;
-    winnerAudioRef.current = audio;
-    void audio.play().catch(() => {});
+    prepareBattleAudio();
+    playBattleCue('winner');
 
     return () => {
-      audio.pause();
-      audio.currentTime = 0;
-      winnerAudioRef.current = null;
+      stopBattleCue('winner');
     };
   }, []);
 

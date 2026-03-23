@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { getCountryByCode } from '@/data/countries';
+import { playBattleCue, prepareBattleAudio, unlockBattleAudio } from '@/lib/battleAudio';
 import { MatchingPulse } from './MatchingPulse';
 import { VSReveal } from './VSReveal';
 import { BattleEngine } from './BattleEngine';
@@ -12,7 +13,6 @@ import { DeathOverlay } from './DeathOverlay';
 import './battlePresentation.css';
 
 export function GameOverlay(): React.ReactNode {
-  const enterBattleAudioRef = useRef<HTMLAudioElement | null>(null);
   const sessionAddress = useSessionAddress();
   const {
     phase,
@@ -65,26 +65,12 @@ export function GameOverlay(): React.ReactNode {
   }, [currentBattle, playerSide, selectedGun?.name]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const audio = new Audio('/assets/Enterbattle.mp3');
-    audio.preload = 'auto';
-    enterBattleAudioRef.current = audio;
-
-    return () => {
-      audio.pause();
-      enterBattleAudioRef.current = null;
-    };
+    prepareBattleAudio();
   }, []);
 
   const handleFight = useCallback(async () => {
-    const audio = enterBattleAudioRef.current;
-    if (audio) {
-      audio.currentTime = 0;
-      void audio.play().catch(() => {});
-    }
+    unlockBattleAudio();
+    playBattleCue('enterBattle');
 
     await startMatchmaking();
   }, [startMatchmaking]);

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GunStats } from '@warpath/shared';
+import { playBattleCue, prepareBattleAudio, stopBattleCue } from '@/lib/battleAudio';
 import { GunCard } from './GunCard';
 
 interface FighterCard {
@@ -24,7 +25,6 @@ export function VSReveal({
   onComplete,
 }: VSRevealProps): React.ReactNode {
   const [showFight, setShowFight] = useState(false);
-  const fightAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const vsTimer = window.setTimeout(() => setShowFight(true), 1350);
@@ -37,19 +37,10 @@ export function VSReveal({
   }, [onComplete]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const audio = new Audio('/assets/Fight.mp3');
-    audio.preload = 'auto';
-    audio.loop = false;
-    fightAudioRef.current = audio;
+    prepareBattleAudio();
 
     return () => {
-      audio.pause();
-      audio.currentTime = 0;
-      fightAudioRef.current = null;
+      stopBattleCue('fight');
     };
   }, []);
 
@@ -58,13 +49,7 @@ export function VSReveal({
       return;
     }
 
-    const audio = fightAudioRef.current;
-    if (!audio) {
-      return;
-    }
-
-    audio.currentTime = 0;
-    void audio.play().catch(() => {});
+    playBattleCue('fight');
   }, [showFight]);
 
   return (

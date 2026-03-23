@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { BattleRound, GunStats, ResolvedBattle } from '@warpath/shared';
 import { GunCard } from './GunCard';
-import { ChatPanel } from '@/components/chat/ChatPanel';
+import { playBattleCue, prepareBattleAudio, stopBattleCue } from '@/lib/battleAudio';
 import './battlePresentation.css';
 
 interface BattleEngineProps {
@@ -29,7 +29,6 @@ export function BattleEngine({
   playerSide = 'left',
   onComplete,
 }: BattleEngineProps): React.ReactNode {
-  const battleAudioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTick, setCurrentTick] = useState(-1);
   const [leftHp, setLeftHp] = useState(100);
   const [rightHp, setRightHp] = useState(100);
@@ -49,16 +48,11 @@ export function BattleEngine({
       return;
     }
 
-    const audio = new Audio('/assets/Battle.mp3');
-    audio.preload = 'auto';
-    audio.loop = true;
-    battleAudioRef.current = audio;
-    void audio.play().catch(() => {});
+    prepareBattleAudio();
+    playBattleCue('battle', { loop: true });
 
     return () => {
-      audio.pause();
-      audio.currentTime = 0;
-      battleAudioRef.current = null;
+      stopBattleCue('battle');
     };
   }, []);
 
@@ -283,10 +277,6 @@ export function BattleEngine({
               ) : null}
             </AnimatePresence>
           </motion.div>
-        </div>
-
-        <div className="warpath-battle-sidebar">
-          <ChatPanel embedded />
         </div>
       </div>
     </motion.div>

@@ -17,6 +17,10 @@
 - [completed] Fight-stamp audio: ship the provided `Fight.mp3` and trigger it only when the `FIGHT` stamp appears during the VS reveal
 - [completed] Result audio: ship `Winner.mp3` and `Loser.mp3` so the correct outcome sound plays on the corresponding result overlay
 - [completed] Audio one-shot enforcement: ensure `Matching`, `Fight`, `Winner`, and `Loser` cues are all explicit single-play sounds with no looping
+- [completed] Mobile delayed-audio fix: route `Fight`, `Winner`, and `Loser` through an unlocked shared battle-audio pool so they can play on mobile after the initial tap gesture
+- [completed] Mobile battle-loop audio fix: route `Battle.mp3` through the same unlocked shared audio pool so the looping fight-phase sound can play on mobile too
+- [completed] Global ambient website audio: ship `Website.mp3` as a looped 10%-volume background track that persists across map, battle, and result screens without interrupting the phase-specific cues
+- [completed] Battle chat removal: remove the embedded battle-only chat feed from the active fight screen without changing the standalone chat surfaces
 - [completed] Chunk-load recovery hardening: stop lazy-splitting tiny result overlays and auto-recover once from stale deploy chunk fetch failures in already-open tabs
 - [completed] Favicon refresh: replace the default SVG favicon with the provided `Favicon.png` for browser tabs and Apple touch icon usage
 - [completed] Connect-wordmark tracking trim: remove all letter spacing from the main wallet-entry `WAR ROOM` lockup so `WAR` and `ROOM` read as a tight brand mark
@@ -264,6 +268,15 @@
 
 ## 2026-03-23 Audio One-Shot Review
 - Updated `apps/web/src/components/battle/MatchingPulse.tsx`, `apps/web/src/components/battle/VSReveal.tsx`, `apps/web/src/components/battle/VictorOverlay.tsx`, and `apps/web/src/components/battle/DeathOverlay.tsx` so `Matching`, `Fight`, `Winner`, and `Loser` all explicitly set `audio.loop = false`.
+
+## 2026-03-23 Mobile Battle Audio Review
+- Added `apps/web/src/lib/battleAudio.ts` as a shared audio pool for `Enter Battle`, `Matching`, `Fight`, `Winner`, and `Loser`.
+- Updated the battle flow components to reuse those shared audio elements instead of constructing fresh `Audio` objects after the tap gesture, which improves delayed cue playback on mobile browsers.
+- Primed the shared audio pool from the `Enter Battle` click path in `apps/web/src/components/battle/GameOverlay.tsx` so later `Fight`, `Winner`, and `Loser` cues can play from an already-unlocked media element set.
+
+## 2026-03-23 Battle Chat Removal Review
+- Removed the embedded `ChatPanel` mount from `apps/web/src/components/battle/BattleEngine.tsx`.
+- Left the standalone chat page and shared chat components untouched so this change only affects the battle screen.
 
 ## 2026-03-21 Header Rail Clearance Review
 - Reworked the fixed header geometry in `apps/web/src/styles/globals.css` so the rail height is explicit, the `header.jpg` wordmark is constrained by height instead of raw width, and the wallet chip/nav rhythm fits inside the reserved header footprint.
@@ -631,3 +644,11 @@
 ## 2026-03-23 Battle Audio Review
 - Copied the provided local file `Sounds/Battle.mp3` into `apps/web/public/assets/Battle.mp3` so the combat sound ships as a first-party production asset.
 - Updated `apps/web/src/components/battle/BattleEngine.tsx` to create an `Audio('/assets/Battle.mp3')` instance on mount, loop it for the lifetime of the fighting phase, and stop/reset it on unmount so the sound only plays during active combat playback.
+
+## 2026-03-23 Mobile Battle Loop Audio Review
+- Extended `apps/web/src/lib/battleAudio.ts` so the shared unlocked audio pool also owns the `battle` cue and supports loop-aware playback options.
+- Updated `apps/web/src/components/battle/BattleEngine.tsx` to stop creating a fresh `Audio('/assets/Battle.mp3')` instance on mount and instead reuse the gesture-primed shared pool with looped playback for the active fight phase, then stop/reset that cue on teardown.
+
+## 2026-03-23 Global Ambient Website Audio Review
+- Copied the provided local file `Sounds/website.mp3` into `apps/web/public/assets/Website.mp3` so the ambient website track ships as a first-party production asset on a stable public path.
+- Added a singleton website-audio controller in `apps/web/src/lib/siteAudio.ts` and mounted `apps/web/src/components/app/AmbientAudio.tsx` from `apps/web/src/app/App.tsx` so the track loops at `0.1` volume across the whole SPA, attempts immediate desktop playback, and falls back to the first user gesture on mobile-style autoplay-restricted browsers.
