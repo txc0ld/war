@@ -330,7 +330,7 @@
 .warpath-match-title {
   display: flex;
   justify-content: center;
-  gap: 0.08em;
+  gap: 0.06em;
   margin: 0;
   color: var(--accent);
   width: 100%;
@@ -338,7 +338,7 @@
   font-size: clamp(1.5rem, 6.6vw, 4rem);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
   will-change: opacity, transform;
@@ -884,6 +884,10 @@
 .vs-screen__headline {
   width: 100%;
   text-align: center;
+  font-family: 'MK4', var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+  font-synthesis: none;
 }
 
 .warpath-result-panel::-webkit-scrollbar {

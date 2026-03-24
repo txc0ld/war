@@ -562,7 +562,7 @@ describe('matchmaking service', () => {
     });
   });
 
-  it('ignores stored wallet cooldown rows while cooldowns are temporarily disabled', async () => {
+  it('rejects queue joins while a wallet cooldown is active', async () => {
     const now = Date.now();
     state.players = [
       {
@@ -578,11 +578,10 @@ describe('matchmaking service', () => {
     ];
 
     const { joinQueue } = await import('../services/matchmaking');
-    const response = await joinQueue('0x111', 1, 'AU');
-
-    expect(response.status).toBe('queued');
-    expect(response.cooldown.remainingMs).toBe(0);
-    expect(response.cooldown.expiresAt).toBeNull();
+    await expect(joinQueue('0x111', 1, 'AU')).rejects.toMatchObject({
+      statusCode: 429,
+      code: 'WALLET_COOLDOWN_ACTIVE',
+    });
   });
 
   it('cancels an active queue entry for the owning wallet', async () => {

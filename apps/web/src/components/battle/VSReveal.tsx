@@ -86,6 +86,7 @@ export function VSReveal({
                 <motion.h2
                   key={showFight ? 'fight' : 'vs'}
                   className={`vs-screen__headline ${showFight ? 'vs-screen__headline--fight' : 'vs-screen__headline--slam'}`}
+                  style={{ fontFamily: 'MK4, var(--font-display)', fontWeight: 400 }}
                   initial={{ opacity: 0, letterSpacing: '0.32em', scale: 1.18 }}
                   animate={{ opacity: 1, letterSpacing: '0.16em', scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}

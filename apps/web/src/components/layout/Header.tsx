@@ -1,12 +1,25 @@
+import { useSyncExternalStore } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ConnectButton } from '@/components/wallet/ConnectButton';
 import { ProfilePanel } from '@/components/profile/ProfilePanel';
+import {
+  getAudioMutedSnapshot,
+  getServerAudioMutedSnapshot,
+  subscribeToAudioPreference,
+  toggleAudioMuted,
+} from '@/lib/audioPreferences';
+import { startSiteAudio } from '@/lib/siteAudio';
 import { useStore } from '@/store';
 
 export function Header(): React.ReactNode {
   const navigate = useNavigate();
   const location = useLocation();
   const phase = useStore((state) => state.phase);
+  const audioMuted = useSyncExternalStore(
+    subscribeToAudioPreference,
+    getAudioMutedSnapshot,
+    getServerAudioMutedSnapshot
+  );
   const isHome = location.pathname === '/';
   const isLeaderboard = location.pathname === '/leaderboard';
   const isKillfeed = location.pathname === '/killfeed';
@@ -16,6 +29,13 @@ export function Header(): React.ReactNode {
   if (hideForBattlePhase) {
     return null;
   }
+
+  const handleAudioToggle = () => {
+    const muted = toggleAudioMuted();
+    if (!muted) {
+      void startSiteAudio();
+    }
+  };
 
   return (
     <header className="site-header">
@@ -36,6 +56,18 @@ export function Header(): React.ReactNode {
 
           <div className="site-header__wallet">
             <ProfilePanel />
+            <button
+              type="button"
+              className="site-header__audio-toggle"
+              aria-label={audioMuted ? 'Unmute audio' : 'Mute audio'}
+              aria-pressed={audioMuted}
+              onClick={handleAudioToggle}
+            >
+              <span className="site-header__audio-toggle-label">Audio</span>
+              <span className="site-header__audio-toggle-value">
+                {audioMuted ? 'Off' : 'On'}
+              </span>
+            </button>
             <ConnectButton />
           </div>
         </div>

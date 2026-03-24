@@ -76,6 +76,26 @@ app.use('*', async (c, next) => {
 app.use('*', structuredLogger);
 
 app.use(
+  '/api/health',
+  createRateLimit({
+    scope: 'health',
+    max: 30,
+    windowMs: 60_000,
+    code: 'HEALTH_RATE_LIMITED',
+    message: 'Too many health requests',
+  })
+);
+app.use(
+  '/api/ready',
+  createRateLimit({
+    scope: 'readiness',
+    max: 10,
+    windowMs: 60_000,
+    code: 'READINESS_RATE_LIMITED',
+    message: 'Too many readiness requests',
+  })
+);
+app.use(
   '/api/chat',
   createRateLimit({
     scope: 'global_chat',

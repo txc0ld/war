@@ -97,6 +97,7 @@ describe('leaderboard service', () => {
         wins: 1,
         losses: 0,
         gunCount: 2,
+        kdRatio: 1,
       },
       {
         rank: 2,
@@ -105,7 +106,25 @@ describe('leaderboard service', () => {
         wins: 0,
         losses: 1,
         gunCount: 1,
+        kdRatio: 0,
       },
     ]);
+  });
+
+  it('computes K/D ratio from wins and losses for leaderboard rows', async () => {
+    leaderboardStore.rows = [
+      {
+        address: '0xabc',
+        score: 10,
+        wins: 7,
+        losses: 4,
+        gunCount: 3,
+      },
+    ];
+
+    const { getLeaderboard } = await import('../services/leaderboard');
+    const result = await getLeaderboard(50, 0);
+
+    expect(result.entries[0]?.kdRatio).toBe(1.75);
   });
 });

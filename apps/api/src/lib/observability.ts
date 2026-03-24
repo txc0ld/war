@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { Context, MiddlewareHandler } from 'hono';
 
+const ALLOW_UNTRUSTED_X_FORWARDED_FOR =
+  process.env['ALLOW_UNTRUSTED_X_FORWARDED_FOR'] === 'true';
+
 export interface StructuredLog {
   level: 'info' | 'error';
   event: string;
@@ -34,7 +37,11 @@ export function getClientIp(headers: Headers): string {
     return trustedProxyIp;
   }
 
-  return firstForwardedIp(headers.get('x-forwarded-for')) ?? 'unknown';
+  if (ALLOW_UNTRUSTED_X_FORWARDED_FOR) {
+    return firstForwardedIp(headers.get('x-forwarded-for')) ?? 'unknown';
+  }
+
+  return 'unknown';
 }
 
 export function ensureRequestId(c: Context): string {

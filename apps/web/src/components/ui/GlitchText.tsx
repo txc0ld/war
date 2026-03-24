@@ -9,10 +9,13 @@ export function GlitchText({ text, className }: GlitchTextProps): React.ReactNod
   return (
     <span
       className={cn(
-        'relative inline-block font-mono uppercase tracking-widest',
-        'animate-glitch',
+        'relative inline-block uppercase tracking-widest',
         className
       )}
+      style={{
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontWeight: 900,
+      }}
       data-text={text}
     >
       {text}

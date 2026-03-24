@@ -27,6 +27,11 @@
       "import": "./dist/auth.js",
       "require": "./dist/auth.cjs"
     },
+    "./gunNames": {
+      "types": "./dist/gunNames.d.ts",
+      "import": "./dist/gunNames.js",
+      "require": "./dist/gunNames.cjs"
+    },
     "./stats": {
       "types": "./dist/stats.d.ts",
       "import": "./dist/stats.js",

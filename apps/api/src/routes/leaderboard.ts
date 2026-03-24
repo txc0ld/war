@@ -39,6 +39,7 @@ app.get('/:address', async (c) => {
       wins: 0,
       losses: 0,
       gunCount: 0,
+      kdRatio: 0,
     });
   }
 
@@ -48,6 +49,10 @@ app.get('/:address', async (c) => {
     wins: player.wins,
     losses: player.losses,
     gunCount: player.gunCount,
+    kdRatio:
+      player.losses === 0
+        ? player.wins
+        : Number((player.wins / player.losses).toFixed(2)),
   });
 });
 

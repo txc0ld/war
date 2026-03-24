@@ -1,3 +1,8 @@
+import {
+  applyAudioPreference,
+  subscribeToAudioPreference,
+} from './audioPreferences';
+
 type BattleCueName =
   | 'enterBattle'
   | 'battle'
@@ -16,6 +21,12 @@ const BATTLE_CUE_PATHS: Record<BattleCueName, string> = {
 const battleAudioPool = new Map<BattleCueName, HTMLAudioElement>();
 let battleAudioUnlocked = false;
 
+function syncBattleAudioPreference(): void {
+  battleAudioPool.forEach((audio) => {
+    applyAudioPreference(audio);
+  });
+}
+
 function getBattleCueAudio(name: BattleCueName): HTMLAudioElement | null {
   if (typeof window === 'undefined') {
     return null;
@@ -26,10 +37,17 @@ function getBattleCueAudio(name: BattleCueName): HTMLAudioElement | null {
     audio = new Audio(BATTLE_CUE_PATHS[name]);
     audio.preload = 'auto';
     audio.loop = false;
+    applyAudioPreference(audio);
     battleAudioPool.set(name, audio);
   }
 
   return audio;
+}
+
+if (typeof window !== 'undefined') {
+  subscribeToAudioPreference(() => {
+    syncBattleAudioPreference();
+  });
 }
 
 export function prepareBattleAudio(): void {
@@ -76,6 +94,7 @@ export function playBattleCue(
   }
 
   audio.loop = options?.loop ?? false;
+  applyAudioPreference(audio);
   audio.pause();
   audio.currentTime = 0;
   void audio.play().catch(() => {});

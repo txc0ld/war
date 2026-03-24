@@ -16,6 +16,7 @@ export function Leaderboard(): React.ReactNode {
         <span>Rank</span>
         <span>Operator</span>
         <span>Score</span>
+        <span>K/D</span>
         <span>Combat</span>
       </header>
 

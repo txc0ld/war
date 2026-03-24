@@ -6,6 +6,7 @@ export default defineConfig({
     'src/types.ts',
     'src/constants.ts',
     'src/auth.ts',
+    'src/gunNames.ts',
     'src/stats.ts',
   ],
   format: ['esm', 'cjs'],

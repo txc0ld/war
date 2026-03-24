@@ -3,7 +3,18 @@ import { db } from '../db/client';
 import { players } from '../db/schema';
 import { getGunCountForAddress } from './guns';
 
-export const WALLET_COOLDOWNS_ENABLED = false;
+function parseEnvBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (value == null) {
+    return defaultValue;
+  }
+
+  return value === 'true';
+}
+
+export const WALLET_COOLDOWNS_ENABLED = parseEnvBoolean(
+  process.env['WALLET_COOLDOWNS_ENABLED'],
+  true
+);
 export const SHORT_COOLDOWN_MS = 15 * 60 * 1000;
 export const STANDARD_COOLDOWN_MS = 30 * 60 * 1000;
 

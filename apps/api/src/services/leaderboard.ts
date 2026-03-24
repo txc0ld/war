@@ -9,11 +9,20 @@ interface LeaderboardEntry {
   wins: number;
   losses: number;
   gunCount: number;
+  kdRatio: number;
 }
 
 interface LeaderboardResponse {
   entries: LeaderboardEntry[];
   total: number;
+}
+
+function calculateKdRatio(wins: number, losses: number): number {
+  if (losses === 0) {
+    return wins;
+  }
+
+  return Number((wins / losses).toFixed(2));
 }
 
 export async function getLeaderboard(
@@ -36,6 +45,7 @@ export async function getLeaderboard(
     wins: row.wins,
     losses: row.losses,
     gunCount: row.gunCount,
+    kdRatio: calculateKdRatio(row.wins, row.losses),
   }));
 
   const totals = await db

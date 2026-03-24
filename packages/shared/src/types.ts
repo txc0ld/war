@@ -29,6 +29,7 @@ export interface Player {
 
 export interface LeaderboardEntry extends Player {
   rank: number;
+  kdRatio: number;
 }
 
 export interface BattleRound {

@@ -11,6 +11,10 @@ function shortenAddress(value: string): string {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 
+function formatKdRatio(value: number): string {
+  return value.toFixed(2);
+}
+
 export function LeaderboardRow({
   entry,
   isActive,
@@ -33,6 +37,7 @@ export function LeaderboardRow({
         </span>
       </span>
       <span className="leaderboard__score">{entry.score}</span>
+      <span className="leaderboard__kd">{formatKdRatio(entry.kdRatio)}</span>
       <span className="leaderboard__combat">
         <span className="leaderboard__combat-record">
           {entry.wins}/{entry.losses}
