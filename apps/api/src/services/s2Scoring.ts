@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, ne, sql } from 'drizzle-orm';
 import { S2_SCORING } from '@warpath/shared';
 import type { S2MatchResult } from '@warpath/shared';
 import { db } from '../db/client';
@@ -62,16 +62,6 @@ export async function applyS2MatchResult(
   battleId: string,
   result: S2MatchResult
 ): Promise<void> {
-  const [battle] = await db
-    .select()
-    .from(s2Battles)
-    .where(eq(s2Battles.id, battleId))
-    .limit(1);
-
-  if (!battle || battle.status === 'resolved') {
-    return;
-  }
-
   const scores = calculateMatchScores(result);
   const winnerSide = result.winner === 0 ? 'left' : 'right';
 
@@ -79,6 +69,19 @@ export async function applyS2MatchResult(
   const roundsWon1 = result.rounds.filter((r) => r.winner === 1).length;
 
   await db.transaction(async (tx) => {
+    // Optimistic lock: only proceed if the battle exists and is not already resolved.
+    // The FOR UPDATE row lock prevents concurrent transactions from double-applying.
+    const [battle] = await tx
+      .select()
+      .from(s2Battles)
+      .where(and(eq(s2Battles.id, battleId), ne(s2Battles.status, 'resolved')))
+      .for('update')
+      .limit(1);
+
+    if (!battle) {
+      return; // Already resolved or doesn't exist — idempotent no-op
+    }
+
     await tx
       .update(s2Battles)
       .set({

@@ -45,7 +45,7 @@ app.use(
 
       return defaultAllowedOrigins.has(origin) ? origin : '';
     },
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Deadshot-Server-Secret'],
     allowMethods: ['GET', 'POST', 'OPTIONS'],
   })
 );

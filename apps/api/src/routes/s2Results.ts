@@ -1,7 +1,7 @@
 // apps/api/src/routes/s2Results.ts
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { S2_GAME_SERVER_SECRET_HEADER } from '@warpath/shared';
+import { S2_GAME_SERVER_SECRET_HEADER, S2_MATCH_CONFIG } from '@warpath/shared';
 import { AppError } from '../lib/errors';
 import { validateJson } from '../middleware/validate';
 import { applyS2MatchResult } from '../services/s2Scoring';
@@ -24,7 +24,7 @@ const matchResultSchema = z.object({
   secret: z.string().min(1).optional(),
   result: z.object({
     winner: z.union([z.literal(0), z.literal(1)]),
-    rounds: z.array(roundResultSchema).min(1).max(5),
+    rounds: z.array(roundResultSchema).min(1).max(S2_MATCH_CONFIG.MAX_ROUNDS),
     leftScore: z.number().int().min(0),
     rightScore: z.number().int().min(0),
   }),
