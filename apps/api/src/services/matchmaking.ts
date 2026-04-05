@@ -11,15 +11,8 @@ import { db } from '../db/client';
 import { battles, players, queue } from '../db/schema';
 import { AppError } from '../lib/errors';
 import { createBattleCommitmentForMatch, ensureBattleResolved } from './battle';
-import {
-  ensurePlayer,
-  getWalletCooldownState,
-  syncPlayerGunCount,
-} from './players';
+import { getWalletCooldownState } from './players';
 import { timeOfRound } from './drand';
-import { countActiveQueueEntries, notifyQueueActivated } from './notifications';
-
-const QUEUE_TTL_MS = 10 * 60 * 1000;
 
 function serializeCooldown(cooldown: {
   expiresAt: Date | null;
