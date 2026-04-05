@@ -15,3 +15,4 @@ export {
   verifyBattleProof,
 } from './stats.js';
 export * from './s2Types.js';
+export * from './s2Constants.js';
