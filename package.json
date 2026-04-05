@@ -6,6 +6,7 @@
     "db:migrate": "pnpm --filter @warpath/api run db:migrate",
     "dev:web": "pnpm --filter @warpath/web dev",
     "dev:api": "pnpm --filter @warpath/api dev",
+    "dev:game": "pnpm --filter @warpath/game-server dev",
     "dev": "pnpm run --parallel dev:web dev:api",
     "test": "pnpm -r test",
     "typecheck": "pnpm --filter @warpath/shared build && pnpm --filter @warpath/api exec tsc --noEmit -p tsconfig.json && pnpm --filter @warpath/web exec tsc --noEmit -p tsconfig.json"
