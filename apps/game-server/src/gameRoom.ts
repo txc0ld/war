@@ -56,6 +56,7 @@ export class GameRoom {
     // Process fire events (only during active round)
     if (this.roundManager.phase === 'active') {
       for (let i = 0; i < 2; i++) {
+        if (this.roundManager.phase !== 'active') break;
         const input = inputs[i];
         const shooter = this.players[i]!;
         const targetIdx = (i === 0 ? 1 : 0) as 0 | 1;

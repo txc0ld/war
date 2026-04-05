@@ -1,6 +1,6 @@
 // apps/game-server/src/room.ts
 import { S2_MATCH_CONFIG } from '@warpath/shared';
-import type { ClientInput, ServerMessage } from '@warpath/shared';
+import type { ClientInput, S2MatchResult, ServerMessage } from '@warpath/shared';
 import type { BattleInfo } from './auth.js';
 import { markBattleActive } from './auth.js';
 import { GameRoom } from './gameRoom.js';
@@ -36,7 +36,9 @@ export class Room {
   addConnection(ws: RoomConnection, playerIndex: 0 | 1): void {
     this.connections[playerIndex] = ws;
     if (this.connections[0] && this.connections[1]) {
-      this.startCountdown();
+      if (!this.tickInterval && !this.countdownInterval && !this.disposed) {
+        this.startCountdown();
+      }
     } else {
       this.send(playerIndex, { type: 'waiting', message: 'Waiting for opponent to connect...' });
     }
@@ -54,7 +56,11 @@ export class Room {
 
   handleDisconnect(playerIndex: 0 | 1): void {
     this.connections[playerIndex] = null;
-    if (this.tickInterval && !this.disposed) {
+    if (!this.disposed) {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+      }
       const winner: 0 | 1 = playerIndex === 0 ? 1 : 0;
       this.endMatchForfeit(winner);
     }
@@ -138,9 +144,14 @@ export class Room {
     if (this.tickInterval) clearInterval(this.tickInterval);
     if (this.countdownInterval) clearInterval(this.countdownInterval);
 
-    const result = this.game.getMatchResult();
-    if (result) await reportMatchResult(this.battle.id, result);
-
+    const existingResult = this.game.getMatchResult();
+    const forfeitResult: S2MatchResult = existingResult ?? {
+      winner,
+      rounds: [],
+      leftScore: 0,
+      rightScore: 0,
+    };
+    await reportMatchResult(this.battle.id, forfeitResult);
     this.cleanup();
   }
 
