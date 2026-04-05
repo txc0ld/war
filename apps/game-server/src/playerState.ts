@@ -7,8 +7,8 @@ export class MutablePlayerState {
   stance: 'standing' | 'crouched' = 'standing';
   scoped = false;
   scopeZoom: 1 | 2 = 1;
-  hp = S2_MATCH_CONFIG.PLAYER_HP;
-  ammo = S2_MATCH_CONFIG.MAGAZINE_SIZE;
+  hp: number = S2_MATCH_CONFIG.PLAYER_HP;
+  ammo: number = S2_MATCH_CONFIG.MAGAZINE_SIZE;
   reloading = false;
   alive = true;
 
