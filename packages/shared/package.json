@@ -36,6 +36,21 @@
       "types": "./dist/stats.d.ts",
       "import": "./dist/stats.js",
       "require": "./dist/stats.cjs"
+    },
+    "./s2Types": {
+      "types": "./dist/s2Types.d.ts",
+      "import": "./dist/s2Types.js",
+      "require": "./dist/s2Types.cjs"
+    },
+    "./s2Constants": {
+      "types": "./dist/s2Constants.d.ts",
+      "import": "./dist/s2Constants.js",
+      "require": "./dist/s2Constants.cjs"
+    },
+    "./s2Auth": {
+      "types": "./dist/s2Auth.d.ts",
+      "import": "./dist/s2Auth.js",
+      "require": "./dist/s2Auth.cjs"
     }
   },
   "scripts": {

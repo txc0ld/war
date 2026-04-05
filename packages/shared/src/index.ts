@@ -16,3 +16,4 @@ export {
 } from './stats.js';
 export * from './s2Types.js';
 export * from './s2Constants.js';
+export * from './s2Auth.js';
