@@ -51,6 +51,11 @@
       "types": "./dist/s2Auth.d.ts",
       "import": "./dist/s2Auth.js",
       "require": "./dist/s2Auth.cjs"
+    },
+    "./s2GameTypes": {
+      "types": "./dist/s2GameTypes.d.ts",
+      "import": "./dist/s2GameTypes.js",
+      "require": "./dist/s2GameTypes.cjs"
     }
   },
   "scripts": {

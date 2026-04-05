@@ -11,6 +11,7 @@ export default defineConfig({
     'src/s2Types.ts',
     'src/s2Constants.ts',
     'src/s2Auth.ts',
+    'src/s2GameTypes.ts',
   ],
   format: ['esm', 'cjs'],
   platform: 'neutral',
