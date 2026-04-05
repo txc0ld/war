@@ -10,6 +10,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
+import type { S2RoundResult } from '@warpath/shared';
 
 export const players = pgTable(
   'players',
@@ -269,7 +270,7 @@ export const s2Battles = pgTable(
     rightScore: integer('right_score'),
     roundsWonLeft: integer('rounds_won_left'),
     roundsWonRight: integer('rounds_won_right'),
-    roundsJson: jsonb('rounds_json'),
+    roundsJson: jsonb('rounds_json').$type<S2RoundResult[]>(),
     roomId: text('room_id'),
     roomTokenLeft: text('room_token_left'),
     roomTokenRight: text('room_token_right'),

@@ -88,7 +88,7 @@ export async function applyS2MatchResult(
         rightScore: scores.player1Score,
         roundsWonLeft: roundsWon0,
         roundsWonRight: roundsWon1,
-        roundsJson: result.rounds as unknown as Record<string, unknown>,
+        roundsJson: result.rounds,
         resolvedAt: new Date(),
         updatedAt: new Date(),
       })
