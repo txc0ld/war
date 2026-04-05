@@ -30,10 +30,10 @@ export async function getS2Leaderboard(
 
   const entries: S2LeaderboardEntry[] = rows.map((row, i) => {
     const profile = profilesByAddress.get(row.address);
-    const totalShots = row.totalKills;
+    const totalKills = row.totalKills;
     const headshotPct =
-      totalShots > 0
-        ? Number(((row.headshotKills / totalShots) * 100).toFixed(1))
+      totalKills > 0
+        ? Number(((row.headshotKills / totalKills) * 100).toFixed(1))
         : 0;
 
     return {
