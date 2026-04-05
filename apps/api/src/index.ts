@@ -13,6 +13,12 @@ import chatRouter from './routes/chat';
 import gunsRouter from './routes/guns';
 import killfeedRouter from './routes/killfeed';
 import leaderboardRouter from './routes/leaderboard';
+import notificationsRouter from './routes/notifications';
+import s2BattlesRouter from './routes/s2Battles';
+import s2LeaderboardRouter from './routes/s2Leaderboard';
+import s2SnipersRouter from './routes/s2Snipers';
+import s2KillfeedRouter from './routes/s2Killfeed';
+import s2ResultsRouter from './routes/s2Results';
 import profilesRouter from './routes/profiles';
 
 const app = new Hono();
@@ -185,6 +191,68 @@ app.use(
     message: 'Too many gun requests',
   })
 );
+app.use(
+  '/api/notifications/*',
+  createRateLimit({
+    scope: 'notifications',
+    max: 20,
+    windowMs: 60_000,
+    code: 'NOTIFICATIONS_RATE_LIMITED',
+    message: 'Too many notification requests',
+  })
+);
+
+// Season 2: Deadshot rate limits
+app.use(
+  '/api/s2/battles/*',
+  createRateLimit({
+    scope: 's2_battles',
+    max: 30,
+    windowMs: 60_000,
+    code: 'S2_BATTLES_RATE_LIMITED',
+    message: 'Too many Season 2 battle requests',
+  })
+);
+app.use(
+  '/api/s2/leaderboard/*',
+  createRateLimit({
+    scope: 's2_leaderboard',
+    max: 30,
+    windowMs: 60_000,
+    code: 'S2_LEADERBOARD_RATE_LIMITED',
+    message: 'Too many Season 2 leaderboard requests',
+  })
+);
+app.use(
+  '/api/s2/snipers/*',
+  createRateLimit({
+    scope: 's2_snipers',
+    max: 20,
+    windowMs: 60_000,
+    code: 'S2_SNIPERS_RATE_LIMITED',
+    message: 'Too many sniper requests',
+  })
+);
+app.use(
+  '/api/s2/killfeed',
+  createRateLimit({
+    scope: 's2_killfeed',
+    max: 60,
+    windowMs: 60_000,
+    code: 'S2_KILLFEED_RATE_LIMITED',
+    message: 'Too many Season 2 killfeed requests',
+  })
+);
+app.use(
+  '/api/s2/results',
+  createRateLimit({
+    scope: 's2_results',
+    max: 60,
+    windowMs: 60_000,
+    code: 'S2_RESULTS_RATE_LIMITED',
+    message: 'Too many result submissions',
+  })
+);
 
 app.get('/api/health', (c) =>
   c.json({
@@ -205,6 +273,14 @@ app.route('/api/leaderboard', leaderboardRouter);
 app.route('/api/killfeed', killfeedRouter);
 app.route('/api/profiles', profilesRouter);
 app.route('/api/guns', gunsRouter);
+app.route('/api/notifications', notificationsRouter);
+
+// Season 2: Deadshot
+app.route('/api/s2/battles', s2BattlesRouter);
+app.route('/api/s2/leaderboard', s2LeaderboardRouter);
+app.route('/api/s2/snipers', s2SnipersRouter);
+app.route('/api/s2/killfeed', s2KillfeedRouter);
+app.route('/api/s2/results', s2ResultsRouter);
 
 app.notFound((c) =>
   c.json(
