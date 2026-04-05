@@ -21,7 +21,7 @@ const roundResultSchema = z.object({
 
 const matchResultSchema = z.object({
   battleId: z.string().uuid(),
-  secret: z.string().min(1),
+  secret: z.string().min(1).optional(),
   result: z.object({
     winner: z.union([z.literal(0), z.literal(1)]),
     rounds: z.array(roundResultSchema).min(1).max(5),
@@ -39,7 +39,7 @@ app.post('/', async (c) => {
   const headerSecret = c.req.header(S2_GAME_SERVER_SECRET_HEADER);
   const body = await validateJson(c, matchResultSchema);
 
-  if (body.secret !== SERVER_SECRET && headerSecret !== SERVER_SECRET) {
+  if (body.secret !== SERVER_SECRET && (headerSecret == null || headerSecret !== SERVER_SECRET)) {
     throw new AppError(401, 'S2_RESULTS_UNAUTHORIZED', 'Invalid server secret');
   }
 

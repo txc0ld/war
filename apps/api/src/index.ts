@@ -234,7 +234,7 @@ app.use(
   })
 );
 app.use(
-  '/api/s2/killfeed',
+  '/api/s2/killfeed/*',
   createRateLimit({
     scope: 's2_killfeed',
     max: 60,
@@ -244,7 +244,7 @@ app.use(
   })
 );
 app.use(
-  '/api/s2/results',
+  '/api/s2/results/*',
   createRateLimit({
     scope: 's2_results',
     max: 60,
