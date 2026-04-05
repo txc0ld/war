@@ -17,6 +17,7 @@ import {
   syncPlayerGunCount,
 } from './players';
 import { timeOfRound } from './drand';
+import { countActiveQueueEntries, notifyQueueActivated } from './notifications';
 
 const QUEUE_TTL_MS = 10 * 60 * 1000;
 
@@ -37,76 +38,15 @@ async function getSerializedCooldown(address: string): Promise<WalletCooldown> {
 }
 
 export async function joinQueue(
-  address: string,
-  tokenId: number,
-  country: string
+  _address: string,
+  _tokenId: number,
+  _country: string
 ): Promise<QueueJoinResponse> {
-  await ensurePlayer(address);
-  const gunCount = await syncPlayerGunCount(address as `0x${string}`);
-  const cooldown = await getWalletCooldownState(address);
-
-  if (cooldown.remainingMs > 0) {
-    throw new AppError(
-      429,
-      'WALLET_COOLDOWN_ACTIVE',
-      `Wallet cooling down for ${Math.ceil(cooldown.remainingMs / 60_000)} minute(s)`
-    );
-  }
-
-  await expireStaleQueueEntries();
-
-  const [activeQueueEntry] = await db
-    .select({ id: queue.id })
-    .from(queue)
-    .where(
-      and(
-        eq(queue.address, address),
-        eq(queue.status, 'waiting'),
-        isNull(queue.battleId),
-        sql`${queue.expiresAt} > now()`
-      )
-    )
-    .limit(1);
-
-  if (activeQueueEntry) {
-    throw new AppError(
-      409,
-      'QUEUE_ALREADY_ACTIVE',
-      'Wallet already has an active queue entry'
-    );
-  }
-
-  const now = new Date();
-  const statusToken = randomUUID();
-  const [entry] = await db
-    .insert(queue)
-    .values({
-      address,
-      tokenId,
-      country,
-      statusToken,
-      status: 'waiting',
-      expiresAt: new Date(now.getTime() + QUEUE_TTL_MS),
-      updatedAt: now,
-    })
-    .returning({ id: queue.id, statusToken: queue.statusToken });
-
-  if (!entry) {
-    throw new Error('Failed to create queue entry');
-  }
-
-  await tryMatch(entry.id, address);
-
-  return {
-    queueId: entry.id,
-    status: 'queued',
-    statusToken: entry.statusToken,
-    cooldown: {
-      expiresAt: cooldown.expiresAt?.toISOString() ?? null,
-      remainingMs: cooldown.remainingMs,
-      gunCount,
-    },
-  };
+  throw new AppError(
+    410,
+    'SEASON_ONE_ENDED',
+    'Season 1 matchmaking has ended. Queue for Season 2 at /api/s2/battles/queue'
+  );
 }
 
 async function tryMatch(queueId: string, address: string): Promise<void> {

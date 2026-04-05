@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { BATTLE_ENGINE_VERSION } from '@warpath/shared';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BATTLE_ENGINE_VERSION, SEASON_ONE_START_MS } from '@warpath/shared';
 
 type PlayerRow = {
   address: string;
@@ -497,6 +497,8 @@ const db = createDb();
 const mockGetGunCountForAddress = vi.fn();
 const mockCreateBattleCommitmentForMatch = vi.fn();
 const mockEnsureBattleResolved = vi.fn();
+const mockCountActiveQueueEntries = vi.fn();
+const mockNotifyQueueActivated = vi.fn();
 
 vi.mock('drizzle-orm', () => ({
   and,
@@ -522,6 +524,11 @@ vi.mock('../services/battle', () => ({
   ensureBattleResolved: mockEnsureBattleResolved,
 }));
 
+vi.mock('../services/notifications', () => ({
+  countActiveQueueEntries: mockCountActiveQueueEntries,
+  notifyQueueActivated: mockNotifyQueueActivated,
+}));
+
 function resetState() {
   state.players = [];
   state.queue = [];
@@ -534,12 +541,18 @@ function resetState() {
 
 describe('matchmaking service', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(SEASON_ONE_START_MS + 1_000));
     resetState();
     mockGetGunCountForAddress.mockReset();
     mockCreateBattleCommitmentForMatch.mockReset();
     mockEnsureBattleResolved.mockReset();
+    mockCountActiveQueueEntries.mockReset();
+    mockNotifyQueueActivated.mockReset();
     mockGetGunCountForAddress.mockResolvedValue(2);
     mockEnsureBattleResolved.mockResolvedValue(undefined);
+    mockCountActiveQueueEntries.mockResolvedValue(0);
+    mockNotifyQueueActivated.mockResolvedValue(undefined);
     mockCreateBattleCommitmentForMatch.mockReturnValue({
       leftStats: { damage: 10, dodge: 20, speed: 30 },
       rightStats: { damage: 30, dodge: 20, speed: 10 },
@@ -562,7 +575,12 @@ describe('matchmaking service', () => {
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('rejects queue joins while a wallet cooldown is active', async () => {
+    // Season 1 has ended — joinQueue always returns 410 regardless of cooldown state.
     const now = Date.now();
     state.players = [
       {
@@ -579,8 +597,29 @@ describe('matchmaking service', () => {
 
     const { joinQueue } = await import('../services/matchmaking');
     await expect(joinQueue('0x111', 1, 'AU')).rejects.toMatchObject({
-      statusCode: 429,
-      code: 'WALLET_COOLDOWN_ACTIVE',
+      statusCode: 410,
+      code: 'SEASON_ONE_ENDED',
+    });
+  });
+
+  it('rejects all queue joins with 410 SEASON_ONE_ENDED', async () => {
+    state.players = [
+      {
+        address: '0x111',
+        score: 0,
+        wins: 0,
+        losses: 0,
+        gunCount: 2,
+        cooldownUntil: null,
+        createdAt: new Date(SEASON_ONE_START_MS - 10_000),
+        updatedAt: new Date(SEASON_ONE_START_MS - 10_000),
+      },
+    ];
+
+    const { joinQueue } = await import('../services/matchmaking');
+    await expect(joinQueue('0x111', 1, 'AU')).rejects.toMatchObject({
+      statusCode: 410,
+      code: 'SEASON_ONE_ENDED',
     });
   });
 

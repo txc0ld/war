@@ -4,6 +4,7 @@ export type AppErrorStatusCode =
   | 403
   | 404
   | 409
+  | 410
   | 429
   | 500
   | 502
