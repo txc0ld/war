@@ -13,6 +13,8 @@ import type { ConnectionHandlers } from './connection.js';
 import { StateManager } from './stateManager.js';
 import { WeaponRenderer } from './weapon.js';
 import { OpponentRenderer } from './opponent.js';
+import { ScopeOverlay } from './scope.js';
+import { HudOverlay } from './hud.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -37,6 +39,8 @@ export class DeadshotGame {
   #stateManager: StateManager = new StateManager();
   #weapon: WeaponRenderer | null = null;
   #opponent: OpponentRenderer | null = null;
+  #scope: ScopeOverlay | null = null;
+  #hud: HudOverlay | null = null;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -60,6 +64,12 @@ export class DeadshotGame {
     // ── Opponent renderer ─────────────────────────────────────────────────────
     this.#opponent = new OpponentRenderer(this.#scene.app);
     this.#opponent.setSpawnPosition(0, -20);
+
+    // ── Scope and HUD overlays ────────────────────────────────────────────────
+    const overlayParent = canvas.parentElement ?? document.body;
+    this.#scope = new ScopeOverlay(overlayParent);
+    this.#scope.setReticleImage(config.sniper.scopeReticle);
+    this.#hud = new HudOverlay(overlayParent);
 
     // ── Input capture ────────────────────────────────────────────────────────
     this.#input = new InputCapture(canvas);
@@ -126,6 +136,17 @@ export class DeadshotGame {
     }
 
     this.#camera = null;
+
+    // ── Scope and HUD overlays ────────────────────────────────────────────────
+    if (this.#scope !== null) {
+      this.#scope.destroy();
+      this.#scope = null;
+    }
+
+    if (this.#hud !== null) {
+      this.#hud.destroy();
+      this.#hud = null;
+    }
 
     // ── Weapon and opponent ───────────────────────────────────────────────────
     if (this.#weapon !== null) {
