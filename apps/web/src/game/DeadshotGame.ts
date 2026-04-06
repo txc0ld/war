@@ -8,6 +8,9 @@ import type { SceneContext } from './scene.js';
 import type { GameConfig, GameEventMap, MatchResultEvent, GameErrorEvent } from './types.js';
 import { CameraController } from './camera.js';
 import { InputCapture } from './input.js';
+import { GameConnection } from './connection.js';
+import type { ConnectionHandlers } from './connection.js';
+import { StateManager } from './stateManager.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -28,6 +31,8 @@ export class DeadshotGame {
   #handlers: Map<keyof GameEventMap, Set<AnyHandler>> = new Map();
   #camera: CameraController | null = null;
   #input: InputCapture | null = null;
+  #connection: GameConnection | null = null;
+  #stateManager: StateManager = new StateManager();
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -49,6 +54,45 @@ export class DeadshotGame {
     this.#input = new InputCapture(canvas);
     this.#input.attach();
 
+    // ── WebSocket connection ──────────────────────────────────────────────────
+    const connectionHandlers: ConnectionHandlers = {
+      onAuth: (_msg) => {
+        // Full game-loop wiring will be added in a subsequent task.
+      },
+      onAuthError: (_msg) => {
+        this.#emit('error', { reason: _msg.reason });
+      },
+      onWaiting: (_msg) => {
+        // No action needed at this layer yet.
+      },
+      onCountdown: (_msg) => {
+        // Round countdown handling will be wired in a subsequent task.
+      },
+      onState: (msg) => {
+        this.#stateManager.pushState(msg.state);
+      },
+      onMatchResult: (msg) => {
+        this.#emit('match_result', {
+          winner: msg.winner,
+          finalScore: msg.finalScore,
+        });
+      },
+      onError: (msgOrError) => {
+        const reason =
+          msgOrError instanceof Error
+            ? msgOrError.message
+            : msgOrError.message;
+        this.#emit('error', { reason });
+      },
+      onDisconnect: () => {
+        this.#connection = null;
+        this.#emit('disconnected', undefined);
+      },
+    };
+
+    this.#connection = new GameConnection(connectionHandlers);
+    this.#connection.connect(config.wsUrl, config.roomId, config.roomToken);
+
     // Emit 'connected' after scene setup succeeds.
     this.#emit('connected', undefined);
   }
@@ -57,6 +101,13 @@ export class DeadshotGame {
    * Tear down the PlayCanvas Application and remove all event handlers.
    */
   destroy(): void {
+    // ── Close WebSocket and reset state ──────────────────────────────────────
+    if (this.#connection !== null) {
+      this.#connection.disconnect();
+      this.#connection = null;
+    }
+    this.#stateManager.reset();
+
     // ── Detach input before tearing down the scene ───────────────────────────
     if (this.#input !== null) {
       this.#input.detach();
@@ -131,6 +182,14 @@ export class DeadshotGame {
 
   protected get input(): InputCapture | null {
     return this.#input;
+  }
+
+  protected get connection(): GameConnection | null {
+    return this.#connection;
+  }
+
+  protected get stateManager(): StateManager {
+    return this.#stateManager;
   }
 }
 
