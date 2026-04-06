@@ -129,6 +129,11 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
 
   app.start();
 
+  // Ensure the canvas fills its container without gaps or scrollbars.
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.display = 'block';
+
   return { app, camera, light, ground };
 }
 
