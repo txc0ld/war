@@ -15,6 +15,7 @@ import { WeaponRenderer } from './weapon.js';
 import { OpponentRenderer } from './opponent.js';
 import { ScopeOverlay } from './scope.js';
 import { HudOverlay } from './hud.js';
+import { EffectsManager } from './effects.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -41,6 +42,7 @@ export class DeadshotGame {
   #opponent: OpponentRenderer | null = null;
   #scope: ScopeOverlay | null = null;
   #hud: HudOverlay | null = null;
+  #effects: EffectsManager | null = null;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -64,6 +66,9 @@ export class DeadshotGame {
     // ── Opponent renderer ─────────────────────────────────────────────────────
     this.#opponent = new OpponentRenderer(this.#scene.app);
     this.#opponent.setSpawnPosition(0, -20);
+
+    // ── Effects manager ───────────────────────────────────────────────────────
+    this.#effects = new EffectsManager(this.#scene.app);
 
     // ── Scope and HUD overlays ────────────────────────────────────────────────
     const overlayParent = canvas.parentElement ?? document.body;
@@ -146,6 +151,12 @@ export class DeadshotGame {
     if (this.#hud !== null) {
       this.#hud.destroy();
       this.#hud = null;
+    }
+
+    // ── Effects ───────────────────────────────────────────────────────────────
+    if (this.#effects !== null) {
+      this.#effects.destroy();
+      this.#effects = null;
     }
 
     // ── Weapon and opponent ───────────────────────────────────────────────────
