@@ -1,7 +1,10 @@
 import { useSyncExternalStore } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { getActiveSeason } from '@warpath/shared';
 import { ConnectButton } from '@/components/wallet/ConnectButton';
 import { ProfilePanel } from '@/components/profile/ProfilePanel';
+import { CommsDropdown } from '@/components/layout/CommsDropdown';
+import { QueueAlertsToggle } from '@/components/layout/QueueAlertsToggle';
 import {
   getAudioMutedSnapshot,
   getServerAudioMutedSnapshot,
@@ -23,8 +26,8 @@ export function Header(): React.ReactNode {
   const isHome = location.pathname === '/';
   const isLeaderboard = location.pathname === '/leaderboard';
   const isKillfeed = location.pathname === '/killfeed';
-  const isChat = location.pathname === '/chat';
   const hideForBattlePhase = location.pathname === '/' && phase !== 'idle';
+  const isS2Active = getActiveSeason(Date.now()) === 2;
 
   if (hideForBattlePhase) {
     return null;
@@ -52,10 +55,15 @@ export function Header(): React.ReactNode {
               alt="WAR ROOM"
               className="site-logo__image"
             />
+            {isS2Active ? (
+              <span className="site-logo__season-label">DEADSHOT</span>
+            ) : null}
           </button>
 
           <div className="site-header__wallet">
             <ProfilePanel />
+            <CommsDropdown />
+            <QueueAlertsToggle />
             <button
               type="button"
               className="site-header__audio-toggle"
@@ -68,7 +76,7 @@ export function Header(): React.ReactNode {
                 {audioMuted ? 'Off' : 'On'}
               </span>
             </button>
-            <ConnectButton />
+            <ConnectButton variant="header" />
           </div>
         </div>
 
@@ -93,13 +101,6 @@ export function Header(): React.ReactNode {
             onClick={() => navigate('/killfeed')}
           >
             Killfeed
-          </button>
-          <button
-            type="button"
-            className={`site-nav__button ${isChat ? 'site-nav__button--active' : ''}`}
-            onClick={() => navigate('/chat')}
-          >
-            Comms
           </button>
         </nav>
       </div>
