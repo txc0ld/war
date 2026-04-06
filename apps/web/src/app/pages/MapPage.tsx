@@ -1,4 +1,5 @@
 import { GameOverlay } from '@/components/battle/GameOverlay';
+import { S2GameOverlay } from '@/components/s2/S2GameOverlay';
 import { ConnectButton } from '@/components/wallet/ConnectButton';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
 import { Shell } from '@/components/layout/Shell';
@@ -27,6 +28,7 @@ export default function MapPage(): React.ReactNode {
   return (
     <Shell>
       <GameOverlay />
+      <S2GameOverlay />
     </Shell>
   );
 }
