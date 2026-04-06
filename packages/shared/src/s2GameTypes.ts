@@ -31,17 +31,27 @@ export interface PlayerState {
   alive: boolean;
 }
 
-// ── Spawn angles sent with round_start ──
+// ── Spawn angles sent with round_start (deprecated — use SpawnInfo) ──
 export interface SpawnAngles {
   yaw: number;
   pitch: number;
+}
+
+// ── Spawn info sent with round_start (position + facing direction) ──
+export interface SpawnInfo {
+  x: number;
+  y: number;
+  z: number;
+  facingYaw: number;
+  aimYaw: number;
+  aimPitch: number;
 }
 
 // ── Events emitted during a tick ──
 export type GameEvent =
   | { type: 'hit'; target: 0 | 1; zone: 'head' | 'body'; damage: number }
   | { type: 'kill'; killer: 0 | 1; victim: 0 | 1; headshot: boolean }
-  | { type: 'round_start'; round: number; positions: [SpawnAngles, SpawnAngles] }
+  | { type: 'round_start'; round: number; positions: [SpawnInfo, SpawnInfo] }
   | { type: 'round_end'; winner: 0 | 1 | null; score: [number, number] }
   | { type: 'match_end'; winner: 0 | 1; finalScore: [number, number] };
 

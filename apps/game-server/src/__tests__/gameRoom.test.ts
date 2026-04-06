@@ -62,11 +62,15 @@ describe('GameRoom', () => {
     let matchWinner: 0 | 1 | null = null;
 
     for (let round = 0; round < S2_MATCH_CONFIG.MAX_ROUNDS && !matchEnded; round++) {
-      room.startRound();
+      const roundEvent = room.startRound();
+      // Use the computed aimYaw from SpawnInfo so shots hit the opponent
+      const aimYaw = roundEvent.type === 'round_start' ? roundEvent.positions[0].aimYaw : 0;
+      const aimPitch = roundEvent.type === 'round_start' ? roundEvent.positions[0].aimPitch : 0;
+
       for (let tick = 0; tick < 200 && !matchEnded; tick++) {
         const elapsed = tick * (1000 / S2_MATCH_CONFIG.TICK_RATE);
         const shouldFire = elapsed % S2_MATCH_CONFIG.BOLT_CYCLE_MS < (1000 / S2_MATCH_CONFIG.TICK_RATE);
-        const input: ClientInput = { ...noInput, fire: shouldFire, timestamp: Date.now() };
+        const input: ClientInput = { ...noInput, aimYaw, aimPitch, fire: shouldFire, timestamp: Date.now() };
         const state = room.processTick([input, noInput]);
         for (const event of state.events) {
           if (event.type === 'match_end') {

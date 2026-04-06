@@ -17,6 +17,7 @@ import { OpponentRenderer } from './opponent.js';
 import { ScopeOverlay } from './scope.js';
 import { HudOverlay } from './hud.js';
 import { EffectsManager } from './effects.js';
+import { AudioManager } from './audio.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -44,9 +45,11 @@ export class DeadshotGame {
   #scope: ScopeOverlay | null = null;
   #hud: HudOverlay | null = null;
   #effects: EffectsManager | null = null;
+  #audio: AudioManager | null = null;
 
   // ── Per-frame tracking ───────────────────────────────────────────────────
   #lastScopeState: boolean = false;
+  #lastReloadingState: boolean = false;
   #roundScores: [number, number] = [0, 0];
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
@@ -74,6 +77,10 @@ export class DeadshotGame {
 
     // ── Effects manager ───────────────────────────────────────────────────────
     this.#effects = new EffectsManager(this.#scene.app);
+
+    // ── Audio manager ──────────────────────────────────────────────────────────
+    this.#audio = new AudioManager();
+    this.#audio.startAmbient();
 
     // ── Scope and HUD overlays ────────────────────────────────────────────────
     const overlayParent = canvas.parentElement ?? document.body;
@@ -163,6 +170,12 @@ export class DeadshotGame {
       this.#hud = null;
     }
 
+    // ── Audio ─────────────────────────────────────────────────────────────────
+    if (this.#audio !== null) {
+      this.#audio.destroy();
+      this.#audio = null;
+    }
+
     // ── Effects ───────────────────────────────────────────────────────────────
     if (this.#effects !== null) {
       this.#effects.destroy();
@@ -189,6 +202,7 @@ export class DeadshotGame {
 
     // Reset per-frame tracking state
     this.#lastScopeState = false;
+    this.#lastReloadingState = false;
     this.#roundScores = [0, 0];
   }
 
@@ -225,10 +239,12 @@ export class DeadshotGame {
         this.#scope?.show();
         this.#camera?.setZoom(inputState.scopeZoom);
         this.#weapon?.setScoped(true);
+        this.#audio?.play('scope_in');
       } else {
         this.#scope?.hide();
         this.#camera?.setZoom(0);
         this.#weapon?.setScoped(false);
+        this.#audio?.play('scope_out');
       }
     }
 
@@ -255,6 +271,12 @@ export class DeadshotGame {
       this.#hud.setTimer(roundTimer);
     }
 
+    // Track reload start for audio cue
+    if (localPlayer !== null && localPlayer.reloading && !this.#lastReloadingState) {
+      this.#audio?.play('reload');
+    }
+    this.#lastReloadingState = localPlayer?.reloading ?? false;
+
     // ── 7. Update opponent renderer ────────────────────────────────────────────
     this.#opponent?.update(opponentState);
 
@@ -267,6 +289,7 @@ export class DeadshotGame {
             // We hit the opponent
             this.#hud?.showHitMarker(evt.zone === 'head');
             this.#weapon?.triggerFire();
+            this.#audio?.play('gunshot');
 
             // Muzzle flash at camera position
             const camPos = this.#scene?.camera.getPosition().clone();
@@ -277,9 +300,14 @@ export class DeadshotGame {
               const opponentPos = new pc.Vec3(0, 1.0, -20);
               this.#effects.spawnTracer(camPos, opponentPos);
             }
+
+            // Bolt cycle sound after a brief delay
+            setTimeout(() => { this.#audio?.play('bolt_cycle'); }, 300);
+          } else {
+            // We got hit — play incoming bullet crack and hit feedback
+            this.#audio?.play('bullet_crack');
+            this.#audio?.play('hit_received');
           }
-          // If target is local player, no additional visual needed beyond
-          // the health bar update already handled via server state.
           break;
         }
 
@@ -291,11 +319,11 @@ export class DeadshotGame {
         }
 
         case 'round_start': {
-          // Set initial camera aim from this player's spawn angles
-          const spawnAngles = evt.positions[playerIndex];
-          this.#input?.setInitialAim(spawnAngles.yaw, spawnAngles.pitch);
+          // Set initial camera aim from this player's spawn info
+          const spawnInfo = evt.positions[playerIndex];
+          this.#input?.setInitialAim(spawnInfo.aimYaw, spawnInfo.aimPitch);
           if (this.#camera !== null) {
-            this.#camera.setAim(spawnAngles.yaw, spawnAngles.pitch);
+            this.#camera.setAim(spawnInfo.aimYaw, spawnInfo.aimPitch);
           }
 
           // Reset scope state on new round

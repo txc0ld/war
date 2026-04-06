@@ -1,6 +1,6 @@
 // apps/game-server/src/roundManager.ts
 import { S2_MATCH_CONFIG } from '@warpath/shared';
-import type { GameEvent, S2MatchResult, S2RoundResult, SpawnPair } from '@warpath/shared';
+import type { GameEvent, S2MatchResult, S2RoundResult, SpawnInfo, SpawnPair } from '@warpath/shared';
 import { ARENA_SPAWN_PAIRS } from './positions';
 
 type RoundPhase = 'countdown' | 'active' | 'round_over' | 'match_over';
@@ -25,10 +25,23 @@ export class RoundManager {
     this.timerMs = S2_MATCH_CONFIG.ROUND_DURATION_MS;
     this.currentRoundHeadshot = false;
 
+    const spawn = this.getCurrentSpawn();
+    const p0 = spawn.player0;
+    const p1 = spawn.player1;
+
+    // Compute the yaw offset each player needs to aim toward the opponent
+    const aim0Yaw = Math.atan2(p1.x - p0.x, p1.z - p0.z) - p0.facingYaw;
+    const aim1Yaw = Math.atan2(p0.x - p1.x, p0.z - p1.z) - p1.facingYaw;
+
+    const positions: [SpawnInfo, SpawnInfo] = [
+      { x: p0.x, y: p0.y, z: p0.z, facingYaw: p0.facingYaw, aimYaw: aim0Yaw, aimPitch: 0 },
+      { x: p1.x, y: p1.y, z: p1.z, facingYaw: p1.facingYaw, aimYaw: aim1Yaw, aimPitch: 0 },
+    ];
+
     return {
       type: 'round_start',
       round: this.roundNumber,
-      positions: [{ yaw: 0, pitch: 0 }, { yaw: 0, pitch: 0 }],
+      positions,
     };
   }
 
