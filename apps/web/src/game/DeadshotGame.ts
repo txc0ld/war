@@ -6,6 +6,8 @@
 import { createScene, destroyScene } from './scene.js';
 import type { SceneContext } from './scene.js';
 import type { GameConfig, GameEventMap, MatchResultEvent, GameErrorEvent } from './types.js';
+import { CameraController } from './camera.js';
+import { InputCapture } from './input.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -24,6 +26,8 @@ export class DeadshotGame {
   #scene: SceneContext | null = null;
   #config: GameConfig | null = null;
   #handlers: Map<keyof GameEventMap, Set<AnyHandler>> = new Map();
+  #camera: CameraController | null = null;
+  #input: InputCapture | null = null;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -37,6 +41,14 @@ export class DeadshotGame {
     }
     this.#config = config;
     this.#scene = createScene(canvas);
+
+    // ── Camera controller ────────────────────────────────────────────────────
+    this.#camera = new CameraController(this.#scene.camera);
+
+    // ── Input capture ────────────────────────────────────────────────────────
+    this.#input = new InputCapture(canvas);
+    this.#input.attach();
+
     // Emit 'connected' after scene setup succeeds.
     this.#emit('connected', undefined);
   }
@@ -45,6 +57,14 @@ export class DeadshotGame {
    * Tear down the PlayCanvas Application and remove all event handlers.
    */
   destroy(): void {
+    // ── Detach input before tearing down the scene ───────────────────────────
+    if (this.#input !== null) {
+      this.#input.detach();
+      this.#input = null;
+    }
+
+    this.#camera = null;
+
     if (this.#scene !== null) {
       destroyScene(this.#scene);
       this.#scene = null;
@@ -103,6 +123,14 @@ export class DeadshotGame {
 
   protected get config(): GameConfig | null {
     return this.#config;
+  }
+
+  protected get camera(): CameraController | null {
+    return this.#camera;
+  }
+
+  protected get input(): InputCapture | null {
+    return this.#input;
   }
 }
 
