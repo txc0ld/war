@@ -11,6 +11,8 @@ import { InputCapture } from './input.js';
 import { GameConnection } from './connection.js';
 import type { ConnectionHandlers } from './connection.js';
 import { StateManager } from './stateManager.js';
+import { WeaponRenderer } from './weapon.js';
+import { OpponentRenderer } from './opponent.js';
 
 // Handler type for each event key: undefined payload events use () => void.
 type EventHandler<K extends keyof GameEventMap> =
@@ -33,6 +35,8 @@ export class DeadshotGame {
   #input: InputCapture | null = null;
   #connection: GameConnection | null = null;
   #stateManager: StateManager = new StateManager();
+  #weapon: WeaponRenderer | null = null;
+  #opponent: OpponentRenderer | null = null;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -49,6 +53,13 @@ export class DeadshotGame {
 
     // ── Camera controller ────────────────────────────────────────────────────
     this.#camera = new CameraController(this.#scene.camera);
+
+    // ── Weapon renderer ───────────────────────────────────────────────────────
+    this.#weapon = new WeaponRenderer(this.#scene.camera, this.#scene.app);
+
+    // ── Opponent renderer ─────────────────────────────────────────────────────
+    this.#opponent = new OpponentRenderer(this.#scene.app);
+    this.#opponent.setSpawnPosition(0, -20);
 
     // ── Input capture ────────────────────────────────────────────────────────
     this.#input = new InputCapture(canvas);
@@ -115,6 +126,17 @@ export class DeadshotGame {
     }
 
     this.#camera = null;
+
+    // ── Weapon and opponent ───────────────────────────────────────────────────
+    if (this.#weapon !== null) {
+      this.#weapon.destroy();
+      this.#weapon = null;
+    }
+
+    if (this.#opponent !== null) {
+      this.#opponent.destroy();
+      this.#opponent = null;
+    }
 
     if (this.#scene !== null) {
       destroyScene(this.#scene);
