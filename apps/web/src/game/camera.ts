@@ -12,6 +12,41 @@ const FOV_LERP_SPEED = 12;
 const PITCH_MIN = -89;
 const PITCH_MAX = 89;
 
+// ── Scope sway ──────────────────────────────────────────────────────────────
+export const SWAY_CONFIG = {
+  BASE_AMPLITUDE: 0.004,      // radians (~0.23°)
+  YAW_FREQUENCY: 0.7,         // Hz
+  PITCH_FREQUENCY: 1.1,       // Hz (different from yaw for figure-8)
+  CROUCHED_MULTIPLIER: 0.35,  // crouching reduces sway significantly
+  ZOOM_MULTIPLIER_1X: 1.0,
+  ZOOM_MULTIPLIER_2X: 1.6,    // more sway at higher magnification
+} as const;
+
+export interface SwayResult {
+  yawOffset: number;
+  pitchOffset: number;
+}
+
+export function computeSway(
+  elapsed: number,
+  scoped: boolean,
+  stance: 'standing' | 'crouched',
+  zoomLevel: 1 | 2,
+): SwayResult {
+  if (!scoped || elapsed === 0) {
+    return { yawOffset: 0, pitchOffset: 0 };
+  }
+
+  const stanceMul = stance === 'crouched' ? SWAY_CONFIG.CROUCHED_MULTIPLIER : 1;
+  const zoomMul = zoomLevel === 2 ? SWAY_CONFIG.ZOOM_MULTIPLIER_2X : SWAY_CONFIG.ZOOM_MULTIPLIER_1X;
+  const amp = SWAY_CONFIG.BASE_AMPLITUDE * stanceMul * zoomMul;
+
+  return {
+    yawOffset: amp * Math.sin(elapsed * SWAY_CONFIG.YAW_FREQUENCY * Math.PI * 2),
+    pitchOffset: amp * Math.sin(elapsed * SWAY_CONFIG.PITCH_FREQUENCY * Math.PI * 2),
+  };
+}
+
 export class CameraController {
   readonly entity: pc.Entity;
 
@@ -19,6 +54,11 @@ export class CameraController {
   private pitch: number = 0;
   private targetFov: number = BASE_FOV;
   readonly baseFov: number = BASE_FOV;
+
+  private swayElapsed: number = 0;
+  private swayActive: boolean = false;
+  private swayStance: 'standing' | 'crouched' = 'standing';
+  private swayZoom: 1 | 2 = 1;
 
   constructor(entity: pc.Entity) {
     this.entity = entity;
@@ -53,6 +93,20 @@ export class CameraController {
     this.entity.setPosition(pos.x, eyeY, pos.z);
   }
 
+  enableSway(stance: 'standing' | 'crouched', zoomLevel: 1 | 2): void {
+    if (!this.swayActive) {
+      this.swayElapsed = 0;
+    }
+    this.swayActive = true;
+    this.swayStance = stance;
+    this.swayZoom = zoomLevel;
+  }
+
+  disableSway(): void {
+    this.swayActive = false;
+    this.swayElapsed = 0;
+  }
+
   /**
    * Set the zoom level.
    * 0 = no scope (60°), 1 = 2.5× (24°), 2 = 6× (10°).
@@ -75,12 +129,25 @@ export class CameraController {
     const cam = this.entity.camera;
     if (cam === null || cam === undefined) return;
 
+    // FOV lerp
     const currentFov: number = cam.fov;
     if (Math.abs(currentFov - this.targetFov) < 0.01) {
       cam.fov = this.targetFov;
-      return;
+    } else {
+      cam.fov = pc.math.lerp(currentFov, this.targetFov, FOV_LERP_SPEED * dt);
     }
 
-    cam.fov = pc.math.lerp(currentFov, this.targetFov, FOV_LERP_SPEED * dt);
+    // Scope sway
+    if (this.swayActive) {
+      this.swayElapsed += dt;
+      const sway = computeSway(this.swayElapsed, true, this.swayStance, this.swayZoom);
+      const swayYawDeg = sway.yawOffset * (180 / Math.PI);
+      const swayPitchDeg = sway.pitchOffset * (180 / Math.PI);
+      this.entity.setLocalEulerAngles(
+        pc.math.clamp(this.pitch + swayPitchDeg, PITCH_MIN, PITCH_MAX),
+        this.yaw + swayYawDeg,
+        0,
+      );
+    }
   }
 }

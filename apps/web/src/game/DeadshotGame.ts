@@ -51,6 +51,8 @@ export class DeadshotGame {
   #lastScopeState: boolean = false;
   #lastReloadingState: boolean = false;
   #roundScores: [number, number] = [0, 0];
+  #opponentSpawnX: number = 0;
+  #opponentSpawnZ: number = 50;
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -73,7 +75,7 @@ export class DeadshotGame {
 
     // ── Opponent renderer ─────────────────────────────────────────────────────
     this.#opponent = new OpponentRenderer(this.#scene.app);
-    this.#opponent.setSpawnPosition(0, -20);
+    this.#opponent.setSpawnPosition(0, 50);
 
     // ── Effects manager ───────────────────────────────────────────────────────
     this.#effects = new EffectsManager(this.#scene.app);
@@ -204,6 +206,8 @@ export class DeadshotGame {
     this.#lastScopeState = false;
     this.#lastReloadingState = false;
     this.#roundScores = [0, 0];
+    this.#opponentSpawnX = 0;
+    this.#opponentSpawnZ = 50;
   }
 
   // ── Frame update ──────────────────────────────────────────────────────────
@@ -240,17 +244,20 @@ export class DeadshotGame {
         this.#camera?.setZoom(inputState.scopeZoom);
         this.#weapon?.setScoped(true);
         this.#audio?.play('scope_in');
+        this.#camera?.enableSway(inputState.crouch ? 'crouched' : 'standing', inputState.scopeZoom);
       } else {
         this.#scope?.hide();
         this.#camera?.setZoom(0);
         this.#weapon?.setScoped(false);
         this.#audio?.play('scope_out');
+        this.#camera?.disableSway();
       }
     }
 
-    // While scoped, sync zoom level in case the player changed it (1x ↔ 2x).
+    // While scoped, keep sway params and zoom in sync
     if (scopeNow && this.#camera !== null) {
       this.#camera.setZoom(inputState.scopeZoom);
+      this.#camera.enableSway(inputState.crouch ? 'crouched' : 'standing', inputState.scopeZoom);
     }
 
     // ── 4. Build and send client input ────────────────────────────────────────
@@ -297,7 +304,7 @@ export class DeadshotGame {
               this.#effects.spawnMuzzleFlash(camPos);
 
               // Tracer from camera to opponent root
-              const opponentPos = new pc.Vec3(0, 1.0, -20);
+              const opponentPos = new pc.Vec3(this.#opponentSpawnX, 1.0, this.#opponentSpawnZ);
               this.#effects.spawnTracer(camPos, opponentPos);
             }
 
@@ -319,18 +326,27 @@ export class DeadshotGame {
         }
 
         case 'round_start': {
-          // Set initial camera aim from this player's spawn info
-          const spawnInfo = evt.positions[playerIndex];
-          this.#input?.setInitialAim(spawnInfo.aimYaw, spawnInfo.aimPitch);
+          const playerSpawn = evt.positions[playerIndex];
+          const opponentSpawn = evt.positions[opponentIndex];
+
+          // Position camera at player's spawn
+          this.#camera?.setPosition(playerSpawn.x, 0, playerSpawn.z);
+          this.#input?.setInitialAim(playerSpawn.aimYaw, playerSpawn.aimPitch);
           if (this.#camera !== null) {
-            this.#camera.setAim(spawnInfo.aimYaw, spawnInfo.aimPitch);
+            this.#camera.setAim(playerSpawn.aimYaw, playerSpawn.aimPitch);
           }
+
+          // Position opponent at their spawn
+          this.#opponent?.setSpawnPosition(opponentSpawn.x, opponentSpawn.z);
+          this.#opponentSpawnX = opponentSpawn.x;
+          this.#opponentSpawnZ = opponentSpawn.z;
 
           // Reset scope state on new round
           this.#lastScopeState = false;
           this.#scope?.hide();
           this.#camera?.setZoom(0);
           this.#weapon?.setScoped(false);
+          this.#camera?.disableSway();
           break;
         }
 
