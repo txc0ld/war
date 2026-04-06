@@ -1,13 +1,14 @@
 // apps/web/src/game/DeadshotGame.ts
-// Skeleton orchestrator for the Deadshot PlayCanvas sniper duel.
+// Orchestrator for the Deadshot PlayCanvas sniper duel.
 // React mounts the canvas and calls init(); the rest of the game layer is
 // imperative — React never reaches inside the PlayCanvas scene.
 
+import * as pc from 'playcanvas';
 import { createScene, destroyScene } from './scene.js';
 import type { SceneContext } from './scene.js';
 import type { GameConfig, GameEventMap, MatchResultEvent, GameErrorEvent } from './types.js';
 import { CameraController } from './camera.js';
-import { InputCapture } from './input.js';
+import { InputCapture, buildClientInput } from './input.js';
 import { GameConnection } from './connection.js';
 import type { ConnectionHandlers } from './connection.js';
 import { StateManager } from './stateManager.js';
@@ -43,6 +44,10 @@ export class DeadshotGame {
   #scope: ScopeOverlay | null = null;
   #hud: HudOverlay | null = null;
   #effects: EffectsManager | null = null;
+
+  // ── Per-frame tracking ───────────────────────────────────────────────────
+  #lastScopeState: boolean = false;
+  #roundScores: [number, number] = [0, 0];
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -83,16 +88,16 @@ export class DeadshotGame {
     // ── WebSocket connection ──────────────────────────────────────────────────
     const connectionHandlers: ConnectionHandlers = {
       onAuth: (_msg) => {
-        // Full game-loop wiring will be added in a subsequent task.
+        this.#emit('connected', undefined);
       },
       onAuthError: (_msg) => {
         this.#emit('error', { reason: _msg.reason });
       },
       onWaiting: (_msg) => {
-        // No action needed at this layer yet.
+        // No action needed — waiting for opponent to join.
       },
-      onCountdown: (_msg) => {
-        // Round countdown handling will be wired in a subsequent task.
+      onCountdown: (msg) => {
+        this.#hud?.showCountdown(msg.seconds);
       },
       onState: (msg) => {
         this.#stateManager.pushState(msg.state);
@@ -119,14 +124,19 @@ export class DeadshotGame {
     this.#connection = new GameConnection(connectionHandlers);
     this.#connection.connect(config.wsUrl, config.roomId, config.roomToken);
 
-    // Emit 'connected' after scene setup succeeds.
-    this.#emit('connected', undefined);
+    // ── Register frame update ─────────────────────────────────────────────────
+    this.#scene.app.on('update', this.#onUpdate, this);
   }
 
   /**
    * Tear down the PlayCanvas Application and remove all event handlers.
    */
   destroy(): void {
+    // ── Deregister frame update ───────────────────────────────────────────────
+    if (this.#scene !== null) {
+      this.#scene.app.off('update', this.#onUpdate, this);
+    }
+
     // ── Close WebSocket and reset state ──────────────────────────────────────
     if (this.#connection !== null) {
       this.#connection.disconnect();
@@ -176,6 +186,153 @@ export class DeadshotGame {
     }
     this.#config = null;
     this.#handlers.clear();
+
+    // Reset per-frame tracking state
+    this.#lastScopeState = false;
+    this.#roundScores = [0, 0];
+  }
+
+  // ── Frame update ──────────────────────────────────────────────────────────
+
+  /**
+   * Main game loop tick. Registered with `app.on('update', ...)` and receives
+   * delta time in seconds from PlayCanvas.
+   */
+  #onUpdate(dt: number): void {
+    const config = this.#config;
+    if (config === null) return;
+
+    const playerIndex = config.playerIndex;
+    const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
+
+    // ── 1. Read input state ────────────────────────────────────────────────────
+    const inputState = this.#input?.getState();
+    if (inputState === undefined) return;
+
+    // ── 2. Update camera aim and stance ───────────────────────────────────────
+    if (this.#camera !== null) {
+      this.#camera.setAim(inputState.aimYaw, inputState.aimPitch);
+      this.#camera.setStance(inputState.crouch ? 'crouched' : 'standing');
+      this.#camera.update(dt);
+    }
+
+    // ── 3. Scope toggle detection ──────────────────────────────────────────────
+    const scopeNow = inputState.scope;
+    if (scopeNow !== this.#lastScopeState) {
+      this.#lastScopeState = scopeNow;
+
+      if (scopeNow) {
+        this.#scope?.show();
+        this.#camera?.setZoom(inputState.scopeZoom);
+        this.#weapon?.setScoped(true);
+      } else {
+        this.#scope?.hide();
+        this.#camera?.setZoom(0);
+        this.#weapon?.setScoped(false);
+      }
+    }
+
+    // While scoped, sync zoom level in case the player changed it (1x ↔ 2x).
+    if (scopeNow && this.#camera !== null) {
+      this.#camera.setZoom(inputState.scopeZoom);
+    }
+
+    // ── 4. Build and send client input ────────────────────────────────────────
+    // buildClientInput resets one-shot flags (fire, reload) — call exactly once.
+    const clientInput = buildClientInput(inputState);
+    this.#connection?.sendInput(clientInput);
+
+    // ── 5. Read server state ───────────────────────────────────────────────────
+    const localPlayer = this.#stateManager.getLocalPlayer(playerIndex);
+    const opponentState = this.#stateManager.getInterpolatedOpponent(opponentIndex, 0.5);
+    const roundTimer = this.#stateManager.getRoundTimer();
+
+    // ── 6. Update HUD ─────────────────────────────────────────────────────────
+    if (this.#hud !== null && localPlayer !== null) {
+      this.#hud.setHealth(localPlayer.hp);
+      this.#hud.setAmmo(localPlayer.ammo, localPlayer.reloading);
+      this.#hud.setRoundScore(this.#roundScores[playerIndex], this.#roundScores[opponentIndex]);
+      this.#hud.setTimer(roundTimer);
+    }
+
+    // ── 7. Update opponent renderer ────────────────────────────────────────────
+    this.#opponent?.update(opponentState);
+
+    // ── 8. Process server events ───────────────────────────────────────────────
+    const events = this.#stateManager.consumeEvents();
+    for (const evt of events) {
+      switch (evt.type) {
+        case 'hit': {
+          if (evt.target === opponentIndex) {
+            // We hit the opponent
+            this.#hud?.showHitMarker(evt.zone === 'head');
+            this.#weapon?.triggerFire();
+
+            // Muzzle flash at camera position
+            const camPos = this.#scene?.camera.getPosition().clone();
+            if (camPos !== undefined && this.#effects !== null) {
+              this.#effects.spawnMuzzleFlash(camPos);
+
+              // Tracer from camera to opponent root
+              const opponentPos = new pc.Vec3(0, 1.0, -20);
+              this.#effects.spawnTracer(camPos, opponentPos);
+            }
+          }
+          // If target is local player, no additional visual needed beyond
+          // the health bar update already handled via server state.
+          break;
+        }
+
+        case 'kill': {
+          if (evt.killer === playerIndex) {
+            this.#hud?.showKillBanner(evt.headshot);
+          }
+          break;
+        }
+
+        case 'round_start': {
+          // Set initial camera aim from this player's spawn angles
+          const spawnAngles = evt.positions[playerIndex];
+          this.#input?.setInitialAim(spawnAngles.yaw, spawnAngles.pitch);
+          if (this.#camera !== null) {
+            this.#camera.setAim(spawnAngles.yaw, spawnAngles.pitch);
+          }
+
+          // Reset scope state on new round
+          this.#lastScopeState = false;
+          this.#scope?.hide();
+          this.#camera?.setZoom(0);
+          this.#weapon?.setScoped(false);
+          break;
+        }
+
+        case 'round_end': {
+          // Update round scores
+          this.#roundScores = [evt.score[0], evt.score[1]];
+          break;
+        }
+
+        case 'match_end': {
+          // match_end is also delivered via onMatchResult from the connection,
+          // which emits 'match_result' to the React layer. No duplicate action needed.
+          break;
+        }
+
+        default: {
+          // Exhaustiveness guard — TypeScript will error if a new GameEvent
+          // variant is added without a case above.
+          const _exhaustive: never = evt;
+          void _exhaustive;
+          break;
+        }
+      }
+    }
+
+    // ── 9. Update weapon animations ────────────────────────────────────────────
+    this.#weapon?.update(dt);
+
+    // ── 10. Update visual effects ──────────────────────────────────────────────
+    this.#effects?.update(dt);
   }
 
   // ── Typed event emitter ──────────────────────────────────────────────────
