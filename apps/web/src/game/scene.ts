@@ -126,7 +126,9 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
     toneMapping: pc.TONEMAP_ACES,
     gammaCorrection: pc.GAMMA_SRGB,
   });
-  camera.setPosition(0, 1.65, 0);
+  // Start the camera near the centre of the arena (Z midpoint = 32) facing
+  // toward the north flank so the urban scene is immediately in view.
+  camera.setPosition(0, 1.65, 32);
   camera.setLocalEulerAngles(0, 0, 0);
   app.root.addChild(camera);
 

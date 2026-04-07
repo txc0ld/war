@@ -12,7 +12,7 @@ import type { ClientInput } from '@warpath/shared';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const MOUSE_SENSITIVITY = 0.002;
+const MOUSE_SENSITIVITY = 0.0035;
 const PITCH_MIN = -89;
 const PITCH_MAX = 89;
 

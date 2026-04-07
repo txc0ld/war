@@ -324,9 +324,31 @@ export class DeadshotGame {
     }
 
     // ── 4. Build and send client input ────────────────────────────────────────
-    // buildClientInput resets one-shot flags (fire, reload) — call exactly once.
+    // Capture one-shot flags BEFORE buildClientInput resets them — preview
+    // mode uses these to fake local fire feedback.
+    const firedThisFrame = inputState.fire;
+    const reloadedThisFrame = inputState.reload;
     const clientInput = buildClientInput(inputState);
     this.#connection?.sendInput(clientInput);
+
+    // ── 4b. Preview-mode fire feedback (no server, so do it locally) ──────────
+    if (config.previewMode && firedThisFrame) {
+      this.#weapon?.triggerFire();
+      this.#audio?.play('gunshot');
+      const camPos = this.#scene?.camera.getPosition().clone();
+      if (camPos !== undefined && this.#effects !== null && this.#scene !== null) {
+        this.#effects.spawnMuzzleFlash(camPos);
+        // Tracer 100 m forward along the camera's current facing
+        const forward = this.#scene.camera.forward.clone().mulScalar(100);
+        const tracerEnd = new pc.Vec3().add2(camPos, forward);
+        this.#effects.spawnTracer(camPos, tracerEnd);
+      }
+      setTimeout(() => { this.#audio?.play('bolt_cycle'); }, 300);
+    }
+    if (config.previewMode && reloadedThisFrame) {
+      this.#weapon?.triggerReload();
+      this.#audio?.play('reload');
+    }
 
     // ── 5. Read server state ───────────────────────────────────────────────────
     const localPlayer = this.#stateManager.getLocalPlayer(playerIndex);
