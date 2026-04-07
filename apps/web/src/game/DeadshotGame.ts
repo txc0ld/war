@@ -438,15 +438,13 @@ export class DeadshotGame {
     this.#lastReloadingState = localPlayer?.reloading ?? false;
 
     // ── 7. Update opponent renderer ────────────────────────────────────────────
-    // In preview mode there is no real opponent. To make the soldier model
-    // visible and show the animation system working, place a synthetic
-    // opponent ~10 m in front of the camera, facing back at the player.
+    // In preview mode there is no real opponent. Place the soldier at a fixed
+    // world position so we can walk around it and inspect the model + idle
+    // animation. Do NOT recompute position relative to camera each frame —
+    // that makes the soldier appear to follow the player.
     if (config.previewMode) {
-      const yawRad = inputState.aimYaw * (Math.PI / 180);
-      const fwdX = -Math.sin(yawRad);
-      const fwdZ = -Math.cos(yawRad);
       const previewOpponent = {
-        aimYaw: inputState.aimYaw + 180,  // face the player
+        aimYaw: 180,             // face -Z (back toward spawn)
         aimPitch: 0,
         stance: 'standing' as const,
         scoped: false,
@@ -454,9 +452,9 @@ export class DeadshotGame {
         ammo: 5,
         reloading: false,
         alive: true,
-        x: this.#previewX + fwdX * 10,
+        x: 5,
         y: 0,
-        z: this.#previewZ + fwdZ * 10,
+        z: 45,
       };
       this.#opponent?.update(previewOpponent);
     } else {

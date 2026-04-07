@@ -104,13 +104,21 @@ export class OpponentRenderer {
     });
     entity.name = 'OpponentSoldier';
     entity.setLocalScale(SOLDIER_SCALE, SOLDIER_SCALE, SOLDIER_SCALE);
-    // Many character models are authored facing -Z; rotate so positive aimYaw
-    // turns the soldier the way the player is looking. We add 180° in update()
-    // anyway to face the camera by default.
-    entity.setLocalEulerAngles(0, 0, 0);
+    // The Mixamo Vanguard glb stores the skeleton in a Mixamo-style Z-up
+    // orientation. PlayCanvas's instantiateRenderEntity does NOT carry the
+    // glTF root-node correction matrix that three.js applies, so the soldier
+    // ends up laying on its back. Rotate -90° around X to stand it upright,
+    // and 180° around Y so its chest faces -Z (toward the camera at default
+    // yaw=0). The parent #root entity owns the WORLD yaw rotation, so this
+    // local fix is preserved when we yaw the opponent each frame.
+    entity.setLocalEulerAngles(-90, 180, 0);
     this.#root.addChild(entity);
     this.#soldierEntity = entity;
     this.#placeholder.enabled = false;
+
+    // Diagnostic: log container contents so we can see what we're working with.
+    // eslint-disable-next-line no-console
+    console.log('[opponent] mounted soldier, container resource:', container);
 
     // ── Anim component + state graph ──
     // PlayCanvas's anim API expects a state graph. The simplest viable graph
@@ -124,6 +132,16 @@ export class OpponentRenderer {
 
     const containerAny = container as unknown as { animations?: pc.Asset[] };
     const animAssets = containerAny.animations ?? [];
+    // eslint-disable-next-line no-console
+    console.log(
+      '[opponent] animation assets:',
+      animAssets.map((a) => ({
+        name: a.name,
+        type: a.type,
+        loaded: a.loaded,
+        hasResource: a.resource !== null && a.resource !== undefined,
+      })),
+    );
 
     // Build a state graph definition: Start → Idle, with a separate Run state.
     // Both states loop. Transitions between them are driven imperatively in
@@ -155,20 +173,35 @@ export class OpponentRenderer {
     }
 
     // Assign each loaded animation track to the matching state by name.
+    // The three.js examples Soldier.glb ships 4 clips: Idle, Walk, Run, TPose.
+    // We only need Idle + Run for now. We accept any clip whose name CONTAINS
+    // 'idle' or 'run' (case-insensitive) to be tolerant of "mixamo.com" prefixes
+    // and similar exporter quirks.
+    let assignedIdle = false;
+    let assignedRun = false;
     for (const animAsset of animAssets) {
       const track = animAsset.resource as pc.AnimTrack | undefined;
-      if (track === undefined) continue;
-      const name = animAsset.name ?? track.name ?? '';
+      if (track === undefined || track === null) continue;
+      const rawName = animAsset.name ?? track.name ?? '';
+      const lower = rawName.toLowerCase();
+      let target: 'Idle' | 'Run' | null = null;
+      if (lower.includes('idle')) target = 'Idle';
+      else if (lower.includes('run')) target = 'Run';
+      if (target === null) continue;
       try {
-        if (name === 'Idle' || name === 'Run') {
-          // Pass explicit layer name to pick the multi-layer overload.
-          entity.anim?.assignAnimation(name, track, 'Base', 1, true);
-        }
+        // Pass explicit layer name to pick the multi-layer overload.
+        entity.anim?.assignAnimation(target, track, 'Base', 1, true);
+        if (target === 'Idle') assignedIdle = true;
+        if (target === 'Run') assignedRun = true;
+        // eslint-disable-next-line no-console
+        console.log(`[opponent] assigned ${rawName} → ${target}`);
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.warn(`[opponent] assignAnimation(${name}) failed:`, e);
+        console.warn(`[opponent] assignAnimation(${rawName} → ${target}) failed:`, e);
       }
     }
+    // eslint-disable-next-line no-console
+    console.log(`[opponent] anim summary: idle=${assignedIdle} run=${assignedRun}`);
 
     try {
       entity.anim?.baseLayer?.play('Idle');
