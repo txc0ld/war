@@ -25,6 +25,7 @@ interface ArenaMaterialMap {
 }
 
 const ASSET_BASE = '/assets/s2/arena';
+const MODELS_BASE = '/assets/s2/models';
 
 // ── Material factory helpers ────────────────────────────────────────────────
 
@@ -420,6 +421,166 @@ async function loadArenaAssets(
   // Drop the explicit ambient now that environment lighting is doing the
   // heavy lifting — keeping the constant ambient on top would double-up.
   app.scene.ambientLight = new pc.Color(0, 0, 0);
+
+  // ── 3. Polyhaven props (instanced into the arena) ────────────────────────
+  // Load each model once, then clone it across multiple positions. The model
+  // load happens in parallel and is fire-and-forget — props pop in when ready.
+  loadProps(app).catch((err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.warn('[scene] props loading failed:', err);
+  });
+}
+
+// ── glTF model loader ──────────────────────────────────────────────────────
+
+interface ModelTemplate {
+  containerResource: pc.ContainerResource;
+}
+
+function loadModel(app: pc.Application, slug: string): Promise<ModelTemplate> {
+  return new Promise((resolve, reject) => {
+    const url = `${MODELS_BASE}/${slug}/${slug}_1k.gltf`;
+    app.assets.loadFromUrl(url, 'container', (err, asset) => {
+      if (err !== null || asset === undefined) {
+        reject(new Error(`Failed to load model ${slug}: ${err ?? 'unknown'}`));
+        return;
+      }
+      resolve({ containerResource: asset.resource as pc.ContainerResource });
+    });
+  });
+}
+
+interface PropPlacement {
+  pos: [number, number, number];
+  scale?: number;
+  rotY?: number;
+}
+
+function placeModel(
+  app: pc.Application,
+  template: ModelTemplate,
+  name: string,
+  placements: PropPlacement[]
+): void {
+  for (let i = 0; i < placements.length; i++) {
+    const p = placements[i]!;
+    const entity = template.containerResource.instantiateRenderEntity({
+      castShadows: true,
+      receiveShadows: true,
+    });
+    entity.name = `${name}_${i}`;
+    entity.setPosition(p.pos[0], p.pos[1], p.pos[2]);
+    if (p.scale !== undefined) entity.setLocalScale(p.scale, p.scale, p.scale);
+    if (p.rotY !== undefined) entity.setLocalEulerAngles(0, p.rotY, 0);
+    app.root.addChild(entity);
+  }
+}
+
+async function loadProps(app: pc.Application): Promise<void> {
+  // Load all 10 prop models in parallel, then place each at curated positions.
+  const [
+    barrier,
+    barrier2,
+    barrelA,
+    barrelB,
+    crate,
+    car,
+    propaneTank,
+    powerBox,
+    cardboardBox,
+    pipeLamp,
+  ] = await Promise.all([
+    loadModel(app, 'concrete_road_barrier'),
+    loadModel(app, 'concrete_road_barrier_02'),
+    loadModel(app, 'Barrel_01'),
+    loadModel(app, 'Barrel_02'),
+    loadModel(app, 'wooden_crate_01'),
+    loadModel(app, 'covered_car'),
+    loadModel(app, 'propane_tank'),
+    loadModel(app, 'power_box_01'),
+    loadModel(app, 'cardboard_box_01'),
+    loadModel(app, 'industrial_pipe_lamp'),
+  ]);
+
+  // ── Concrete road barriers ── classic urban warzone cover, scattered
+  // through the centre of the arena to break sightlines.
+  placeModel(app, barrier, 'Barrier', [
+    { pos: [-6, 0, 14], rotY: 0 },
+    { pos: [6, 0, 14], rotY: 0 },
+    { pos: [-6, 0, 50], rotY: 0 },
+    { pos: [6, 0, 50], rotY: 0 },
+    { pos: [-12, 0, 32], rotY: 90 },
+    { pos: [12, 0, 32], rotY: 90 },
+    { pos: [0, 0, 22], rotY: 0 },
+    { pos: [0, 0, 42], rotY: 0 },
+  ]);
+
+  placeModel(app, barrier2, 'BarrierAlt', [
+    { pos: [-18, 0, 24], rotY: 30 },
+    { pos: [18, 0, 40], rotY: -30 },
+    { pos: [-25, 0, 32], rotY: 0 },
+    { pos: [25, 0, 32], rotY: 0 },
+  ]);
+
+  // ── Fuel barrels ── clusters near the wrecked vehicles
+  placeModel(app, barrelA, 'BarrelA', [
+    { pos: [-21, 0, 16] },
+    { pos: [-19, 0, 17] },
+    { pos: [22, 0, 48], rotY: 30 },
+    { pos: [4, 0, 32] },
+    { pos: [-4, 0, 28] },
+    { pos: [3, 0, 56] },
+  ]);
+
+  placeModel(app, barrelB, 'BarrelB', [
+    { pos: [-23, 0, 18], rotY: 45 },
+    { pos: [21, 0, 50], rotY: -20 },
+    { pos: [-3, 0, 36], rotY: 60 },
+    { pos: [4, 0, 24], rotY: -10 },
+  ]);
+
+  // ── Wooden crates ── supply piles
+  placeModel(app, crate, 'Crate', [
+    { pos: [10, 0, 10], rotY: 15 },
+    { pos: [-10, 0, 10], rotY: -15 },
+    { pos: [10, 0, 54], rotY: -10 },
+    { pos: [-10, 0, 54], rotY: 20 },
+    { pos: [-28, 0, 32] },
+    { pos: [28, 0, 32], rotY: 25 },
+  ]);
+
+  // ── Wrecked vehicles ── two of them on opposing flanks
+  placeModel(app, car, 'WreckedCar', [
+    { pos: [-22, 0, 18], rotY: 80 },
+    { pos: [22, 0, 46], rotY: -100 },
+    { pos: [0, 0, 64], rotY: 90 },
+  ]);
+
+  // ── Propane / utility ── street-level dressing
+  placeModel(app, propaneTank, 'PropaneTank', [
+    { pos: [-30, 0, 10], rotY: 90 },
+    { pos: [30, 0, 54], rotY: -90 },
+  ]);
+
+  placeModel(app, powerBox, 'PowerBox', [
+    { pos: [-32, 0, 22], rotY: 90 },
+    { pos: [32, 0, 42], rotY: -90 },
+  ]);
+
+  placeModel(app, cardboardBox, 'Cardboard', [
+    { pos: [-8, 0, 6] },
+    { pos: [8, 0, 6], rotY: 30 },
+    { pos: [-8, 0, 58], rotY: -30 },
+    { pos: [8, 0, 58] },
+  ]);
+
+  // ── Pipe street lamps ── perimeter atmosphere
+  placeModel(app, pipeLamp, 'StreetLamp', [
+    { pos: [-32, 0, 5], rotY: 0 },
+    { pos: [32, 0, 5], rotY: 0 },
+    { pos: [-32, 0, 60], rotY: 0 },
+    { pos: [32, 0, 60], rotY: 0 },
+  ]);
 }
 
 /**
