@@ -22,11 +22,12 @@ import type { PlayerState } from '@warpath/shared';
 const SOLDIER_URL = '/assets/s2/characters/soldier.glb';
 
 /**
- * The soldier glb is roughly 1.8 m tall in its source units. The HITBOX
- * standing height is 1.65 m. Empirical fudge factor — adjust if the
- * head ends up too high or too low relative to the head hitbox.
+ * The Mixamo Vanguard glb authored by three.js stores positions in
+ * CENTIMETRES, not metres. Without scaling, the soldier is ~180 m tall.
+ * 0.01 brings it down to a real-world ~1.8 m which fits the HITBOX
+ * standing height of 1.65 m.
  */
-const SOLDIER_SCALE = 1.0;
+const SOLDIER_SCALE = 0.01;
 
 /**
  * Speed (in metres per second) above which we switch the soldier into the

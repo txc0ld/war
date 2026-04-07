@@ -438,7 +438,30 @@ export class DeadshotGame {
     this.#lastReloadingState = localPlayer?.reloading ?? false;
 
     // ── 7. Update opponent renderer ────────────────────────────────────────────
-    this.#opponent?.update(opponentState);
+    // In preview mode there is no real opponent. To make the soldier model
+    // visible and show the animation system working, place a synthetic
+    // opponent ~10 m in front of the camera, facing back at the player.
+    if (config.previewMode) {
+      const yawRad = inputState.aimYaw * (Math.PI / 180);
+      const fwdX = -Math.sin(yawRad);
+      const fwdZ = -Math.cos(yawRad);
+      const previewOpponent = {
+        aimYaw: inputState.aimYaw + 180,  // face the player
+        aimPitch: 0,
+        stance: 'standing' as const,
+        scoped: false,
+        hp: 100,
+        ammo: 5,
+        reloading: false,
+        alive: true,
+        x: this.#previewX + fwdX * 10,
+        y: 0,
+        z: this.#previewZ + fwdZ * 10,
+      };
+      this.#opponent?.update(previewOpponent);
+    } else {
+      this.#opponent?.update(opponentState);
+    }
 
     // ── 8. Process server events ───────────────────────────────────────────────
     const events = this.#stateManager.consumeEvents();
