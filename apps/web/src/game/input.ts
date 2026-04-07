@@ -52,12 +52,10 @@ export function createInputState(): InputState {
 /**
  * Accumulate mouse movement into state.
  *
- * The pitch sign is set so that, after PlayCanvas applies the value via
- * setLocalEulerAngles(pitch, yaw, 0), moving the mouse UP makes the camera
- * look UP — the standard FPS convention. Empirically with PlayCanvas v2's
- * YXZ rotation order on a default-forward (-Z) camera, that means we ADD dy
- * (browser dy is positive when mouse moves DOWN, so adding it makes pitch
- * decrease, which tilts the camera UP).
+ * Standard FPS convention. Browser `dy` is positive when the mouse moves
+ * DOWN, so subtracting it makes `aimPitch` increase when the mouse moves up.
+ * Combined with PlayCanvas's right-handed positive-X-rotation = look UP,
+ * this gives mouse-up → camera-up.
  */
 export function applyMouseDelta(
   state: InputState,
@@ -66,7 +64,7 @@ export function applyMouseDelta(
   sensitivity: number,
 ): void {
   state.aimYaw += dx * sensitivity;
-  state.aimPitch += dy * sensitivity;
+  state.aimPitch -= dy * sensitivity;
   state.aimPitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, state.aimPitch));
 }
 

@@ -377,12 +377,18 @@ export class DeadshotGame {
     // positions; we snap the camera to the latest. In preview mode there is no
     // server, so we integrate WASD intent locally with the same constants the
     // server uses.
-    if (this.#camera !== null) {
+    //
+    // CRITICAL: preserve the Y coordinate that setStance() set on this same
+    // frame. Setting Y to 0 here puts the camera eye AT GROUND LEVEL, which
+    // makes the player feel "stuck in the floor" with the ground plane
+    // running through the centre of the screen.
+    if (this.#camera !== null && this.#scene !== null) {
+      const currentEyeY = this.#scene.camera.getPosition().y;
       if (config.previewMode) {
         this.#applyPreviewMovement(inputState, dt);
-        this.#camera.setPosition(this.#previewX, 0, this.#previewZ);
+        this.#camera.setPosition(this.#previewX, currentEyeY, this.#previewZ);
       } else if (localPlayer !== null) {
-        this.#camera.setPosition(localPlayer.x, 0, localPlayer.z);
+        this.#camera.setPosition(localPlayer.x, currentEyeY, localPlayer.z);
       }
     }
 
