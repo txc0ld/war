@@ -124,13 +124,19 @@ export function ArmorySelector(): React.ReactNode {
 
   const { address } = useAccount();
 
-  // Pick a sniper and close the modal in one action.
+  // Pick a sniper. The slice's setS2SelectedSniper auto-closes the modal.
   const handleSelectAndClose = useCallback(
     (sniper: SniperMetadata) => {
+      // eslint-disable-next-line no-console
+      console.log('[s2:armory] click', { tokenId: sniper.tokenId, name: sniper.name });
       setS2SelectedSniper(sniper);
-      closeArmory();
+      // eslint-disable-next-line no-console
+      console.log('[s2:armory] after-set', {
+        selected: useStore.getState().s2SelectedSniper?.tokenId ?? null,
+        showArmory: useStore.getState().showArmory,
+      });
     },
-    [setS2SelectedSniper, closeArmory],
+    [setS2SelectedSniper],
   );
 
   // Fetch snipers when armory opens and we have a connected address

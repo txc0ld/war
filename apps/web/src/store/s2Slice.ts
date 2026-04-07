@@ -60,8 +60,11 @@ export function createS2Slice(
     showArmory: false,
 
     setS2Phase: (phase: S2Phase) => set({ s2Phase: phase }),
-    setS2SelectedSniper: (sniper: SniperMetadata | null) =>
-      set({ s2SelectedSniper: sniper, showArmory: false }),
+    setS2SelectedSniper: (sniper: SniperMetadata | null) => {
+      // eslint-disable-next-line no-console
+      console.log('[s2:slice] setS2SelectedSniper', sniper);
+      set({ s2SelectedSniper: sniper, showArmory: false });
+    },
     setS2Snipers: (snipers: SniperMetadata[], loading: boolean) =>
       set({ s2Snipers: snipers, s2SnipersLoading: loading }),
     setS2Queue: (queueId: string | null, statusToken: string | null) =>
