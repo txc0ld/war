@@ -14,13 +14,15 @@ const client = createPublicClient({
 
 // ── Dev mock snipers ────────────────────────────────────────────────────────
 // When S2_DEV_MOCK_SNIPERS=true, every wallet "owns" the mock set below.
-// This lets developers test the full game loop without a deployed contract.
+// Two snipers — one cyan, one red — so testers can pick distinct loadouts.
+// Safe to enable in production only when the site is gated (e.g. password gate),
+// since it lets ANY signer queue with these token ids.
 const DEV_MOCK_ENABLED = process.env['S2_DEV_MOCK_SNIPERS'] === 'true';
 
 const MOCK_SNIPERS: SniperMetadata[] = [
   {
     tokenId: 1,
-    name: 'Test Sniper #1',
+    name: 'Operator Alpha',
     image: '',
     skin: 'desert',
     scopeReticle: 'crosshair',
@@ -30,22 +32,12 @@ const MOCK_SNIPERS: SniperMetadata[] = [
   },
   {
     tokenId: 2,
-    name: 'Test Sniper #2',
+    name: 'Operator Bravo',
     image: '',
     skin: 'arctic',
     scopeReticle: 'mil-dot',
     killEffect: 'default',
     tracerColor: '#ff3333',
-    inspectAnimation: 'default',
-  },
-  {
-    tokenId: 3,
-    name: 'Test Sniper #3',
-    image: '',
-    skin: 'urban',
-    scopeReticle: 'chevron',
-    killEffect: 'default',
-    tracerColor: '#ccff00',
     inspectAnimation: 'default',
   },
 ];
