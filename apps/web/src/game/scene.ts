@@ -13,6 +13,19 @@ export interface SceneContext {
   ground: pc.Entity;
 }
 
+interface ArenaMaterialMap {
+  ground: pc.StandardMaterial;
+  concrete: pc.StandardMaterial;
+  brick: pc.StandardMaterial;
+  darkConcrete: pc.StandardMaterial;
+  metal: pc.StandardMaterial;
+  wood: pc.StandardMaterial;
+  rust: pc.StandardMaterial;
+  sandbag: pc.StandardMaterial;
+}
+
+const ASSET_BASE = '/assets/s2/arena';
+
 // ── Material factory helpers ────────────────────────────────────────────────
 
 function makeMaterial(
@@ -146,6 +159,8 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   app.root.addChild(ground);
 
   // ── Materials with more colour variety so adjacent surfaces don't blend ──
+  // These start as solid colours; loadArenaAssets() will mutate them in place
+  // with PBR textures (diffuse + normal + roughness) once the assets stream in.
   const concreteMat = makeMaterial([0.62, 0.62, 0.60], { metalness: 0, gloss: 0.10 });
   const darkConcreteMat = makeMaterial([0.38, 0.40, 0.42], { metalness: 0, gloss: 0.08 });
   const brickMat = makeMaterial([0.52, 0.30, 0.22], { metalness: 0, gloss: 0.06 });
@@ -153,6 +168,23 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   const rustMat = makeMaterial([0.42, 0.18, 0.08], { metalness: 0.7, gloss: 0.30 });
   const metalMat = makeMaterial([0.22, 0.24, 0.28], { metalness: 0.85, gloss: 0.55 });
   const woodMat = makeMaterial([0.42, 0.28, 0.15], { metalness: 0, gloss: 0.18 });
+
+  // Re-tile the ground material with bigger UVs so the asphalt texture
+  // doesn't stretch across the whole 220 m plane when it loads.
+  groundMaterial.diffuseMapTiling = new pc.Vec2(80, 80);
+  groundMaterial.normalMapTiling = new pc.Vec2(80, 80);
+  groundMaterial.glossMapTiling = new pc.Vec2(80, 80);
+
+  const arenaMaterials: ArenaMaterialMap = {
+    ground: groundMaterial,
+    concrete: concreteMat,
+    brick: brickMat,
+    darkConcrete: darkConcreteMat,
+    metal: metalMat,
+    wood: woodMat,
+    rust: rustMat,
+    sandbag: sandbagMat,
+  };
 
   // ── Perimeter buildings (north + south flanks) ────────────────────────────
   // Long blocked walls along the north (back) and south (front) edges
@@ -270,7 +302,124 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   canvas.style.height = '100%';
   canvas.style.display = 'block';
 
+  // Kick off async asset loading. The scene renders immediately with
+  // placeholder solid colours, then upgrades to PBR + HDRI when the assets
+  // arrive. Failures are logged but don't crash — geometry stays visible.
+  loadArenaAssets(app, arenaMaterials).catch((err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.warn('[scene] arena asset loading failed:', err);
+  });
+
   return { app, camera, light, ground };
+}
+
+// ── Async asset loader ──────────────────────────────────────────────────────
+//
+// Polyhaven CC0 PBR textures + HDRI sky. Files live in
+// `apps/web/public/assets/s2/arena/`. We load via PlayCanvas's asset registry,
+// then mutate the existing scene materials in place so geometry that is
+// already on screen smoothly upgrades to textured surfaces.
+
+interface PbrTextureSet {
+  diff: pc.Texture;
+  normal: pc.Texture;
+  rough: pc.Texture;
+}
+
+function loadTexture(app: pc.Application, url: string): Promise<pc.Texture> {
+  return new Promise((resolve, reject) => {
+    app.assets.loadFromUrl(url, 'texture', (err, asset) => {
+      if (err !== null || asset === undefined) {
+        reject(new Error(`Failed to load texture ${url}: ${err ?? 'unknown'}`));
+        return;
+      }
+      resolve(asset.resource as pc.Texture);
+    });
+  });
+}
+
+async function loadPbrSet(
+  app: pc.Application,
+  slug: string
+): Promise<PbrTextureSet> {
+  const [diff, normal, rough] = await Promise.all([
+    loadTexture(app, `${ASSET_BASE}/${slug}_diff.jpg`),
+    loadTexture(app, `${ASSET_BASE}/${slug}_nor_gl.jpg`),
+    loadTexture(app, `${ASSET_BASE}/${slug}_rough.jpg`),
+  ]);
+  return { diff, normal, rough };
+}
+
+function applyPbrSet(
+  mat: pc.StandardMaterial,
+  set: PbrTextureSet,
+  tilingX: number,
+  tilingY: number
+): void {
+  const tile = new pc.Vec2(tilingX, tilingY);
+  mat.diffuseMap = set.diff;
+  mat.diffuseMapTiling = tile;
+  mat.normalMap = set.normal;
+  mat.normalMapTiling = tile;
+  mat.glossMap = set.rough;
+  mat.glossMapTiling = tile;
+  mat.glossMapChannel = 'r';
+  // Polyhaven serves roughness maps; PlayCanvas uses gloss = 1 - rough.
+  // The `glossInvert` flag tells the shader to invert the sampled value.
+  mat.glossInvert = true;
+  mat.update();
+}
+
+async function loadArenaAssets(
+  app: pc.Application,
+  materials: ArenaMaterialMap
+): Promise<void> {
+  // ── 1. PBR textures (in parallel) ────────────────────────────────────────
+  const [
+    asphaltSet,
+    concreteSet,
+    brickSet,
+    brokenBrickSet,
+    metalSet,
+    woodSet,
+  ] = await Promise.all([
+    loadPbrSet(app, 'asphalt_02'),
+    loadPbrSet(app, 'concrete_floor_02'),
+    loadPbrSet(app, 'red_brick_03'),
+    loadPbrSet(app, 'broken_brick_wall'),
+    loadPbrSet(app, 'corrugated_iron_02'),
+    loadPbrSet(app, 'wood_planks_grey'),
+  ]);
+
+  // Tilings chosen so each ~3 m of geometry shows roughly one tile.
+  applyPbrSet(materials.ground, asphaltSet, 80, 80);   // 220 m plane / 3 m tile
+  applyPbrSet(materials.concrete, concreteSet, 3, 2);  // 9 × 6 m walls
+  applyPbrSet(materials.brick, brickSet, 3, 2);        // 9 × 6 m walls
+  applyPbrSet(materials.darkConcrete, brokenBrickSet, 1, 1);
+  applyPbrSet(materials.metal, metalSet, 2, 2);
+  applyPbrSet(materials.wood, woodSet, 1, 1);
+  // sandbag and rust keep their solid colours — no good Polyhaven match
+  // and the procedural variants already read clearly against the textured
+  // walls.
+
+  // ── 2. HDRI skybox + environment lighting ────────────────────────────────
+  const equirect = await loadTexture(app, `${ASSET_BASE}/sky_1k.hdr`);
+  // Polyhaven .hdr files are Radiance HDR — PlayCanvas reads them via the
+  // texture loader. The data arrives in HDR format already; we just need to
+  // make sure mip generation is off (HDR cubemaps don't auto-mip cleanly).
+  equirect.mipmaps = false;
+
+  const skyboxCube = pc.EnvLighting.generateSkyboxCubemap(equirect, 512);
+  const lightingSource = pc.EnvLighting.generateLightingSource(equirect, { size: 128 });
+  const envAtlas = pc.EnvLighting.generateAtlas(lightingSource);
+
+  app.scene.skybox = skyboxCube;
+  app.scene.envAtlas = envAtlas;
+  app.scene.skyboxIntensity = 1.4;
+
+  // Drop the explicit ambient now that environment lighting is doing the
+  // heavy lifting — keeping the constant ambient on top would double-up.
+  app.scene.ambientLight = new pc.Color(0, 0, 0);
 }
 
 /**
