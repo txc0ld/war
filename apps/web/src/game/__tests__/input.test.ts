@@ -16,8 +16,9 @@ describe('applyMouseDelta', () => {
 
     applyMouseDelta(state, 100, -50, 0.002);
 
-    expect(state.aimYaw).toBeCloseTo(0.2);
-    // -dy * sensitivity → mouse-up (negative dy) increases pitch (look up)
+    // -dx: mouse right (positive dx) decreases yaw to turn camera right
+    // -dy: mouse up (negative dy) increases pitch to look up
+    expect(state.aimYaw).toBeCloseTo(-0.2);
     expect(state.aimPitch).toBeCloseTo(0.1);
   });
 
@@ -27,7 +28,7 @@ describe('applyMouseDelta', () => {
     applyMouseDelta(state, 100, 0, 0.002);
     applyMouseDelta(state, 100, 0, 0.002);
 
-    expect(state.aimYaw).toBeCloseTo(0.4);
+    expect(state.aimYaw).toBeCloseTo(-0.4);
   });
 
   it('clamps pitch to +89 when looking fully up', () => {
@@ -53,7 +54,8 @@ describe('applyMouseDelta', () => {
 
     applyMouseDelta(state, 1_000_000, 0, 0.002);
 
-    expect(state.aimYaw).toBeCloseTo(2000);
+    // -dx convention: positive dx subtracts from yaw
+    expect(state.aimYaw).toBeCloseTo(-2000);
   });
 });
 

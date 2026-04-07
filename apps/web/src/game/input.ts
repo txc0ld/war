@@ -50,12 +50,15 @@ export function createInputState(): InputState {
 }
 
 /**
- * Accumulate mouse movement into state.
+ * Accumulate mouse movement into state. Standard CS / Apex FPS convention.
  *
- * Standard FPS convention. Browser `dy` is positive when the mouse moves
- * DOWN, so subtracting it makes `aimPitch` increase when the mouse moves up.
- * Combined with PlayCanvas's right-handed positive-X-rotation = look UP,
- * this gives mouse-up → camera-up.
+ * X axis: mouse right → camera right. Browser `dx` is positive when the
+ * mouse moves right, but PlayCanvas's positive Y rotation rotates the
+ * camera CCW (turns it LEFT). So we subtract dx to turn the camera right.
+ *
+ * Y axis: mouse up → camera up. Browser `dy` is positive when the mouse
+ * moves down, and PlayCanvas's positive X rotation tilts the camera up.
+ * Subtract dy so mouse-up (negative dy) → positive pitch → camera-up.
  */
 export function applyMouseDelta(
   state: InputState,
@@ -63,7 +66,7 @@ export function applyMouseDelta(
   dy: number,
   sensitivity: number,
 ): void {
-  state.aimYaw += dx * sensitivity;
+  state.aimYaw -= dx * sensitivity;
   state.aimPitch -= dy * sensitivity;
   state.aimPitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, state.aimPitch));
 }
