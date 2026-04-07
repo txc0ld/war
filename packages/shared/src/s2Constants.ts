@@ -53,6 +53,13 @@ export const S2_MATCH_CONFIG = {
   RELOAD_DURATION_MS: 3500,
   BOLT_CYCLE_MS: 1500,
   TICK_RATE: 20,
+  // ── Movement ──
+  MOVE_SPEED: 4.5,            // metres / second when standing
+  CROUCH_MOVE_SPEED: 2.0,     // metres / second when crouched
+  SCOPED_MOVE_SPEED: 1.5,     // movement speed reduction while scoped
+  ARENA_HALF_WIDTH: 35,       // soft world bound on the X axis (m)
+  ARENA_MIN_Z: -10,           // soft world bound on the Z axis (front)
+  ARENA_MAX_Z: 75,            // soft world bound on the Z axis (back)
 } as const;
 
 export const S2_QUEUE_TTL_MS = 10 * 60 * 1000;

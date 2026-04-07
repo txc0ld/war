@@ -18,6 +18,9 @@ function makePlayer(overrides: Partial<PlayerState> = {}): PlayerState {
     ammo: 5,
     reloading: false,
     alive: true,
+    x: 0,
+    y: 0,
+    z: 0,
     ...overrides,
   };
 }

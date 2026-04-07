@@ -141,4 +141,29 @@ describe('buildClientInput', () => {
     expect(second.fire).toBe(false);
     expect(second.reload).toBe(false);
   });
+
+  it('passes WASD movement intent through', () => {
+    const state: InputState = createInputState();
+    state.moveForward = true;
+    state.moveLeft = true;
+
+    const input = buildClientInput(state);
+
+    expect(input.moveForward).toBe(true);
+    expect(input.moveBackward).toBe(false);
+    expect(input.moveLeft).toBe(true);
+    expect(input.moveRight).toBe(false);
+  });
+
+  it('does not reset WASD flags after build (held keys)', () => {
+    const state: InputState = createInputState();
+    state.moveForward = true;
+    state.moveRight = true;
+
+    buildClientInput(state);
+
+    // Held keys persist until keyup
+    expect(state.moveForward).toBe(true);
+    expect(state.moveRight).toBe(true);
+  });
 });

@@ -86,16 +86,16 @@ export class Room {
 
   private startRound(): void {
     const startEvent = this.game.startRound();
+    // After startRound() the game has placed each player at their spawn — pull
+    // the live snapshot so the broadcast carries world coordinates.
+    const initialState = this.game.processTick([null, null]);
     this.broadcast({
       type: 'state',
       state: {
         tick: 0,
         roundNumber: this.game.roundNumber,
         roundTimer: S2_MATCH_CONFIG.ROUND_DURATION_MS,
-        players: [
-          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: S2_MATCH_CONFIG.PLAYER_HP, ammo: S2_MATCH_CONFIG.MAGAZINE_SIZE, reloading: false, alive: true },
-          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: S2_MATCH_CONFIG.PLAYER_HP, ammo: S2_MATCH_CONFIG.MAGAZINE_SIZE, reloading: false, alive: true },
-        ],
+        players: initialState.players,
         events: [startEvent],
       },
     });

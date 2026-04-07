@@ -51,8 +51,8 @@ describe('serializeServerMessage', () => {
       state: {
         tick: 1, roundNumber: 1, roundTimer: 59000,
         players: [
-          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: 100, ammo: 5, reloading: false, alive: true },
-          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: 100, ammo: 5, reloading: false, alive: true },
+          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: 100, ammo: 5, reloading: false, alive: true, x: 0, y: 0, z: 0 },
+          { aimYaw: 0, aimPitch: 0, stance: 'standing', scoped: false, hp: 100, ammo: 5, reloading: false, alive: true, x: 0, y: 0, z: 65 },
         ],
         events: [],
       },

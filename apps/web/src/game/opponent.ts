@@ -104,6 +104,9 @@ export class OpponentRenderer {
   /**
    * Sync the opponent's visual state to the latest server snapshot.
    * Called once per application tick from the game orchestrator.
+   *
+   * Position is read from the (interpolated) player state — the server
+   * tracks WASD movement so the opponent walks around the arena.
    */
   update(opponentState: PlayerState): void {
     if (!opponentState.alive) {
@@ -116,8 +119,10 @@ export class OpponentRenderer {
     // Stance
     this.setStance(opponentState.stance);
 
-    // Position: snap to spawn (server owns position in sniper duel)
-    this.#root.setPosition(this.#spawnX, 0, this.#spawnZ);
+    // Position: use server-authoritative coordinates
+    this.#root.setPosition(opponentState.x, opponentState.y, opponentState.z);
+    this.#spawnX = opponentState.x;
+    this.#spawnZ = opponentState.z;
 
     // Rotate to face toward the player (+180° because the root faces outward
     // by default and we want it to look toward the camera origin).

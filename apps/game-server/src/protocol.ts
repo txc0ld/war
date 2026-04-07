@@ -45,6 +45,11 @@ export function parseClientMessage(raw: string): ClientMessage | null {
               scopeZoom: inp['scopeZoom'],
               crouch: inp['crouch'],
               reload: inp['reload'],
+              // WASD intent — default to false for back-compat with older clients
+              moveForward: inp['moveForward'] === true,
+              moveBackward: inp['moveBackward'] === true,
+              moveLeft: inp['moveLeft'] === true,
+              moveRight: inp['moveRight'] === true,
               timestamp: inp['timestamp'],
             },
           };

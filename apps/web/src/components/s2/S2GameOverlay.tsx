@@ -8,9 +8,21 @@ import { S2MatchingPulse } from '@/components/s2/S2MatchingPulse';
 import { DeadshotCanvas } from '@/components/s2/DeadshotCanvas';
 import { S2ResultOverlay } from '@/components/s2/S2ResultOverlay';
 
+function isPreviewMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('preview') === '1';
+}
+
 export function S2GameOverlay(): React.ReactNode {
   if (getActiveSeason(Date.now()) !== 2) {
     return null;
+  }
+
+  // Preview mode: bypass the entire matchmaking flow and just mount the
+  // arena. Useful for solo testing the visuals + WASD movement without an
+  // opponent. Activated via ?preview=1 in the URL.
+  if (isPreviewMode()) {
+    return <DeadshotCanvas preview />;
   }
 
   return <S2GameOverlayInner />;

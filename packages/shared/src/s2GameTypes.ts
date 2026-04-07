@@ -16,6 +16,11 @@ export interface ClientInput {
   scopeZoom: 1 | 2;
   crouch: boolean;
   reload: boolean;
+  // ── WASD movement intent (truthy when key is held) ──
+  moveForward: boolean;
+  moveBackward: boolean;
+  moveLeft: boolean;
+  moveRight: boolean;
   timestamp: number;
 }
 
@@ -29,6 +34,10 @@ export interface PlayerState {
   ammo: number;
   reloading: boolean;
   alive: boolean;
+  // ── World-space position (server authoritative) ──
+  x: number;
+  y: number;
+  z: number;
 }
 
 // ── Spawn angles sent with round_start (deprecated — use SpawnInfo) ──

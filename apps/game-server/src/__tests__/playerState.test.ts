@@ -5,7 +5,9 @@ import type { ClientInput } from '@warpath/shared';
 
 const defaultInput: ClientInput = {
   aimYaw: 0, aimPitch: 0, fire: false, scope: false,
-  scopeZoom: 1, crouch: false, reload: false, timestamp: 0,
+  scopeZoom: 1, crouch: false, reload: false,
+  moveForward: false, moveBackward: false, moveLeft: false, moveRight: false,
+  timestamp: 0,
 };
 
 describe('MutablePlayerState', () => {
@@ -21,7 +23,7 @@ describe('MutablePlayerState', () => {
 
   it('applies aim and stance from input', () => {
     const player = new MutablePlayerState();
-    player.applyInput({ ...defaultInput, aimYaw: 0.5, aimPitch: -0.2, crouch: true }, 100);
+    player.applyInput({ ...defaultInput, aimYaw: 0.5, aimPitch: -0.2, crouch: true }, 100, 0);
     const snap = player.snapshot();
     expect(snap.aimYaw).toBe(0.5);
     expect(snap.aimPitch).toBe(-0.2);
@@ -74,7 +76,7 @@ describe('MutablePlayerState', () => {
     const player = new MutablePlayerState();
     player.takeDamage(50);
     player.fire(0);
-    player.applyInput({ ...defaultInput, crouch: true }, 100);
+    player.applyInput({ ...defaultInput, crouch: true }, 100, 0);
     player.reset();
     const snap = player.snapshot();
     expect(snap.hp).toBe(S2_MATCH_CONFIG.PLAYER_HP);

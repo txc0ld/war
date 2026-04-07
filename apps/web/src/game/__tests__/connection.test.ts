@@ -21,6 +21,10 @@ const sampleInput: ClientInput = {
   scopeZoom: 1,
   crouch: false,
   reload: false,
+  moveForward: false,
+  moveBackward: false,
+  moveLeft: false,
+  moveRight: false,
   timestamp: 1_700_000_000_000,
 };
 
@@ -68,6 +72,10 @@ describe('buildInputMessage', () => {
       scopeZoom: 2,
       crouch: true,
       reload: true,
+      moveForward: true,
+      moveBackward: false,
+      moveLeft: true,
+      moveRight: false,
       timestamp: 999,
     };
     const parsed = JSON.parse(buildInputMessage(full)) as { input: ClientInput };

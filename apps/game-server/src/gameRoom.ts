@@ -26,6 +26,13 @@ export class GameRoom {
     this.tickCount = 0;
     this.elapsedMs = 0;
     this.stateHistory = [];
+
+    // Place each player at their spawn position so the first state snapshot
+    // already carries world coordinates the client can use.
+    const spawn = this.roundManager.getCurrentSpawn();
+    this.players[0].setPosition(spawn.player0.x, spawn.player0.y, spawn.player0.z);
+    this.players[1].setPosition(spawn.player1.x, spawn.player1.y, spawn.player1.z);
+
     return this.roundManager.startRound();
   }
 
@@ -42,11 +49,14 @@ export class GameRoom {
     this.stateHistory.push([this.players[0].snapshot(), this.players[1].snapshot()]);
     if (this.stateHistory.length > HISTORY_SIZE) this.stateHistory.shift();
 
-    // Apply inputs (aim, stance, scope, reload)
+    const spawn = this.roundManager.getCurrentSpawn();
+
+    // Apply inputs (aim, stance, scope, reload, movement)
     for (let i = 0; i < 2; i++) {
       const input = inputs[i];
       if (input) {
-        this.players[i]!.applyInput(input, this.elapsedMs);
+        const facing = i === 0 ? spawn.player0.facingYaw : spawn.player1.facingYaw;
+        this.players[i]!.applyInput(input, this.elapsedMs, facing);
         if (input.reload && !this.players[i]!.reloading) {
           this.players[i]!.startReload(this.elapsedMs);
         }
@@ -65,17 +75,18 @@ export class GameRoom {
         if (input?.fire && shooter.canFire(this.elapsedMs) && shooter.alive && target.alive) {
           shooter.fire(this.elapsedMs);
 
-          // Lag compensation: use historical target stance
+          // Lag compensation: use historical target stance + position
           const lagTicks = this.estimateLagTicks(input.timestamp);
           const historicalTarget = this.getHistoricalState(targetIdx, lagTicks);
           const targetStance = historicalTarget?.stance ?? target.stance;
-
-          const spawn = this.getCurrentSpawn();
-          const shooterPos = i === 0 ? spawn.player0 : spawn.player1;
-          const targetPos = i === 0 ? spawn.player1 : spawn.player0;
+          const targetPos = historicalTarget
+            ? { x: historicalTarget.x, y: historicalTarget.y, z: historicalTarget.z }
+            : { x: target.x, y: target.y, z: target.z };
+          const shooterPos = { x: shooter.x, y: shooter.y, z: shooter.z };
+          const shooterFacing = i === 0 ? spawn.player0.facingYaw : spawn.player1.facingYaw;
 
           const result = checkHit(
-            shooterPos, shooterPos.facingYaw, shooter.stance,
+            shooterPos, shooterFacing, shooter.stance,
             input.aimYaw, input.aimPitch,
             targetPos, targetStance
           );

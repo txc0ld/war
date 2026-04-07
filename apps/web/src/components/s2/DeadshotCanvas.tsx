@@ -6,7 +6,23 @@ import { useStore } from '@/store';
 
 type ConnectionState = 'loading' | 'connecting' | 'connected' | 'error';
 
-export function DeadshotCanvas(): React.ReactNode {
+interface DeadshotCanvasProps {
+  /** Solo preview mode — bypass matchmaking and just render the arena. */
+  preview?: boolean;
+}
+
+const PREVIEW_SNIPER: SniperMetadata = {
+  tokenId: 0,
+  name: 'Preview',
+  image: '',
+  skin: '',
+  scopeReticle: '',
+  killEffect: '',
+  tracerColor: '#00f0ff',
+  inspectAnimation: '',
+};
+
+export function DeadshotCanvas({ preview = false }: DeadshotCanvasProps): React.ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<DeadshotGame | null>(null);
 
@@ -53,19 +69,25 @@ export function DeadshotCanvas(): React.ReactNode {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (canvas === null || s2Match === null || s2SelectedSniper === null) return;
+    if (canvas === null) return;
 
-    // Build a minimal SniperMetadata stub for the opponent.
-    const opponentSniper: SniperMetadata = {
-      tokenId: s2Match.opponentTokenId,
-      name: 'Opponent',
-      image: '',
-      skin: '',
-      scopeReticle: '',
-      killEffect: '',
-      tracerColor: '',
-      inspectAnimation: '',
-    };
+    // In preview mode we mount with stub data and bypass matchmaking entirely.
+    // In normal mode we wait for s2Match + s2SelectedSniper to be populated.
+    if (!preview && (s2Match === null || s2SelectedSniper === null)) return;
+
+    // Build SniperMetadata for the opponent (stub for preview).
+    const opponentSniper: SniperMetadata = preview
+      ? PREVIEW_SNIPER
+      : {
+          tokenId: s2Match!.opponentTokenId,
+          name: 'Opponent',
+          image: '',
+          skin: '',
+          scopeReticle: '',
+          killEffect: '',
+          tracerColor: '',
+          inspectAnimation: '',
+        };
 
     const game = new DeadshotGame();
     gameRef.current = game;
@@ -77,12 +99,13 @@ export function DeadshotCanvas(): React.ReactNode {
     game.on('connected', handleConnected);
 
     game.init(canvas, {
-      sniper: s2SelectedSniper,
+      sniper: preview ? PREVIEW_SNIPER : s2SelectedSniper!,
       opponentSniper,
-      wsUrl: s2Match.gameServerUrl,
-      roomId: s2Match.roomId,
-      roomToken: s2Match.roomToken,
+      wsUrl: preview ? '' : s2Match!.gameServerUrl,
+      roomId: preview ? 'preview' : s2Match!.roomId,
+      roomToken: preview ? 'preview' : s2Match!.roomToken,
       playerIndex: 0,
+      previewMode: preview,
     });
 
     setConnectionState('connecting');
@@ -95,7 +118,7 @@ export function DeadshotCanvas(): React.ReactNode {
       game.destroy();
       gameRef.current = null;
     };
-  }, [s2Match, s2SelectedSniper, handleResult, handleError, handleDisconnect, handleConnected]);
+  }, [preview, s2Match, s2SelectedSniper, handleResult, handleError, handleDisconnect, handleConnected]);
 
   return (
     <div

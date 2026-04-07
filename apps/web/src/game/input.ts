@@ -26,6 +26,11 @@ export interface InputState {
   scopeZoom: 1 | 2;
   crouch: boolean;
   reload: boolean;
+  // ── WASD movement intent (held while key down) ──
+  moveForward: boolean;
+  moveBackward: boolean;
+  moveLeft: boolean;
+  moveRight: boolean;
 }
 
 export function createInputState(): InputState {
@@ -37,6 +42,10 @@ export function createInputState(): InputState {
     scopeZoom: 1,
     crouch: false,
     reload: false,
+    moveForward: false,
+    moveBackward: false,
+    moveLeft: false,
+    moveRight: false,
   };
 }
 
@@ -70,6 +79,10 @@ export function buildClientInput(state: InputState): ClientInput {
     scopeZoom: state.scopeZoom,
     crouch: state.crouch,
     reload: state.reload,
+    moveForward: state.moveForward,
+    moveBackward: state.moveBackward,
+    moveLeft: state.moveLeft,
+    moveRight: state.moveRight,
     timestamp: Date.now(),
   };
 
@@ -138,6 +151,18 @@ export class InputCapture {
     this.onKeyDown = (e: KeyboardEvent) => {
       if (!this.locked) return;
       switch (e.code) {
+        case 'KeyW':
+          this.state.moveForward = true;
+          break;
+        case 'KeyS':
+          this.state.moveBackward = true;
+          break;
+        case 'KeyA':
+          this.state.moveLeft = true;
+          break;
+        case 'KeyD':
+          this.state.moveRight = true;
+          break;
         case 'KeyC':
           this.state.crouch = !this.state.crouch;
           break;
@@ -155,8 +180,24 @@ export class InputCapture {
       }
     };
 
-    this.onKeyUp = (_e: KeyboardEvent) => {
-      // Reserved for future use (e.g. hold-to-crouch)
+    this.onKeyUp = (e: KeyboardEvent) => {
+      if (!this.locked) return;
+      switch (e.code) {
+        case 'KeyW':
+          this.state.moveForward = false;
+          break;
+        case 'KeyS':
+          this.state.moveBackward = false;
+          break;
+        case 'KeyA':
+          this.state.moveLeft = false;
+          break;
+        case 'KeyD':
+          this.state.moveRight = false;
+          break;
+        default:
+          break;
+      }
     };
 
     this.onContextMenu = (e: Event) => {

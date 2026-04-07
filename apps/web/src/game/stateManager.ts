@@ -40,6 +40,10 @@ function interpolatePlayer(a: PlayerState, b: PlayerState, t: number): PlayerSta
   return {
     aimYaw: lerpAngle(a.aimYaw, b.aimYaw, t),
     aimPitch: lerpAngle(a.aimPitch, b.aimPitch, t),
+    // Lerp world position so movement looks smooth between server ticks
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+    z: a.z + (b.z - a.z) * t,
     // Snap fields — discrete or health values must not lerp
     stance: b.stance,
     scoped: b.scoped,
@@ -106,6 +110,9 @@ export class StateManager {
         ammo: 0,
         reloading: false,
         alive: true,
+        x: 0,
+        y: 0,
+        z: 0,
       };
     }
 

@@ -4,6 +4,7 @@
 // imperative — React never reaches inside the PlayCanvas scene.
 
 import * as pc from 'playcanvas';
+import { S2_MATCH_CONFIG } from '@warpath/shared';
 import { createScene, destroyScene } from './scene.js';
 import type { SceneContext } from './scene.js';
 import type { GameConfig, GameEventMap, MatchResultEvent, GameErrorEvent } from './types.js';
@@ -53,6 +54,9 @@ export class DeadshotGame {
   #roundScores: [number, number] = [0, 0];
   #opponentSpawnX: number = 0;
   #opponentSpawnZ: number = 50;
+  // ── Preview-mode local position (no server) ─────────────────────────────
+  #previewX: number = 0;
+  #previewZ: number = 32;  // centre of arena
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -130,8 +134,15 @@ export class DeadshotGame {
       },
     };
 
-    this.#connection = new GameConnection(connectionHandlers);
-    this.#connection.connect(config.wsUrl, config.roomId, config.roomToken);
+    if (!config.previewMode) {
+      this.#connection = new GameConnection(connectionHandlers);
+      this.#connection.connect(config.wsUrl, config.roomId, config.roomToken);
+    } else {
+      // Preview mode: pretend the connection succeeded immediately so any
+      // listeners that wait on `connected` proceed (e.g. React DeadshotCanvas
+      // flipping the connection-state overlay off).
+      queueMicrotask(() => this.#emit('connected', undefined));
+    }
 
     // ── Register frame update ─────────────────────────────────────────────────
     this.#scene.app.on('update', this.#onUpdate, this);
@@ -208,6 +219,58 @@ export class DeadshotGame {
     this.#roundScores = [0, 0];
     this.#opponentSpawnX = 0;
     this.#opponentSpawnZ = 50;
+    this.#previewX = 0;
+    this.#previewZ = 32;
+  }
+
+  // ── Preview-mode local movement ───────────────────────────────────────────
+
+  /**
+   * Apply WASD movement to the local preview position. Mirrors the server's
+   * playerState.applyInput math but runs every render frame instead of every
+   * 50 ms tick. Movement intent is rotated by aimYaw so W moves the camera
+   * along its current facing direction.
+   */
+  #applyPreviewMovement(inputState: { aimYaw: number; crouch: boolean; scope: boolean; moveForward: boolean; moveBackward: boolean; moveLeft: boolean; moveRight: boolean }, dt: number): void {
+    let forward = 0;
+    let strafe = 0;
+    if (inputState.moveForward) forward += 1;
+    if (inputState.moveBackward) forward -= 1;
+    if (inputState.moveRight) strafe += 1;
+    if (inputState.moveLeft) strafe -= 1;
+    if (forward === 0 && strafe === 0) return;
+
+    let speed: number = inputState.crouch
+      ? S2_MATCH_CONFIG.CROUCH_MOVE_SPEED
+      : S2_MATCH_CONFIG.MOVE_SPEED;
+    if (inputState.scope) speed = S2_MATCH_CONFIG.SCOPED_MOVE_SPEED;
+
+    const len = Math.hypot(forward, strafe);
+    forward /= len;
+    strafe /= len;
+
+    const yaw = inputState.aimYaw;
+    const sin = Math.sin(yaw);
+    const cos = Math.cos(yaw);
+
+    const dx = strafe * cos + forward * sin;
+    const dz = strafe * -sin + forward * cos;
+
+    const distance = speed * dt;
+    let nextX = this.#previewX + dx * distance;
+    let nextZ = this.#previewZ + dz * distance;
+
+    nextX = Math.max(
+      -S2_MATCH_CONFIG.ARENA_HALF_WIDTH,
+      Math.min(S2_MATCH_CONFIG.ARENA_HALF_WIDTH, nextX)
+    );
+    nextZ = Math.max(
+      S2_MATCH_CONFIG.ARENA_MIN_Z,
+      Math.min(S2_MATCH_CONFIG.ARENA_MAX_Z, nextZ)
+    );
+
+    this.#previewX = nextX;
+    this.#previewZ = nextZ;
   }
 
   // ── Frame update ──────────────────────────────────────────────────────────
@@ -270,7 +333,21 @@ export class DeadshotGame {
     const opponentState = this.#stateManager.getInterpolatedOpponent(opponentIndex, 0.5);
     const roundTimer = this.#stateManager.getRoundTimer();
 
-    // ── 6. Update HUD ─────────────────────────────────────────────────────────
+    // ── 6a. Sync camera position ─────────────────────────────────────────────
+    // In normal multiplayer the server applies WASD and broadcasts authoritative
+    // positions; we snap the camera to the latest. In preview mode there is no
+    // server, so we integrate WASD intent locally with the same constants the
+    // server uses.
+    if (this.#camera !== null) {
+      if (config.previewMode) {
+        this.#applyPreviewMovement(inputState, dt);
+        this.#camera.setPosition(this.#previewX, 0, this.#previewZ);
+      } else if (localPlayer !== null) {
+        this.#camera.setPosition(localPlayer.x, 0, localPlayer.z);
+      }
+    }
+
+    // ── 6b. Update HUD ────────────────────────────────────────────────────────
     if (this.#hud !== null && localPlayer !== null) {
       this.#hud.setHealth(localPlayer.hp);
       this.#hud.setAmmo(localPlayer.ammo, localPlayer.reloading);

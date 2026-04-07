@@ -5,7 +5,9 @@ import type { ClientInput } from '@warpath/shared';
 
 const noInput: ClientInput = {
   aimYaw: 0, aimPitch: 0, fire: false, scope: false,
-  scopeZoom: 1, crouch: false, reload: false, timestamp: 0,
+  scopeZoom: 1, crouch: false, reload: false,
+  moveForward: false, moveBackward: false, moveLeft: false, moveRight: false,
+  timestamp: 0,
 };
 
 describe('GameRoom', () => {
