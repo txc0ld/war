@@ -82,14 +82,11 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   app.scene.ambientLight = new pc.Color(0.18, 0.14, 0.10);
 
   // Distance fog gives the arena depth and hides the world edges.
-  // PlayCanvas v2 wraps fog into a FogParams object on Scene.fog. The cast
-  // is needed because the .d.ts has overlapping deprecated setters that
-  // make the property look read-only to TypeScript.
-  const fog = new pc.FogParams();
-  fog.type = pc.FOG_EXP2;
-  fog.color = new pc.Color(0.18, 0.14, 0.12);
-  fog.density = 0.012;
-  (app.scene as unknown as { fog: pc.FogParams }).fog = fog;
+  // PlayCanvas v2's Scene.fog is a getter-only that returns the existing
+  // FogParams instance — mutate it in place instead of replacing.
+  app.scene.fog.type = pc.FOG_EXP2;
+  app.scene.fog.color.set(0.18, 0.14, 0.12);
+  app.scene.fog.density = 0.012;
 
   // ── Sun directional light (warm, low angle, sunset) ───────────────────────
   const light = new pc.Entity('SunLight');
