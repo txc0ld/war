@@ -29,9 +29,13 @@ export class RoundManager {
     const p0 = spawn.player0;
     const p1 = spawn.player1;
 
-    // Compute the yaw offset each player needs to aim toward the opponent
-    const aim0Yaw = Math.atan2(p1.x - p0.x, p1.z - p0.z) - p0.facingYaw;
-    const aim1Yaw = Math.atan2(p0.x - p1.x, p0.z - p1.z) - p1.facingYaw;
+    // Compute the yaw offset each player needs to aim toward the opponent.
+    // atan2 + facingYaw are in radians; the wire protocol carries aimYaw in
+    // DEGREES (matching PlayCanvas's setLocalEulerAngles convention), so
+    // convert before storing.
+    const RAD_TO_DEG = 180 / Math.PI;
+    const aim0Yaw = (Math.atan2(p1.x - p0.x, p1.z - p0.z) - p0.facingYaw) * RAD_TO_DEG;
+    const aim1Yaw = (Math.atan2(p0.x - p1.x, p0.z - p1.z) - p1.facingYaw) * RAD_TO_DEG;
 
     const positions: [SpawnInfo, SpawnInfo] = [
       { x: p0.x, y: p0.y, z: p0.z, facingYaw: p0.facingYaw, aimYaw: aim0Yaw, aimPitch: 0 },

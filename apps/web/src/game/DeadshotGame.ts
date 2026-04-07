@@ -253,9 +253,15 @@ export class DeadshotGame {
     // movement matches multiplayer behaviour. Derived from PlayCanvas's
     // entity.forward = (-sin(yaw), 0, -cos(yaw)) and entity.right =
     // (cos(yaw), 0, -sin(yaw)) for a default camera at the given Y rotation.
-    const yaw = inputState.aimYaw;
-    const sin = Math.sin(yaw);
-    const cos = Math.cos(yaw);
+    //
+    // CRITICAL: aimYaw accumulates in DEGREES (because we hand it directly
+    // to setLocalEulerAngles which takes degrees). Math.sin/cos take
+    // RADIANS, so we have to convert before doing the trig — otherwise the
+    // movement direction drifts out of sync with where the camera is
+    // actually pointing and strafing while turning corkscrews into a circle.
+    const yawRad = inputState.aimYaw * (Math.PI / 180);
+    const sin = Math.sin(yawRad);
+    const cos = Math.cos(yawRad);
 
     const dx = -forward * sin + strafe * cos;
     const dz = -forward * cos - strafe * sin;

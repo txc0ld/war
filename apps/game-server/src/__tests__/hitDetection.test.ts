@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { checkHit, aimToDirection } from '../hitDetection';
 import type { Vec3 } from '@warpath/shared';
 
+// aimYaw / aimPitch arrive from the wire in DEGREES.
+const RAD_TO_DEG = 180 / Math.PI;
+
 describe('aimToDirection', () => {
   it('facing +Z with zero aim gives forward vector', () => {
     const dir = aimToDirection(0, 0, 0);
@@ -11,14 +14,14 @@ describe('aimToDirection', () => {
   });
 
   it('facing +Z with 90° yaw gives +X vector', () => {
-    const dir = aimToDirection(0, Math.PI / 2, 0);
+    const dir = aimToDirection(0, 90, 0);
     expect(dir.x).toBeCloseTo(1, 5);
     expect(dir.y).toBeCloseTo(0, 5);
     expect(dir.z).toBeCloseTo(0, 5);
   });
 
   it('facing +Z with positive pitch aims upward', () => {
-    const dir = aimToDirection(0, 0, Math.PI / 4);
+    const dir = aimToDirection(0, 0, 45);
     expect(dir.y).toBeGreaterThan(0);
     expect(dir.z).toBeGreaterThan(0);
   });
@@ -39,14 +42,14 @@ describe('checkHit', () => {
 
   it('body shot when aiming at torso', () => {
     // Aim slightly down to hit body (y~1.0 at 50m)
-    const pitch = Math.atan2(1.0 - 1.65, 50);
-    const result = checkHit(shooter, shooterFacing, 'standing', 0, pitch, target, 'standing');
+    const pitchDeg = Math.atan2(1.0 - 1.65, 50) * RAD_TO_DEG;
+    const result = checkHit(shooter, shooterFacing, 'standing', 0, pitchDeg, target, 'standing');
     expect(result.hit).toBe(true);
     if (result.hit) expect(result.zone).toBe('body');
   });
 
   it('miss when aiming completely off target', () => {
-    const result = checkHit(shooter, shooterFacing, 'standing', Math.PI / 4, 0, target, 'standing');
+    const result = checkHit(shooter, shooterFacing, 'standing', 45, 0, target, 'standing');
     expect(result.hit).toBe(false);
   });
 
@@ -59,8 +62,8 @@ describe('checkHit', () => {
   });
 
   it('crouched target can be hit with adjusted aim', () => {
-    const pitch = Math.atan2(1.1 - 1.65, 50);
-    const result = checkHit(shooter, shooterFacing, 'standing', 0, pitch, target, 'crouched');
+    const pitchDeg = Math.atan2(1.1 - 1.65, 50) * RAD_TO_DEG;
+    const result = checkHit(shooter, shooterFacing, 'standing', 0, pitchDeg, target, 'crouched');
     expect(result.hit).toBe(true);
     if (result.hit) expect(result.zone).toBe('head');
   });

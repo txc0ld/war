@@ -1,12 +1,17 @@
 import { HITBOX, S2_MATCH_CONFIG } from '@warpath/shared';
 import type { Vec3, HitResult } from '@warpath/shared';
 
+// facingYaw is supplied in RADIANS (from positions.ts).
+// aimYaw / aimPitch arrive from the client in DEGREES (because the client
+// hands them straight to PlayCanvas's setLocalEulerAngles, which takes
+// degrees). Convert before doing any trig so the units match.
 export function aimToDirection(facingYaw: number, aimYaw: number, aimPitch: number): Vec3 {
-  const totalYaw = facingYaw + aimYaw;
+  const totalYaw = facingYaw + aimYaw * (Math.PI / 180);
+  const pitchRad = aimPitch * (Math.PI / 180);
   return {
-    x: Math.sin(totalYaw) * Math.cos(aimPitch),
-    y: Math.sin(aimPitch),
-    z: Math.cos(totalYaw) * Math.cos(aimPitch),
+    x: Math.sin(totalYaw) * Math.cos(pitchRad),
+    y: Math.sin(pitchRad),
+    z: Math.cos(totalYaw) * Math.cos(pitchRad),
   };
 }
 

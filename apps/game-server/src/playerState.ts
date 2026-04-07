@@ -71,7 +71,12 @@ export class MutablePlayerState {
     //           = -forward * sin(yaw) + strafe * cos(yaw)
     //   worldDz = forward * forward.z + strafe * right.z
     //           = -forward * cos(yaw) - strafe * sin(yaw)
-    const totalYaw = facingYaw + this.aimYaw;
+    //
+    // facingYaw is supplied in radians from positions.ts. aimYaw arrives
+    // from the client in DEGREES (because the client hands it directly to
+    // setLocalEulerAngles, which takes degrees). Convert aimYaw to radians
+    // before adding so the trig functions get a consistent unit.
+    const totalYaw = facingYaw + this.aimYaw * (Math.PI / 180);
     const sin = Math.sin(totalYaw);
     const cos = Math.cos(totalYaw);
 
