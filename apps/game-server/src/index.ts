@@ -8,6 +8,7 @@ interface WsData {
   roomId: string | null;
   playerIndex: 0 | 1 | null;
   authenticated: boolean;
+  authInFlight: boolean;
 }
 
 const rooms = new Map<string, Room>();
@@ -27,7 +28,7 @@ const server = Bun.serve<WsData>({
     }
 
     const upgraded = server.upgrade(req, {
-      data: { roomId: null, playerIndex: null, authenticated: false },
+      data: { roomId: null, playerIndex: null, authenticated: false, authInFlight: false },
     });
 
     if (upgraded) return undefined;
@@ -42,8 +43,21 @@ const server = Bun.serve<WsData>({
     async message(ws: ServerWebSocket<WsData>, message) {
       const raw = typeof message === 'string' ? message : new TextDecoder().decode(message);
 
+      // Drop messages that arrive while auth is still in flight. Bun's
+      // async message handler does not serialise per-connection, so a
+      // client's first input/ping can race the auth DB lookup and end up
+      // being parsed as the "first" message.
+      if (ws.data.authInFlight) {
+        return;
+      }
+
       if (!ws.data.authenticated) {
-        await handleAuth(ws, raw);
+        ws.data.authInFlight = true;
+        try {
+          await handleAuth(ws, raw);
+        } finally {
+          ws.data.authInFlight = false;
+        }
         return;
       }
 
