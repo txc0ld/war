@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { getActiveSeason } from '@warpath/shared';
 import { useStore } from '@/store';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { useSessionAddress } from '@/hooks/useSessionAddress';
@@ -13,6 +14,13 @@ import { DeathOverlay } from './DeathOverlay';
 import './battlePresentation.css';
 
 export function GameOverlay(): React.ReactNode {
+  if (getActiveSeason(Date.now()) === 2) {
+    return null;
+  }
+  return <GameOverlayInner />;
+}
+
+function GameOverlayInner(): React.ReactNode {
   const sessionAddress = useSessionAddress();
   const {
     phase,
@@ -32,6 +40,8 @@ export function GameOverlay(): React.ReactNode {
     error,
     statusDetail,
     canCancel,
+    seasonLocked,
+    seasonLockLabel,
   } = useMatchmaking();
   const selectedCountryData = useMemo(() => getCountryByCode(selectedCountry), [selectedCountry]);
   const countryName = useMemo(
@@ -148,8 +158,13 @@ export function GameOverlay(): React.ReactNode {
               ) : null}
 
               {selectedCountry && selectedGun ? (
-                <button type="button" className="warpath-action" onClick={handleFight}>
-                  Enter Battle
+                <button
+                  type="button"
+                  className="warpath-action"
+                  onClick={handleFight}
+                  disabled={seasonLocked}
+                >
+                  {seasonLocked ? 'Season Locked' : 'Enter Battle'}
                 </button>
               ) : null}
 
@@ -165,10 +180,16 @@ export function GameOverlay(): React.ReactNode {
             <div className="warpath-idle-prompt">
               <div className="warpath-map-brief">
                 <p className="warpath-map-brief__eyebrow">Global Deployment Grid</p>
-                <p className="warpath-map-brief__title">Choose a country, open the armory, and enter the bracket.</p>
+                <p className="warpath-map-brief__title">
+                  {seasonLocked
+                    ? `Season 1 unlocks at ${seasonLockLabel}.`
+                    : 'Choose a country, open the armory, and enter the bracket.'}
+                </p>
               </div>
               <div className="warpath-idle-prompt__pill">
-                <p className="warpath-idle-prompt__copy">Select a country to deploy</p>
+                <p className="warpath-idle-prompt__copy">
+                  {seasonLocked ? 'Matchmaking opens automatically at launch' : 'Select a country to deploy'}
+                </p>
               </div>
             </div>
           ) : null}

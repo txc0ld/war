@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { useMemo } from 'react';
+import { getActiveSeason } from '@warpath/shared';
 import { COUNTRIES } from '@/data/countries';
 import { GUNS_BY_ID, getTierLabel } from '@/data/guns';
 import { useGuns } from '@/hooks/useGuns';
@@ -8,6 +9,14 @@ import { StatBar } from '@/components/battle/StatBar';
 import { formatCooldownLabel, getCooldownRemainingMs } from '@/lib/cooldowns';
 
 export function GunSelector(): React.ReactNode {
+  if (getActiveSeason(Date.now()) === 2) {
+    return null;
+  }
+
+  return <GunSelectorInner />;
+}
+
+function GunSelectorInner(): React.ReactNode {
   const {
     selectedCountry,
     selectedGun,
@@ -53,7 +62,7 @@ export function GunSelector(): React.ReactNode {
 
         {arsenalBonus || isWalletCoolingDown ? (
           <div className="gun-selector__status-strip">
-            {arsenalBonus ? <p className="arsenal-bonus">ARSENAL BONUS +5%</p> : null}
+            {arsenalBonus ? <p className="arsenal-bonus">ARSENAL BONUS +7%</p> : null}
             {isWalletCoolingDown ? (
               <p className="arsenal-bonus">
                 WALLET COOLDOWN {formatCooldownLabel(walletCooldownRemaining)}

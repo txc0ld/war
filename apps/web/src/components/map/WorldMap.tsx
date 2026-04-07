@@ -5,6 +5,7 @@ import { geoGraticule10, geoNaturalEarth1, geoPath } from 'd3-geo';
 import { feature, mesh } from 'topojson-client';
 import countriesAtlas from 'world-atlas/countries-110m.json';
 import landAtlas from 'world-atlas/land-110m.json';
+import { getActiveSeason } from '@warpath/shared';
 import { COUNTRIES, NETWORK_LINKS, type CountrySide } from '@/data/countries';
 import { playMapCue, prepareMapAudio } from '@/lib/mapAudio';
 import { useStore } from '@/store';
@@ -602,6 +603,12 @@ export function WorldMap(): React.ReactNode {
         return;
       }
 
+      // In Season 2, country selection is disabled — players queue from the
+      // sniper armory instead. The map remains visible and pannable/zoomable.
+      if (getActiveSeason(Date.now()) === 2) {
+        return;
+      }
+
       playMapCue('selection');
       selectCountry(countryCode);
     },
@@ -751,13 +758,15 @@ export function WorldMap(): React.ReactNode {
           const nameLines = splitCalloutName(activeData.name);
           const boxWidth = 268;
           const boxHeight = nameLines.length > 1 ? 102 : 88;
-          const position = getCalloutPosition(activeData.x, activeData.y, boxWidth, boxHeight);
+          const calloutAnchorX = activeData.markerRenderX || activeData.x;
+          const calloutAnchorY = activeData.markerRenderY || activeData.y;
+          const position = getCalloutPosition(calloutAnchorX, calloutAnchorY, boxWidth, boxHeight);
           const stateY = position.boxY + (nameLines.length > 1 ? 88 : 74);
           const calloutSideClass = `world-map__callout--${activeData.side}`;
           return (
             <g aria-hidden="true" className={`world-map__callout ${calloutSideClass}`}>
               <path
-                d={`M ${activeData.x} ${activeData.y} L ${position.lineX} ${position.lineY}`}
+                d={`M ${calloutAnchorX} ${calloutAnchorY} L ${position.lineX} ${position.lineY}`}
                 className="world-map__callout-line"
               />
               <rect
