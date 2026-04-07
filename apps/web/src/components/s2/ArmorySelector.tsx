@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import type { SniperMetadata } from '@warpath/shared';
 import { useAccount } from 'wagmi';
 import { s2GetSnipers } from '@/lib/s2Api';
@@ -123,6 +123,15 @@ export function ArmorySelector(): React.ReactNode {
   } = useStore();
 
   const { address } = useAccount();
+
+  // Pick a sniper and close the modal in one action.
+  const handleSelectAndClose = useCallback(
+    (sniper: SniperMetadata) => {
+      setS2SelectedSniper(sniper);
+      closeArmory();
+    },
+    [setS2SelectedSniper, closeArmory],
+  );
 
   // Fetch snipers when armory opens and we have a connected address
   useEffect(() => {
@@ -308,7 +317,7 @@ export function ArmorySelector(): React.ReactNode {
                   key={sniper.tokenId}
                   sniper={sniper}
                   isSelected={s2SelectedSniper?.tokenId === sniper.tokenId}
-                  onSelect={setS2SelectedSniper}
+                  onSelect={handleSelectAndClose}
                 />
               ))}
             </div>
