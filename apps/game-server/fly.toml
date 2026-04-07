@@ -1,0 +1,33 @@
+# apps/game-server/fly.toml
+# Fly.io configuration for the Deadshot S2 game server.
+# Deploy from the repo root with:
+#   flyctl deploy --config apps/game-server/fly.toml --dockerfile apps/game-server/Dockerfile
+
+app = "warroom-game-server"
+primary_region = "iad"  # Closest to Neon (us-east-1)
+
+[build]
+
+[env]
+  PORT = "3002"
+
+[http_service]
+  internal_port = 3002
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

@@ -1,0 +1,45 @@
+# apps/game-server/.dockerignore
+# Note: build context is the REPO ROOT, so these patterns are relative to root.
+
+# Node + build artifacts
+node_modules
+**/node_modules
+**/dist
+**/.turbo
+**/.next
+**/.vercel
+
+# Apps we don't need in the game-server image
+apps/web
+apps/api
+
+# Tests / config we don't ship
+**/*.test.ts
+**/__tests__
+**/coverage
+
+# Local env files (must never go into images)
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Git / IDE / OS noise
+.git
+.gitignore
+.github
+.vscode
+.idea
+.DS_Store
+*.log
+
+# Docs and assets
+docs
+tasks
+*.md
+Sounds
+*.png
+*.jpg
+*.gif
+*.woff2
+*.mp3

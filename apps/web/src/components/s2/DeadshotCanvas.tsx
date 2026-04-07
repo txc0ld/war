@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SniperMetadata } from '@warpath/shared';
 import { DeadshotGame } from '@/game/DeadshotGame';
 import type { GameErrorEvent, MatchResultEvent } from '@/game/DeadshotGame';
 import { useStore } from '@/store';
+
+type ConnectionState = 'loading' | 'connecting' | 'connected' | 'error';
 
 export function DeadshotCanvas(): React.ReactNode {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameRef = useRef<DeadshotGame | null>(null);
 
   const { s2Match, s2SelectedSniper, setS2Phase, setS2Result } = useStore();
+
+  const [connectionState, setConnectionState] = useState<ConnectionState>('loading');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // ── Event handlers (stable references via useCallback) ───────────────────
 
@@ -17,8 +22,6 @@ export function DeadshotCanvas(): React.ReactNode {
       setS2Result({
         winner: data.winner,
         finalScore: data.finalScore,
-        // We always initialise as playerIndex 0 in the config below;
-        // the server corrects this via auth_ok before rounds start.
         playerIndex: 0,
       });
       setS2Phase('result');
@@ -27,17 +30,22 @@ export function DeadshotCanvas(): React.ReactNode {
   );
 
   const handleError = useCallback(
-    (_data: GameErrorEvent) => {
-      setS2Phase('idle');
+    (data: GameErrorEvent) => {
+      setConnectionState('error');
+      setErrorMessage(data.reason);
+      setTimeout(() => setS2Phase('idle'), 3000);
     },
     [setS2Phase]
   );
 
   const handleDisconnect = useCallback(() => {
-    setS2Phase('idle');
+    setConnectionState('error');
+    setErrorMessage('Connection lost');
+    setTimeout(() => setS2Phase('idle'), 2000);
   }, [setS2Phase]);
 
   const handleConnected = useCallback(() => {
+    setConnectionState('connected');
     setS2Phase('playing');
   }, [setS2Phase]);
 
@@ -74,10 +82,10 @@ export function DeadshotCanvas(): React.ReactNode {
       wsUrl: s2Match.gameServerUrl,
       roomId: s2Match.roomId,
       roomToken: s2Match.roomToken,
-      // playerIndex 0 is the default; the server sends the authoritative index
-      // via the auth_ok message before the first round begins.
       playerIndex: 0,
     });
+
+    setConnectionState('connecting');
 
     return () => {
       game.off('match_result', handleResult);
@@ -103,6 +111,51 @@ export function DeadshotCanvas(): React.ReactNode {
         style={{ display: 'block', width: '100%', height: '100%' }}
         onContextMenu={(e) => e.preventDefault()}
       />
+
+      {/* Connection state overlay */}
+      {connectionState !== 'connected' ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.85)',
+            zIndex: 50,
+            fontFamily: "'JetBrains Mono', monospace",
+          }}
+        >
+          {connectionState === 'loading' || connectionState === 'connecting' ? (
+            <div
+              style={{
+                fontSize: '0.875rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                color: '#00f0ff',
+                opacity: 0.8,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}
+            >
+              {connectionState === 'loading' ? 'Initializing...' : 'Connecting to server...'}
+            </div>
+          ) : null}
+
+          {connectionState === 'error' && errorMessage !== null ? (
+            <div
+              style={{
+                fontSize: '0.8125rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                color: '#f87171',
+              }}
+            >
+              {errorMessage}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

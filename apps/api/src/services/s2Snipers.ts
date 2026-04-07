@@ -12,6 +12,45 @@ const client = createPublicClient({
   transport: http(rpcUrl),
 });
 
+// ── Dev mock snipers ────────────────────────────────────────────────────────
+// When S2_DEV_MOCK_SNIPERS=true, every wallet "owns" the mock set below.
+// This lets developers test the full game loop without a deployed contract.
+const DEV_MOCK_ENABLED = process.env['S2_DEV_MOCK_SNIPERS'] === 'true';
+
+const MOCK_SNIPERS: SniperMetadata[] = [
+  {
+    tokenId: 1,
+    name: 'Test Sniper #1',
+    image: '',
+    skin: 'desert',
+    scopeReticle: 'crosshair',
+    killEffect: 'default',
+    tracerColor: '#00f0ff',
+    inspectAnimation: 'default',
+  },
+  {
+    tokenId: 2,
+    name: 'Test Sniper #2',
+    image: '',
+    skin: 'arctic',
+    scopeReticle: 'mil-dot',
+    killEffect: 'default',
+    tracerColor: '#ff3333',
+    inspectAnimation: 'default',
+  },
+  {
+    tokenId: 3,
+    name: 'Test Sniper #3',
+    image: '',
+    skin: 'urban',
+    scopeReticle: 'chevron',
+    killEffect: 'default',
+    tracerColor: '#ccff00',
+    inspectAnimation: 'default',
+  },
+];
+const MOCK_TOKEN_IDS = new Set(MOCK_SNIPERS.map((s) => s.tokenId));
+
 interface RawNftMetadata {
   name?: string;
   image?: string;
@@ -203,6 +242,9 @@ export async function getSniperMetadata(
 export async function getSnipersForAddress(
   address: `0x${string}`
 ): Promise<SniperMetadata[]> {
+  if (DEV_MOCK_ENABLED) {
+    return MOCK_SNIPERS;
+  }
   const tokenIds = await getOwnedSniperTokenIds(address);
   return Promise.all(tokenIds.map((id) => getSniperMetadata(id)));
 }
@@ -211,6 +253,9 @@ export async function verifySniperOwnership(
   address: `0x${string}`,
   tokenId: number
 ): Promise<boolean> {
+  if (DEV_MOCK_ENABLED) {
+    return MOCK_TOKEN_IDS.has(tokenId);
+  }
   try {
     const owner = await client.readContract({
       address: DEADSHOT_CONTRACT_ADDRESS,

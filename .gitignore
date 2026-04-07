@@ -6,6 +6,8 @@ packages/shared/dist/
 /public/
 .env
 .env.local
+.env.vercel.production
+.env.vercel.*
 *.log
 .DS_Store
 .vercel
