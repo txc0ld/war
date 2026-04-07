@@ -78,51 +78,51 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   });
 
   // ── Atmosphere ────────────────────────────────────────────────────────────
-  // Warm dusty ambient — golden-hour light reflecting off concrete and dust.
-  app.scene.ambientLight = new pc.Color(0.18, 0.14, 0.10);
+  // Cool grey-blue ambient so the warm sun creates real contrast against
+  // shadowed surfaces (the previous all-warm palette made everything blend
+  // into one orange smudge).
+  app.scene.ambientLight = new pc.Color(0.20, 0.22, 0.28);
 
-  // Distance fog gives the arena depth and hides the world edges.
-  // PlayCanvas v2's Scene.fog is a getter-only that returns the existing
-  // FogParams instance — mutate it in place instead of replacing.
+  // Distance fog kept thin so the perimeter buildings stay visible.
   app.scene.fog.type = pc.FOG_EXP2;
-  app.scene.fog.color.set(0.18, 0.14, 0.12);
-  app.scene.fog.density = 0.012;
+  app.scene.fog.color.set(0.55, 0.58, 0.62);
+  app.scene.fog.density = 0.0035;
 
-  // ── Sun directional light (warm, low angle, sunset) ───────────────────────
+  // ── Sun directional light (high noon, neutral white) ─────────────────────
   const light = new pc.Entity('SunLight');
   light.addComponent('light', {
     type: 'directional',
-    color: new pc.Color(1.0, 0.78, 0.55),
-    intensity: 1.6,
+    color: new pc.Color(1.0, 0.96, 0.88),
+    intensity: 2.4,
     castShadows: true,
     shadowType: pc.SHADOW_PCF3,
-    shadowDistance: 120,
+    shadowDistance: 140,
     shadowResolution: 2048,
     normalOffsetBias: 0.05,
   });
-  // Low sun angle from the side — creates long shadows
-  light.setLocalEulerAngles(28, -42, 0);
+  // High sun angle for clear definition without crushing shadows
+  light.setLocalEulerAngles(55, -30, 0);
   app.root.addChild(light);
 
-  // Fill light from the opposite side — soft cool to balance the warm sun
+  // Cool fill light from the opposite side
   const fill = new pc.Entity('FillLight');
   fill.addComponent('light', {
     type: 'directional',
-    color: new pc.Color(0.4, 0.5, 0.65),
-    intensity: 0.4,
+    color: new pc.Color(0.55, 0.62, 0.78),
+    intensity: 0.7,
     castShadows: false,
   });
-  fill.setLocalEulerAngles(60, 140, 0);
+  fill.setLocalEulerAngles(40, 150, 0);
   app.root.addChild(fill);
 
   // ── Camera ────────────────────────────────────────────────────────────────
   const camera = new pc.Entity('Camera');
   camera.addComponent('camera', {
-    fov: 60,
+    fov: 70,
     nearClip: 0.1,
     farClip: 500,
-    clearColor: new pc.Color(0.18, 0.14, 0.12), // matches fog colour
-    // Cinematic ACES tone mapping for the warm urban look
+    // Pale grey-blue sky — matches fog so distant geometry blends naturally
+    clearColor: new pc.Color(0.62, 0.66, 0.72),
     toneMapping: pc.TONEMAP_ACES,
     gammaCorrection: pc.GAMMA_SRGB,
   });
@@ -130,8 +130,8 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   camera.setLocalEulerAngles(0, 0, 0);
   app.root.addChild(camera);
 
-  // ── Ground (large concrete plane with subtle grit colour) ─────────────────
-  const groundMaterial = makeMaterial([0.22, 0.20, 0.18], { metalness: 0, gloss: 0.15 });
+  // ── Ground (large dark asphalt plane) ─────────────────────────────────────
+  const groundMaterial = makeMaterial([0.18, 0.19, 0.21], { metalness: 0, gloss: 0.12 });
   const ground = new pc.Entity('Ground');
   ground.addComponent('render', {
     type: 'plane',
@@ -143,13 +143,14 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   ground.setPosition(0, 0, 32);
   app.root.addChild(ground);
 
-  // ── Materials for arena pieces ────────────────────────────────────────────
-  const concreteMat = makeMaterial([0.42, 0.40, 0.38], { metalness: 0, gloss: 0.10 });
-  const darkConcreteMat = makeMaterial([0.28, 0.26, 0.24], { metalness: 0, gloss: 0.08 });
-  const sandbagMat = makeMaterial([0.55, 0.45, 0.30], { metalness: 0, gloss: 0.05 });
-  const rustMat = makeMaterial([0.30, 0.18, 0.12], { metalness: 0.7, gloss: 0.30 });
-  const metalMat = makeMaterial([0.20, 0.20, 0.22], { metalness: 0.8, gloss: 0.45 });
-  const woodMat = makeMaterial([0.30, 0.22, 0.15], { metalness: 0, gloss: 0.20 });
+  // ── Materials with more colour variety so adjacent surfaces don't blend ──
+  const concreteMat = makeMaterial([0.62, 0.62, 0.60], { metalness: 0, gloss: 0.10 });
+  const darkConcreteMat = makeMaterial([0.38, 0.40, 0.42], { metalness: 0, gloss: 0.08 });
+  const brickMat = makeMaterial([0.52, 0.30, 0.22], { metalness: 0, gloss: 0.06 });
+  const sandbagMat = makeMaterial([0.65, 0.55, 0.35], { metalness: 0, gloss: 0.05 });
+  const rustMat = makeMaterial([0.42, 0.18, 0.08], { metalness: 0.7, gloss: 0.30 });
+  const metalMat = makeMaterial([0.22, 0.24, 0.28], { metalness: 0.85, gloss: 0.55 });
+  const woodMat = makeMaterial([0.42, 0.28, 0.15], { metalness: 0, gloss: 0.18 });
 
   // ── Perimeter buildings (north + south flanks) ────────────────────────────
   // Long blocked walls along the north (back) and south (front) edges
@@ -159,21 +160,28 @@ export function createScene(canvas: HTMLCanvasElement): SceneContext {
   // South wall row (z ≈ MIN_Z - 4) — behind player 0's spawn
   for (let i = 0; i < 7; i++) {
     const x = -32 + i * 11;
-    const h = 6 + (i % 3) * 1.5;
-    addBox(app, `SouthBuilding_${i}`, [x, h / 2, MIN_Z - 4], [9, h, 6], concreteMat);
-    // Window cutouts: smaller dark boxes set into the wall face
-    if (h > 6) {
-      addBox(app, `SouthWindow_${i}`, [x, 4, MIN_Z - 1], [2.4, 1.6, 0.2], darkConcreteMat);
+    const h = 6 + (i % 3) * 1.8;
+    // Alternate brick / concrete so adjacent buildings don't blend
+    const mat = i % 2 === 0 ? concreteMat : brickMat;
+    addBox(app, `SouthBuilding_${i}`, [x, h / 2, MIN_Z - 4], [9, h, 6], mat);
+    // Dark window slabs set into the front face
+    addBox(app, `SouthWin_A_${i}`, [x - 2.5, 3, MIN_Z - 0.95], [1.6, 1.4, 0.2], darkConcreteMat);
+    addBox(app, `SouthWin_B_${i}`, [x + 2.5, 3, MIN_Z - 0.95], [1.6, 1.4, 0.2], darkConcreteMat);
+    if (h > 7) {
+      addBox(app, `SouthWin_C_${i}`, [x, 5.5, MIN_Z - 0.95], [2.0, 1.4, 0.2], darkConcreteMat);
     }
   }
 
   // North wall row (z ≈ MAX_Z + 4) — behind player 1's spawn
   for (let i = 0; i < 7; i++) {
     const x = -32 + i * 11;
-    const h = 5 + ((i + 1) % 3) * 1.7;
-    addBox(app, `NorthBuilding_${i}`, [x, h / 2, MAX_Z + 4], [9, h, 6], concreteMat);
-    if (h > 5) {
-      addBox(app, `NorthWindow_${i}`, [x, 3.5, MAX_Z + 1], [2.4, 1.6, 0.2], darkConcreteMat);
+    const h = 5 + ((i + 1) % 3) * 1.8;
+    const mat = i % 2 === 0 ? brickMat : concreteMat;
+    addBox(app, `NorthBuilding_${i}`, [x, h / 2, MAX_Z + 4], [9, h, 6], mat);
+    addBox(app, `NorthWin_A_${i}`, [x - 2.5, 3, MAX_Z + 0.95], [1.6, 1.4, 0.2], darkConcreteMat);
+    addBox(app, `NorthWin_B_${i}`, [x + 2.5, 3, MAX_Z + 0.95], [1.6, 1.4, 0.2], darkConcreteMat);
+    if (h > 6) {
+      addBox(app, `NorthWin_C_${i}`, [x, 5.5, MAX_Z + 0.95], [2.0, 1.4, 0.2], darkConcreteMat);
     }
   }
 

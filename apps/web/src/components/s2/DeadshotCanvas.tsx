@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { SniperMetadata } from '@warpath/shared';
 import { DeadshotGame } from '@/game/DeadshotGame';
 import type { GameErrorEvent, MatchResultEvent } from '@/game/DeadshotGame';
@@ -120,13 +121,18 @@ export function DeadshotCanvas({ preview = false }: DeadshotCanvasProps): React.
     };
   }, [preview, s2Match, s2SelectedSniper, handleResult, handleError, handleDisconnect, handleConnected]);
 
-  return (
+  // Render in a portal so the canvas escapes the .site-shell__content
+  // stacking context (z-index: 2) — otherwise the .site-header (z-index: 5)
+  // overlays the game.
+  if (typeof document === 'undefined') return null;
+  return createPortal(
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 40,
+        zIndex: 9000,
         background: '#000',
+        pointerEvents: 'auto',
       }}
     >
       <canvas
@@ -179,6 +185,30 @@ export function DeadshotCanvas({ preview = false }: DeadshotCanvasProps): React.
           ) : null}
         </div>
       ) : null}
-    </div>
+
+      {preview ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.6875rem',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: '#00f0ff',
+            background: 'rgba(0,0,0,0.6)',
+            border: '1px solid rgba(0,240,255,0.3)',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            pointerEvents: 'none',
+          }}
+        >
+          Preview Mode &middot; Click to Lock &middot; WASD to Move &middot; Right-Click to Scope &middot; Esc to Release
+        </div>
+      ) : null}
+    </div>,
+    document.body
   );
 }
