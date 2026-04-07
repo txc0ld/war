@@ -127,14 +127,7 @@ export function ArmorySelector(): React.ReactNode {
   // Pick a sniper. The slice's setS2SelectedSniper auto-closes the modal.
   const handleSelectAndClose = useCallback(
     (sniper: SniperMetadata) => {
-      // eslint-disable-next-line no-console
-      console.log('[s2:armory] click', { tokenId: sniper.tokenId, name: sniper.name });
       setS2SelectedSniper(sniper);
-      // eslint-disable-next-line no-console
-      console.log('[s2:armory] after-set', {
-        selected: useStore.getState().s2SelectedSniper?.tokenId ?? null,
-        showArmory: useStore.getState().showArmory,
-      });
     },
     [setS2SelectedSniper],
   );
@@ -187,6 +180,10 @@ export function ArmorySelector(): React.ReactNode {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1rem',
+        // Re-enable pointer events — ancestor `.site-shell__content` sets
+        // pointer-events: none, which would otherwise prevent clicks from
+        // ever reaching the sniper cards inside this modal.
+        pointerEvents: 'auto',
       }}
     >
       {/* Panel */}
