@@ -57,6 +57,28 @@ export class OpponentRenderer {
   #lastPosZ: number = 0;
   #lastUpdateMs: number = 0;
 
+  // Anim diagnostics surfaced to an on-screen HUD overlay.
+  #diagOverlay: HTMLDivElement | null = null;
+  readonly #diag: {
+    tracksFound: string[];
+    idleFound: boolean;
+    runFound: boolean;
+    stateGraphLoaded: boolean;
+    idleAssigned: boolean;
+    runAssigned: boolean;
+    playedIdle: boolean;
+    error: string;
+  } = {
+    tracksFound: [],
+    idleFound: false,
+    runFound: false,
+    stateGraphLoaded: false,
+    idleAssigned: false,
+    runAssigned: false,
+    playedIdle: false,
+    error: '',
+  };
+
   constructor(app: pc.Application) {
     this.#app = app;
 
@@ -116,44 +138,33 @@ export class OpponentRenderer {
     this.#soldierEntity = entity;
     this.#placeholder.enabled = false;
 
-    // Diagnostic: log container contents so we can see what we're working with.
-    // eslint-disable-next-line no-console
-    console.log('[opponent] mounted soldier, container resource:', container);
-
     // ── Anim component + state graph ──
-    // PlayCanvas's anim API expects a state graph. The simplest viable graph
-    // is a single layer with two states (Idle, Run) and an "Any State"
-    // transition. We assign the AnimTrack instances pulled from the container
-    // resource to those states by name.
-    entity.addComponent('anim', {
-      activate: true,
-      speed: 1,
-    });
+    // PlayCanvas v2 anim API requires:
+    //   1. Add 'anim' component with activate: true
+    //   2. Load a state graph that names every state we want to drive
+    //   3. assignAnimation(stateName, track) — where stateName is "Layer.State"
+    //      using DOT notation, NOT the multi-arg overload
+    entity.addComponent('anim', { activate: true, speed: 1 });
 
     const containerAny = container as unknown as { animations?: pc.Asset[] };
     const animAssets = containerAny.animations ?? [];
-    // eslint-disable-next-line no-console
-    console.log(
-      '[opponent] animation assets:',
-      animAssets.map((a) => ({
-        name: a.name,
-        type: a.type,
-        loaded: a.loaded,
-        hasResource: a.resource !== null && a.resource !== undefined,
-      })),
-    );
 
-    // Build a state graph definition: Start → Idle, with a separate Run state.
-    // Both states loop. Transitions between them are driven imperatively in
-    // update() via baseLayer.transition('Run' / 'Idle').
+    // Diagnostics — surface this in the on-screen HUD so we don't need DevTools.
+    const animNames = animAssets
+      .map((a) => a.name ?? '(unnamed)')
+      .filter((n) => n.length > 0);
+    this.#diag.tracksFound = animNames;
+
+    // Minimal state graph: just Idle and Run, both looping. Use a "Layer.State"
+    // dot path for assignAnimation.
     const stateGraph = {
       layers: [
         {
           name: 'Base',
           states: [
             { name: 'START' },
-            { name: 'Idle', speed: 1, loop: true },
-            { name: 'Run', speed: 1, loop: true },
+            { name: 'Idle', speed: 1.0, loop: true },
+            { name: 'Run', speed: 1.0, loop: true },
           ],
           transitions: [
             { from: 'START', to: 'Idle', time: 0 },
@@ -167,49 +178,63 @@ export class OpponentRenderer {
 
     try {
       entity.anim?.loadStateGraph(stateGraph);
+      this.#diag.stateGraphLoaded = true;
     } catch (e) {
+      this.#diag.stateGraphLoaded = false;
+      this.#diag.error = String(e);
       // eslint-disable-next-line no-console
       console.warn('[opponent] loadStateGraph failed:', e);
     }
 
-    // Assign each loaded animation track to the matching state by name.
-    // The three.js examples Soldier.glb ships 4 clips: Idle, Walk, Run, TPose.
-    // We only need Idle + Run for now. We accept any clip whose name CONTAINS
-    // 'idle' or 'run' (case-insensitive) to be tolerant of "mixamo.com" prefixes
-    // and similar exporter quirks.
-    let assignedIdle = false;
-    let assignedRun = false;
+    // Find the Idle and Run tracks. Tolerate any name containing 'idle'/'run'.
+    let idleTrack: pc.AnimTrack | null = null;
+    let runTrack: pc.AnimTrack | null = null;
     for (const animAsset of animAssets) {
       const track = animAsset.resource as pc.AnimTrack | undefined;
       if (track === undefined || track === null) continue;
-      const rawName = animAsset.name ?? track.name ?? '';
-      const lower = rawName.toLowerCase();
-      let target: 'Idle' | 'Run' | null = null;
-      if (lower.includes('idle')) target = 'Idle';
-      else if (lower.includes('run')) target = 'Run';
-      if (target === null) continue;
-      try {
-        // Pass explicit layer name to pick the multi-layer overload.
-        entity.anim?.assignAnimation(target, track, 'Base', 1, true);
-        if (target === 'Idle') assignedIdle = true;
-        if (target === 'Run') assignedRun = true;
-        // eslint-disable-next-line no-console
-        console.log(`[opponent] assigned ${rawName} → ${target}`);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.warn(`[opponent] assignAnimation(${rawName} → ${target}) failed:`, e);
+      const lower = (animAsset.name ?? '').toLowerCase();
+      if (idleTrack === null && lower.includes('idle')) idleTrack = track;
+      else if (runTrack === null && lower.includes('run') && !lower.includes('idle')) {
+        runTrack = track;
       }
     }
-    // eslint-disable-next-line no-console
-    console.log(`[opponent] anim summary: idle=${assignedIdle} run=${assignedRun}`);
+    this.#diag.idleFound = idleTrack !== null;
+    this.#diag.runFound = runTrack !== null;
 
+    // Assign with the documented dotted-state-name form.
+    if (idleTrack !== null) {
+      try {
+        entity.anim?.assignAnimation('Base.Idle', idleTrack);
+        this.#diag.idleAssigned = true;
+      } catch (e) {
+        this.#diag.error = `idle: ${String(e)}`;
+        // eslint-disable-next-line no-console
+        console.warn('[opponent] assignAnimation(Base.Idle) failed:', e);
+      }
+    }
+    if (runTrack !== null) {
+      try {
+        entity.anim?.assignAnimation('Base.Run', runTrack);
+        this.#diag.runAssigned = true;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[opponent] assignAnimation(Base.Run) failed:', e);
+      }
+    }
+
+    // Force-play Idle. The START → Idle transition should auto-trigger but
+    // we play explicitly as a belt-and-braces.
     try {
       entity.anim?.baseLayer?.play('Idle');
+      this.#diag.playedIdle = true;
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn('[opponent] baseLayer.play(Idle) failed:', e);
     }
     this.#currentAnimState = 'Idle';
+
+    // Render the diagnostic to the on-screen HUD.
+    this.#renderDiag();
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -299,5 +324,44 @@ export class OpponentRenderer {
 
   destroy(): void {
     this.#root.destroy();
+    if (this.#diagOverlay !== null) {
+      this.#diagOverlay.remove();
+      this.#diagOverlay = null;
+    }
+  }
+
+  /**
+   * Render the anim diagnostic to a small fixed overlay so we can read it
+   * without opening DevTools. Only used during the soldier-debug iteration —
+   * remove once the animation is reliably playing.
+   */
+  #renderDiag(): void {
+    if (typeof document === 'undefined') return;
+    if (this.#diagOverlay === null) {
+      const el = document.createElement('div');
+      el.style.cssText = [
+        'position: fixed',
+        'left: 12px',
+        'bottom: 12px',
+        'z-index: 99999',
+        'background: rgba(0,0,0,0.7)',
+        'color: #00f0ff',
+        'font: 11px ui-monospace, Menlo, monospace',
+        'padding: 8px 10px',
+        'border: 1px solid #00f0ff',
+        'border-radius: 4px',
+        'pointer-events: none',
+        'max-width: 360px',
+      ].join('; ');
+      document.body.appendChild(el);
+      this.#diagOverlay = el;
+    }
+    const d = this.#diag;
+    this.#diagOverlay.textContent =
+      `[soldier anim] tracks=[${d.tracksFound.join(', ')}] ` +
+      `idle:found=${d.idleFound},assigned=${d.idleAssigned} ` +
+      `run:found=${d.runFound},assigned=${d.runAssigned} ` +
+      `graph=${d.stateGraphLoaded} play=${d.playedIdle}` +
+      (d.error.length > 0 ? ` ERR=${d.error}` : '');
   }
 }
