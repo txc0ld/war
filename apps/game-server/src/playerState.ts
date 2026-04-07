@@ -18,6 +18,8 @@ export class MutablePlayerState {
   x = 0;
   y = 0;
   z = 0;
+  // ── Vertical velocity for jump / gravity ──
+  vy = 0;
 
   private lastFireMs = -Infinity;
   private reloadStartMs = -Infinity;
@@ -38,6 +40,19 @@ export class MutablePlayerState {
     this.scopeZoom = input.scopeZoom;
 
     if (!this.alive) return;
+
+    // ── Jump impulse + gravity (vertical motion is independent of WASD) ──
+    const onGround = this.y <= S2_MATCH_CONFIG.GROUND_Y + 0.001;
+    if (input.jump && onGround) {
+      this.vy = S2_MATCH_CONFIG.JUMP_VELOCITY;
+    }
+    // Integrate vertical velocity each tick
+    this.vy -= S2_MATCH_CONFIG.GRAVITY * TICK_DT_S;
+    this.y += this.vy * TICK_DT_S;
+    if (this.y < S2_MATCH_CONFIG.GROUND_Y) {
+      this.y = S2_MATCH_CONFIG.GROUND_Y;
+      this.vy = 0;
+    }
 
     // ── WASD intent → world-space velocity ──
     let forward = 0;
@@ -138,6 +153,7 @@ export class MutablePlayerState {
     this.x = x;
     this.y = y;
     this.z = z;
+    this.vy = 0;
   }
 
   snapshot(): PlayerState {
@@ -171,5 +187,6 @@ export class MutablePlayerState {
     this.x = 0;
     this.y = 0;
     this.z = 0;
+    this.vy = 0;
   }
 }

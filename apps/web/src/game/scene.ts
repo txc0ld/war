@@ -377,14 +377,14 @@ async function loadArenaAssets(
 ): Promise<void> {
   // ── 1. PBR textures (in parallel) ────────────────────────────────────────
   const [
-    asphaltSet,
+    burnedGroundSet,
     concreteSet,
     brickSet,
     brokenBrickSet,
     metalSet,
     woodSet,
   ] = await Promise.all([
-    loadPbrSet(app, 'asphalt_02'),
+    loadPbrSet(app, 'burned_ground_01'),
     loadPbrSet(app, 'concrete_floor_02'),
     loadPbrSet(app, 'red_brick_03'),
     loadPbrSet(app, 'broken_brick_wall'),
@@ -393,7 +393,7 @@ async function loadArenaAssets(
   ]);
 
   // Tilings chosen so each ~3 m of geometry shows roughly one tile.
-  applyPbrSet(materials.ground, asphaltSet, 80, 80);   // 220 m plane / 3 m tile
+  applyPbrSet(materials.ground, burnedGroundSet, 80, 80);   // 220 m plane / 3 m tile
   applyPbrSet(materials.concrete, concreteSet, 3, 2);  // 9 × 6 m walls
   applyPbrSet(materials.brick, brickSet, 3, 2);        // 9 × 6 m walls
   applyPbrSet(materials.darkConcrete, brokenBrickSet, 1, 1);

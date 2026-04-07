@@ -12,7 +12,8 @@ import type { ClientInput } from '@warpath/shared';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const MOUSE_SENSITIVITY = 0.0035;
+// 0.0035 * 1.2 = 0.0042 (20% bump)
+const MOUSE_SENSITIVITY = 0.0042;
 const PITCH_MIN = -89;
 const PITCH_MAX = 89;
 
@@ -31,6 +32,8 @@ export interface InputState {
   moveBackward: boolean;
   moveLeft: boolean;
   moveRight: boolean;
+  // ── Jump (one-shot, reset by buildClientInput) ──
+  jump: boolean;
 }
 
 export function createInputState(): InputState {
@@ -46,6 +49,7 @@ export function createInputState(): InputState {
     moveBackward: false,
     moveLeft: false,
     moveRight: false,
+    jump: false,
   };
 }
 
@@ -89,12 +93,14 @@ export function buildClientInput(state: InputState): ClientInput {
     moveBackward: state.moveBackward,
     moveLeft: state.moveLeft,
     moveRight: state.moveRight,
+    jump: state.jump,
     timestamp: Date.now(),
   };
 
   // Reset one-shot flags
   state.fire = false;
   state.reload = false;
+  state.jump = false;
 
   return input;
 }
@@ -168,6 +174,13 @@ export class InputCapture {
           break;
         case 'KeyD':
           this.state.moveRight = true;
+          break;
+        case 'Space':
+          // One-shot jump intent — server (or preview client) only fires the
+          // impulse if the player is grounded. Held space won't bunny-hop.
+          this.state.jump = true;
+          // Browsers scroll on Space by default — block it.
+          e.preventDefault();
           break;
         case 'KeyC':
           this.state.crouch = !this.state.crouch;

@@ -12,7 +12,8 @@ and are released under the [CC0 1.0 Universal](https://creativecommons.org/publi
 
 Each set has three maps: `_diff` (albedo), `_nor_gl` (OpenGL-format normal), `_rough` (roughness).
 
-- **`asphalt_02_*`** — Polyhaven https://polyhaven.com/a/asphalt_02
+- **`asphalt_02_*`** — Polyhaven https://polyhaven.com/a/asphalt_02 (currently unused)
+- **`burned_ground_01_*`** — Polyhaven https://polyhaven.com/a/burned_ground_01 (active terrain)
 - **`concrete_floor_02_*`** — Polyhaven https://polyhaven.com/a/concrete_floor_02
 - **`red_brick_03_*`** — Polyhaven https://polyhaven.com/a/red_brick_03
 - **`broken_brick_wall_*`** — Polyhaven https://polyhaven.com/a/broken_brick_wall

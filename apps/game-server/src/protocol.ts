@@ -50,6 +50,7 @@ export function parseClientMessage(raw: string): ClientMessage | null {
               moveBackward: inp['moveBackward'] === true,
               moveLeft: inp['moveLeft'] === true,
               moveRight: inp['moveRight'] === true,
+              jump: inp['jump'] === true,
               timestamp: inp['timestamp'],
             },
           };

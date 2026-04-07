@@ -53,10 +53,14 @@ export const S2_MATCH_CONFIG = {
   RELOAD_DURATION_MS: 3500,
   BOLT_CYCLE_MS: 1500,
   TICK_RATE: 20,
-  // ── Movement ──
-  MOVE_SPEED: 4.5,            // metres / second when standing
-  CROUCH_MOVE_SPEED: 2.0,     // metres / second when crouched
-  SCOPED_MOVE_SPEED: 1.5,     // movement speed reduction while scoped
+  // ── Movement (2.5× the original baseline so traversal feels CS-like) ──
+  MOVE_SPEED: 11.25,          // metres / second when standing (4.5 * 2.5)
+  CROUCH_MOVE_SPEED: 5.0,     // metres / second when crouched (2.0 * 2.5)
+  SCOPED_MOVE_SPEED: 3.75,    // metres / second while scoped (1.5 * 2.5)
+  // ── Jump / gravity ──
+  JUMP_VELOCITY: 6.0,         // initial Y velocity in m/s when space pressed
+  GRAVITY: 18.0,              // m/s² downward
+  GROUND_Y: 0,                // baseline floor for the player feet
   ARENA_HALF_WIDTH: 35,       // soft world bound on the X axis (m)
   ARENA_MIN_Z: -10,           // soft world bound on the Z axis (front)
   ARENA_MAX_Z: 75,            // soft world bound on the Z axis (back)

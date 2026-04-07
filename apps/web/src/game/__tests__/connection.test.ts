@@ -25,6 +25,7 @@ const sampleInput: ClientInput = {
   moveBackward: false,
   moveLeft: false,
   moveRight: false,
+  jump: false,
   timestamp: 1_700_000_000_000,
 };
 
@@ -76,6 +77,7 @@ describe('buildInputMessage', () => {
       moveBackward: false,
       moveLeft: true,
       moveRight: false,
+      jump: true,
       timestamp: 999,
     };
     const parsed = JSON.parse(buildInputMessage(full)) as { input: ClientInput };

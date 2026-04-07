@@ -21,6 +21,8 @@ export interface ClientInput {
   moveBackward: boolean;
   moveLeft: boolean;
   moveRight: boolean;
+  // ── Jump intent (one-shot, consumed each tick) ──
+  jump: boolean;
   timestamp: number;
 }
 

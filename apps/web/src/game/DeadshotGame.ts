@@ -4,7 +4,7 @@
 // imperative — React never reaches inside the PlayCanvas scene.
 
 import * as pc from 'playcanvas';
-import { S2_MATCH_CONFIG } from '@warpath/shared';
+import { HITBOX, S2_MATCH_CONFIG } from '@warpath/shared';
 import { createScene, destroyScene } from './scene.js';
 import type { SceneContext } from './scene.js';
 import type { GameConfig, GameEventMap, MatchResultEvent, GameErrorEvent } from './types.js';
@@ -56,7 +56,9 @@ export class DeadshotGame {
   #opponentSpawnZ: number = 50;
   // ── Preview-mode local position (no server) ─────────────────────────────
   #previewX: number = 0;
+  #previewY: number = 0;   // feet position; eye is previewY + STANDING_EYE_Y
   #previewZ: number = 32;  // centre of arena
+  #previewVy: number = 0;  // vertical velocity for jump / gravity
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -220,18 +222,44 @@ export class DeadshotGame {
     this.#opponentSpawnX = 0;
     this.#opponentSpawnZ = 50;
     this.#previewX = 0;
+    this.#previewY = 0;
     this.#previewZ = 32;
+    this.#previewVy = 0;
   }
 
   // ── Preview-mode local movement ───────────────────────────────────────────
 
   /**
-   * Apply WASD movement to the local preview position. Mirrors the server's
-   * playerState.applyInput math but runs every render frame instead of every
-   * 50 ms tick. Movement intent is rotated by aimYaw so W moves the camera
-   * along its current facing direction.
+   * Apply WASD + jump + gravity to the local preview position. Mirrors the
+   * server's playerState.applyInput math but runs every render frame instead
+   * of every 50 ms tick.
    */
-  #applyPreviewMovement(inputState: { aimYaw: number; crouch: boolean; scope: boolean; moveForward: boolean; moveBackward: boolean; moveLeft: boolean; moveRight: boolean }, dt: number): void {
+  #applyPreviewMovement(
+    inputState: {
+      aimYaw: number;
+      crouch: boolean;
+      scope: boolean;
+      moveForward: boolean;
+      moveBackward: boolean;
+      moveLeft: boolean;
+      moveRight: boolean;
+    },
+    jumpRequested: boolean,
+    dt: number,
+  ): void {
+    // ── Jump impulse + gravity ──
+    const onGround = this.#previewY <= S2_MATCH_CONFIG.GROUND_Y + 0.001;
+    if (jumpRequested && onGround) {
+      this.#previewVy = S2_MATCH_CONFIG.JUMP_VELOCITY;
+    }
+    this.#previewVy -= S2_MATCH_CONFIG.GRAVITY * dt;
+    this.#previewY += this.#previewVy * dt;
+    if (this.#previewY < S2_MATCH_CONFIG.GROUND_Y) {
+      this.#previewY = S2_MATCH_CONFIG.GROUND_Y;
+      this.#previewVy = 0;
+    }
+
+    // ── WASD horizontal motion ──
     let forward = 0;
     let strafe = 0;
     if (inputState.moveForward) forward += 1;
@@ -249,16 +277,8 @@ export class DeadshotGame {
     forward /= len;
     strafe /= len;
 
-    // Mirror the server formula in playerState.applyInput so preview
-    // movement matches multiplayer behaviour. Derived from PlayCanvas's
-    // entity.forward = (-sin(yaw), 0, -cos(yaw)) and entity.right =
-    // (cos(yaw), 0, -sin(yaw)) for a default camera at the given Y rotation.
-    //
-    // CRITICAL: aimYaw accumulates in DEGREES (because we hand it directly
-    // to setLocalEulerAngles which takes degrees). Math.sin/cos take
-    // RADIANS, so we have to convert before doing the trig — otherwise the
-    // movement direction drifts out of sync with where the camera is
-    // actually pointing and strafing while turning corkscrews into a circle.
+    // Mirror the server formula in playerState.applyInput.
+    // aimYaw is in DEGREES; convert to radians before trig.
     const yawRad = inputState.aimYaw * (Math.PI / 180);
     const sin = Math.sin(yawRad);
     const cos = Math.cos(yawRad);
@@ -335,9 +355,10 @@ export class DeadshotGame {
 
     // ── 4. Build and send client input ────────────────────────────────────────
     // Capture one-shot flags BEFORE buildClientInput resets them — preview
-    // mode uses these to fake local fire feedback.
+    // mode uses these to fake local fire / jump.
     const firedThisFrame = inputState.fire;
     const reloadedThisFrame = inputState.reload;
+    const jumpedThisFrame = inputState.jump;
     const clientInput = buildClientInput(inputState);
     this.#connection?.sendInput(clientInput);
 
@@ -379,22 +400,26 @@ export class DeadshotGame {
     const roundTimer = this.#stateManager.getRoundTimer();
 
     // ── 6a. Sync camera position ─────────────────────────────────────────────
-    // In normal multiplayer the server applies WASD and broadcasts authoritative
-    // positions; we snap the camera to the latest. In preview mode there is no
-    // server, so we integrate WASD intent locally with the same constants the
-    // server uses.
-    //
-    // CRITICAL: preserve the Y coordinate that setStance() set on this same
-    // frame. Setting Y to 0 here puts the camera eye AT GROUND LEVEL, which
-    // makes the player feel "stuck in the floor" with the ground plane
-    // running through the centre of the screen.
-    if (this.#camera !== null && this.#scene !== null) {
-      const currentEyeY = this.#scene.camera.getPosition().y;
+    // In normal multiplayer the server applies WASD/jump/gravity and broadcasts
+    // authoritative positions; we snap the camera to feet position + stance
+    // eye height. In preview mode there is no server, so we integrate
+    // movement locally with the same constants.
+    if (this.#camera !== null) {
+      const eyeOffset =
+        inputState.crouch ? HITBOX.CROUCHED_EYE_Y : HITBOX.STANDING_EYE_Y;
       if (config.previewMode) {
-        this.#applyPreviewMovement(inputState, dt);
-        this.#camera.setPosition(this.#previewX, currentEyeY, this.#previewZ);
+        this.#applyPreviewMovement(inputState, jumpedThisFrame, dt);
+        this.#camera.setPosition(
+          this.#previewX,
+          this.#previewY + eyeOffset,
+          this.#previewZ,
+        );
       } else if (localPlayer !== null) {
-        this.#camera.setPosition(localPlayer.x, currentEyeY, localPlayer.z);
+        this.#camera.setPosition(
+          localPlayer.x,
+          localPlayer.y + eyeOffset,
+          localPlayer.z,
+        );
       }
     }
 

@@ -7,6 +7,7 @@ const defaultInput: ClientInput = {
   aimYaw: 0, aimPitch: 0, fire: false, scope: false,
   scopeZoom: 1, crouch: false, reload: false,
   moveForward: false, moveBackward: false, moveLeft: false, moveRight: false,
+  jump: false,
   timestamp: 0,
 };
 

@@ -1,17 +1,28 @@
 // apps/web/src/game/opponent.ts
 // Opponent rendering for the Deadshot sniper duel.
-// Creates a simple humanoid placeholder (box body + sphere head) positioned
-// in the world using hitbox-accurate geometry from @warpath/shared.
+//
+// Strategy:
+//   1. Build a humanoid PLACEHOLDER (box + sphere) sized to the HITBOX
+//      constants so the opponent is visible the moment the round starts.
+//   2. Asynchronously load the soldier glTF from public assets.
+//   3. When the model arrives, hide the placeholder and reveal the model.
+//
+// Position, stance, rotation always come from the (interpolated) server
+// PlayerState — the server is authoritative over WASD + jump + gravity.
 
 import * as pc from 'playcanvas';
 import { HITBOX } from '@warpath/shared';
 import type { PlayerState } from '@warpath/shared';
 
-const RAD_TO_DEG = 180 / Math.PI;
+const SOLDIER_URL = '/assets/s2/characters/soldier.glb';
 
 /**
- * Apply a material to every mesh instance on a render component.
+ * The soldier glb is roughly 1.8 m tall in its source units. The HITBOX
+ * standing height is 1.65 m. Scale factor brings the model bounds into
+ * line with the hitbox so head shots actually land on the head.
  */
+const SOLDIER_SCALE = 0.92;
+
 function applyMaterial(entity: pc.Entity, material: pc.StandardMaterial): void {
   const meshInstances = entity.render?.meshInstances;
   if (meshInstances === null || meshInstances === undefined) return;
@@ -22,91 +33,118 @@ function applyMaterial(entity: pc.Entity, material: pc.StandardMaterial): void {
 
 export class OpponentRenderer {
   readonly #root: pc.Entity;
-  readonly #body: pc.Entity;
-  readonly #head: pc.Entity;
+  readonly #placeholder: pc.Entity;
+  readonly #placeholderBody: pc.Entity;
+  readonly #placeholderHead: pc.Entity;
+  #soldierEntity: pc.Entity | null = null;
 
   #spawnX: number = 0;
   #spawnZ: number = -20;
 
   constructor(app: pc.Application) {
-    // ── Root entity ───────────────────────────────────────────────────────────
+    // ── Root entity (drives position + rotation) ──
     this.#root = new pc.Entity('opponent');
 
-    // ── Body (box) ─────────────────────────────────────────────────────────────
-    this.#body = new pc.Entity('OpponentBody');
-    this.#body.addComponent('render', { type: 'box' });
+    // ── Placeholder hierarchy ──
+    this.#placeholder = new pc.Entity('OpponentPlaceholder');
+    this.#root.addChild(this.#placeholder);
 
-    const bodyMaterial = new pc.StandardMaterial();
-    bodyMaterial.diffuse = new pc.Color(0.3, 0.15, 0.1);
-    bodyMaterial.update();
-    applyMaterial(this.#body, bodyMaterial);
+    this.#placeholderBody = new pc.Entity('OpponentBody');
+    this.#placeholderBody.addComponent('render', { type: 'box' });
+    const bodyMat = new pc.StandardMaterial();
+    bodyMat.diffuse = new pc.Color(0.3, 0.15, 0.1);
+    bodyMat.update();
+    applyMaterial(this.#placeholderBody, bodyMat);
+    this.#placeholder.addChild(this.#placeholderBody);
 
-    this.#root.addChild(this.#body);
+    this.#placeholderHead = new pc.Entity('OpponentHead');
+    this.#placeholderHead.addComponent('render', { type: 'sphere' });
+    const headMat = new pc.StandardMaterial();
+    headMat.diffuse = new pc.Color(0.35, 0.2, 0.15);
+    headMat.update();
+    applyMaterial(this.#placeholderHead, headMat);
+    this.#placeholder.addChild(this.#placeholderHead);
 
-    // ── Head (sphere) ──────────────────────────────────────────────────────────
-    this.#head = new pc.Entity('OpponentHead');
-    this.#head.addComponent('render', { type: 'sphere' });
-
-    const headMaterial = new pc.StandardMaterial();
-    headMaterial.diffuse = new pc.Color(0.35, 0.2, 0.15);
-    headMaterial.update();
-    applyMaterial(this.#head, headMaterial);
-
-    this.#root.addChild(this.#head);
-
-    // ── Add root to scene ──────────────────────────────────────────────────────
     app.root.addChild(this.#root);
-
-    // Apply default standing stance immediately.
     this.setStance('standing');
+
+    // ── Async load the soldier glb (fire-and-forget) ──
+    app.assets.loadFromUrl(SOLDIER_URL, 'container', (err, asset) => {
+      if (err !== null || asset === undefined) {
+        // eslint-disable-next-line no-console
+        console.warn('[opponent] failed to load soldier model:', err);
+        return;
+      }
+      const container = asset.resource as pc.ContainerResource;
+      const entity = container.instantiateRenderEntity({
+        castShadows: true,
+        receiveShadows: true,
+      });
+      entity.name = 'OpponentSoldier';
+      entity.setLocalScale(SOLDIER_SCALE, SOLDIER_SCALE, SOLDIER_SCALE);
+      // Many character models are authored facing -Z; rotate 180° so they
+      // face toward the camera by default. The per-frame update() call
+      // adjusts yaw on top of this base rotation.
+      entity.setLocalEulerAngles(0, 180, 0);
+      this.#root.addChild(entity);
+      this.#soldierEntity = entity;
+      // Hide the placeholder now that the real model is in.
+      this.#placeholder.enabled = false;
+    });
   }
 
-  // ── Public API ──────────────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────────────────
 
-  /** Store the world-space spawn position for this opponent. */
   setSpawnPosition(x: number, z: number): void {
     this.#spawnX = x;
     this.#spawnZ = z;
     this.#root.setPosition(x, 0, z);
   }
 
-  /** Resize body and reposition head to match the given stance. */
+  /**
+   * Resize the placeholder body / head to match the given stance. The
+   * soldier glb model has its own crouch handling (skeletal animation
+   * eventually) — for now we just scale Y down on crouch as a stand-in.
+   */
   setStance(stance: 'standing' | 'crouched'): void {
     if (stance === 'standing') {
-      // Body: full standing height, centred vertically
-      this.#body.setLocalScale(
+      this.#placeholderBody.setLocalScale(
         HITBOX.BODY_HALF_WIDTH * 2,
         HITBOX.STANDING_BODY_MAX_Y,
         HITBOX.BODY_HALF_DEPTH * 2,
       );
-      this.#body.setLocalPosition(0, HITBOX.STANDING_BODY_MAX_Y / 2, 0);
+      this.#placeholderBody.setLocalPosition(0, HITBOX.STANDING_BODY_MAX_Y / 2, 0);
 
-      // Head: sphere scaled to head diameter
       const headDiam = HITBOX.STANDING_HEAD_RADIUS * 2;
-      this.#head.setLocalScale(headDiam, headDiam, headDiam);
-      this.#head.setLocalPosition(0, HITBOX.STANDING_HEAD_CENTER_Y, 0);
+      this.#placeholderHead.setLocalScale(headDiam, headDiam, headDiam);
+      this.#placeholderHead.setLocalPosition(0, HITBOX.STANDING_HEAD_CENTER_Y, 0);
+
+      if (this.#soldierEntity !== null) {
+        this.#soldierEntity.setLocalScale(SOLDIER_SCALE, SOLDIER_SCALE, SOLDIER_SCALE);
+      }
     } else {
-      // Crouched body
-      this.#body.setLocalScale(
+      this.#placeholderBody.setLocalScale(
         HITBOX.BODY_HALF_WIDTH * 2,
         HITBOX.CROUCHED_BODY_MAX_Y,
         HITBOX.BODY_HALF_DEPTH * 2,
       );
-      this.#body.setLocalPosition(0, HITBOX.CROUCHED_BODY_MAX_Y / 2, 0);
+      this.#placeholderBody.setLocalPosition(0, HITBOX.CROUCHED_BODY_MAX_Y / 2, 0);
 
-      // Crouched head
       const headDiam = HITBOX.CROUCHED_HEAD_RADIUS * 2;
-      this.#head.setLocalScale(headDiam, headDiam, headDiam);
-      this.#head.setLocalPosition(0, HITBOX.CROUCHED_HEAD_CENTER_Y, 0);
+      this.#placeholderHead.setLocalScale(headDiam, headDiam, headDiam);
+      this.#placeholderHead.setLocalPosition(0, HITBOX.CROUCHED_HEAD_CENTER_Y, 0);
+
+      if (this.#soldierEntity !== null) {
+        const crouchY = SOLDIER_SCALE * (HITBOX.CROUCHED_BODY_MAX_Y / HITBOX.STANDING_BODY_MAX_Y);
+        this.#soldierEntity.setLocalScale(SOLDIER_SCALE, crouchY, SOLDIER_SCALE);
+      }
     }
   }
 
   /**
-   * Sync the opponent's visual state to the latest server snapshot.
-   * Called once per application tick from the game orchestrator.
-   *
-   * Position is read from the (interpolated) player state — the server
-   * tracks WASD movement so the opponent walks around the arena.
+   * Sync the opponent's visual state to the latest (interpolated) server
+   * snapshot. The hitbox the server uses lives at the same x/y/z, so the
+   * visible model and the hitbox stay locked together by construction.
    */
   update(opponentState: PlayerState): void {
     if (!opponentState.alive) {
@@ -116,21 +154,21 @@ export class OpponentRenderer {
 
     this.#root.enabled = true;
 
-    // Stance
     this.setStance(opponentState.stance);
 
-    // Position: use server-authoritative coordinates
+    // Position: use server-authoritative coordinates (includes Y for jumps)
     this.#root.setPosition(opponentState.x, opponentState.y, opponentState.z);
     this.#spawnX = opponentState.x;
     this.#spawnZ = opponentState.z;
 
-    // Rotate to face toward the player (+180° because the root faces outward
-    // by default and we want it to look toward the camera origin).
-    const yawDeg = opponentState.aimYaw * RAD_TO_DEG + 180;
+    // Rotate to face the direction the opponent is aiming. aimYaw arrives
+    // in DEGREES from the wire (matching the client's setLocalEulerAngles
+    // convention). +180° because the model's default forward is -Z and we
+    // want positive aimYaw rotations to feel correct from a third-party POV.
+    const yawDeg = opponentState.aimYaw + 180;
     this.#root.setEulerAngles(0, yawDeg, 0);
   }
 
-  /** Remove the opponent entity from the scene and release resources. */
   destroy(): void {
     this.#root.destroy();
   }
