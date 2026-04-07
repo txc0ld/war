@@ -249,12 +249,16 @@ export class DeadshotGame {
     forward /= len;
     strafe /= len;
 
+    // Mirror the server formula in playerState.applyInput so preview
+    // movement matches multiplayer behaviour. Derived from PlayCanvas's
+    // entity.forward = (-sin(yaw), 0, -cos(yaw)) and entity.right =
+    // (cos(yaw), 0, -sin(yaw)) for a default camera at the given Y rotation.
     const yaw = inputState.aimYaw;
     const sin = Math.sin(yaw);
     const cos = Math.cos(yaw);
 
-    const dx = strafe * cos + forward * sin;
-    const dz = strafe * -sin + forward * cos;
+    const dx = -forward * sin + strafe * cos;
+    const dz = -forward * cos - strafe * sin;
 
     const distance = speed * dt;
     let nextX = this.#previewX + dx * distance;
@@ -335,13 +339,26 @@ export class DeadshotGame {
     if (config.previewMode && firedThisFrame) {
       this.#weapon?.triggerFire();
       this.#audio?.play('gunshot');
-      const camPos = this.#scene?.camera.getPosition().clone();
-      if (camPos !== undefined && this.#effects !== null && this.#scene !== null) {
-        this.#effects.spawnMuzzleFlash(camPos);
-        // Tracer 100 m forward along the camera's current facing
-        const forward = this.#scene.camera.forward.clone().mulScalar(100);
-        const tracerEnd = new pc.Vec3().add2(camPos, forward);
-        this.#effects.spawnTracer(camPos, tracerEnd);
+      this.#hud?.showHitMarker(false);  // visible UI confirmation that fire registered
+      const cam = this.#scene?.camera;
+      if (cam !== undefined && this.#effects !== null) {
+        const camPos = cam.getPosition();
+        const forward = cam.forward;
+        // Spawn the muzzle flash 1.2 m in front of the camera and slightly
+        // below the line of sight so it's actually inside the visible frame.
+        const flashPos = new pc.Vec3(
+          camPos.x + forward.x * 1.2,
+          camPos.y + forward.y * 1.2 - 0.1,
+          camPos.z + forward.z * 1.2,
+        );
+        this.#effects.spawnMuzzleFlash(flashPos);
+        // Tracer 100 m forward along the camera's current facing.
+        const tracerEnd = new pc.Vec3(
+          camPos.x + forward.x * 100,
+          camPos.y + forward.y * 100,
+          camPos.z + forward.z * 100,
+        );
+        this.#effects.spawnTracer(flashPos, tracerEnd);
       }
       setTimeout(() => { this.#audio?.play('bolt_cycle'); }, 300);
     }

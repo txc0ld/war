@@ -91,8 +91,8 @@ export class EffectsManager {
     // Length = distance between the two endpoints.
     const length = from.distance(to);
 
-    // Scale: thin cross-section (1 cm × 1 cm) × full length along Z.
-    entity.setLocalScale(0.01, 0.01, length);
+    // Thicker cross-section so the tracer is actually visible at distance.
+    entity.setLocalScale(0.04, 0.04, length);
 
     // Position at the midpoint.
     const mid = new pc.Vec3().add2(from, to).mulScalar(0.5);
@@ -107,16 +107,18 @@ export class EffectsManager {
 
   /**
    * Spawn a brief muzzle flash sphere at the given world-space position.
+   * Larger + longer-lived than a real muzzle flash so it reads clearly to
+   * the player on every shot.
    */
   spawnMuzzleFlash(position: pc.Vec3): void {
     const entity = new pc.Entity('MuzzleFlash');
     entity.addComponent('render', { type: 'sphere' });
-    entity.setLocalScale(0.15, 0.15, 0.15);
+    entity.setLocalScale(0.6, 0.6, 0.6);
     entity.setPosition(position.x, position.y, position.z);
     applyMaterial(entity, this.#flashMat);
 
     this.#app.root.addChild(entity);
-    this.#effects.push({ entity, lifetime: 0.08, elapsed: 0 });
+    this.#effects.push({ entity, lifetime: 0.14, elapsed: 0 });
   }
 
   /**

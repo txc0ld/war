@@ -60,14 +60,23 @@ export class MutablePlayerState {
     forward /= len;
     strafe /= len;
 
-    // Rotate intent into world space using facingYaw + aimYaw
+    // Rotate intent into world space using facingYaw + aimYaw.
+    //
+    // Derived from PlayCanvas's actual entity.forward / entity.right at a
+    // given Y rotation:
+    //   forward(yaw) = (-sin(yaw), 0, -cos(yaw))   ← camera looks -Z at yaw=0
+    //   right(yaw)   = ( cos(yaw), 0, -sin(yaw))   ← player's right is +X at yaw=0
+    //
+    //   worldDx = forward * forward.x + strafe * right.x
+    //           = -forward * sin(yaw) + strafe * cos(yaw)
+    //   worldDz = forward * forward.z + strafe * right.z
+    //           = -forward * cos(yaw) - strafe * sin(yaw)
     const totalYaw = facingYaw + this.aimYaw;
     const sin = Math.sin(totalYaw);
     const cos = Math.cos(totalYaw);
 
-    // Standard FPS convention: forward is +Z when yaw = 0
-    const worldDx = strafe * cos + forward * sin;
-    const worldDz = strafe * -sin + forward * cos;
+    const worldDx = -forward * sin + strafe * cos;
+    const worldDz = -forward * cos - strafe * sin;
 
     const distance = speed * TICK_DT_S;
     let nextX = this.x + worldDx * distance;

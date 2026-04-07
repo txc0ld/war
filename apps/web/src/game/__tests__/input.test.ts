@@ -17,7 +17,9 @@ describe('applyMouseDelta', () => {
     applyMouseDelta(state, 100, -50, 0.002);
 
     expect(state.aimYaw).toBeCloseTo(0.2);
-    expect(state.aimPitch).toBeCloseTo(0.1); // -dy * sensitivity → positive pitch
+    // dy is positive when mouse moves down; we add it to pitch directly
+    // so mouse-up (negative dy) makes pitch negative (looking up).
+    expect(state.aimPitch).toBeCloseTo(-0.1);
   });
 
   it('accumulates across multiple calls', () => {
@@ -29,22 +31,22 @@ describe('applyMouseDelta', () => {
     expect(state.aimYaw).toBeCloseTo(0.4);
   });
 
-  it('clamps pitch to +89 when looking fully up', () => {
+  it('clamps pitch to -89 when looking fully up', () => {
     const state: InputState = createInputState();
 
-    // Large negative dy → pitch goes very high
+    // Large negative dy (mouse up) → pitch goes very low (clamped to -89)
     applyMouseDelta(state, 0, -100_000, 0.002);
 
-    expect(state.aimPitch).toBe(89);
+    expect(state.aimPitch).toBe(-89);
   });
 
-  it('clamps pitch to -89 when looking fully down', () => {
+  it('clamps pitch to +89 when looking fully down', () => {
     const state: InputState = createInputState();
 
-    // Large positive dy → pitch goes very low
+    // Large positive dy (mouse down) → pitch goes very high (clamped to +89)
     applyMouseDelta(state, 0, 100_000, 0.002);
 
-    expect(state.aimPitch).toBe(-89);
+    expect(state.aimPitch).toBe(89);
   });
 
   it('does not clamp yaw', () => {

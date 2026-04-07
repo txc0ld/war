@@ -68,14 +68,14 @@ export class CameraController {
    * Set the camera's aim direction.
    * Pitch is clamped to ±89 degrees to prevent gimbal lock at the poles.
    *
-   * In our convention positive `pitch` means "looking up". PlayCanvas's
-   * positive X-axis rotation tilts the camera downward, so we negate the
-   * pitch value when applying it to the entity transform.
+   * In our convention positive `pitch` means "looking up". The input
+   * layer (input.ts) handles the sign so positive pitch reaching the
+   * camera always corresponds to looking up.
    */
   setAim(yaw: number, pitch: number): void {
     this.yaw = yaw;
     this.pitch = pc.math.clamp(pitch, PITCH_MIN, PITCH_MAX);
-    this.entity.setLocalEulerAngles(-this.pitch, this.yaw, 0);
+    this.entity.setLocalEulerAngles(this.pitch, this.yaw, 0);
   }
 
   getAim(): { yaw: number; pitch: number } {
@@ -147,10 +147,9 @@ export class CameraController {
       const sway = computeSway(this.swayElapsed, true, this.swayStance, this.swayZoom);
       const swayYawDeg = sway.yawOffset * (180 / Math.PI);
       const swayPitchDeg = sway.pitchOffset * (180 / Math.PI);
-      // Negate pitch to match setAim's convention.
       const pitchWithSway = pc.math.clamp(this.pitch + swayPitchDeg, PITCH_MIN, PITCH_MAX);
       this.entity.setLocalEulerAngles(
-        -pitchWithSway,
+        pitchWithSway,
         this.yaw + swayYawDeg,
         0,
       );

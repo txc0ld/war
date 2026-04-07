@@ -82,7 +82,8 @@ export class WeaponRenderer {
 
   /** Called when the player fires a shot. */
   triggerFire(): void {
-    this.#recoilOffset = 0.08;
+    // Beefier recoil so it's actually visible at typical FPS framerates.
+    this.#recoilOffset = 0.22;
     this.#boltTimer = this.#boltCycleS;
   }
 
